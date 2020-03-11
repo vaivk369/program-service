@@ -104,7 +104,7 @@ function updateProgram(req, response) {
   const updateQuery = {
     where: { program_id:  data.request.program_id }
   };
-  const updateValue = req.body.request;
+  const updateValue = _.cloneDeep(req.body.request);
   if (!updateValue.updatedon) {
     updateValue.updatedon = new Date();
   }
@@ -378,7 +378,7 @@ function getNominationsList(req, response) {
         responseCode: 'OK',
         result: result
       }))
-     
+
   }
   catch(err) {
     return response.status(400).send(errorResponse({
