@@ -5,7 +5,14 @@ const Sequelize = require('sequelize')
       basename  = path.basename(module.filename);
 
 var db = {};
-var sequelize = new Sequelize(envVariables.config.database, envVariables.config.user, envVariables.config.password, envVariables.config);
+var sequelize = new Sequelize("sunbird_programs", "postgres", "root", {
+        user: "postgres",
+        host: "localhost",
+        database: 'sunbird_programs',
+        password: 'root',
+        port: 5432,
+        dialect: "postgres",
+    });
 
 fs.readdirSync(__dirname)
   .filter(function(file) {

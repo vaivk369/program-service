@@ -340,4 +340,4 @@ module.exports.addNominationAPI = addNomination
 module.exports.programSearchAPI = programSearch
 module.exports.updateNominationAPI = updateNomination
 module.exports.removeNominationAPI = removeNomination
-module.exports.programUpdateCollectionAPI = programUpdateCollection
+// module.exports.programUpdateCollectionAPI = programUpdateCollection

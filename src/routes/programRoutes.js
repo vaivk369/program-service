@@ -40,7 +40,7 @@ module.exports = function (app) {
     .post(requestMiddleware.gzipCompression(), requestMiddleware.createAndValidateRequestBody,
       programService.removeNominationAPI)
 
-  app.route(BASE_URL + '/collection/link')
+ /* app.route(BASE_URL + '/collection/link')
     .post(requestMiddleware.gzipCompression, requestMiddleware.createAndValidateRequestBody,
-      programService.programUpdateCollectionAPI)
+      programService.programUpdateCollectionAPI)*/
 }
