@@ -3,12 +3,16 @@ const uuid = require("uuid/v1");
 const logger = require('sb_logger_util_v2');
 const messageUtils = require('./messageUtil');
 const respUtil = require('response_util');
+const Sequelize = require('sequelize');
 const responseCode = messageUtils.RESPONSE_CODE;
 const programMessages = messageUtils.PROGRAM;
+const contentTypeMessages = messageUtils.CONTENT_TYPE;
 const model = require('../models');
 const { forkJoin }  = require('rxjs');
 const axios = require('axios');
 const envVariables = require('../envVariables');
+const queryRes_Max = 500;
+const queryRes_Min = 100;
 
 
 function getProgram(req, response) {
@@ -39,8 +43,8 @@ async function createProgram(req, response) {
   var data = req.body
   var rspObj = req.rspObj
   if (!data.request || !data.request.config || !data.request.type) {
-    rspObj.errCode = programMessages.READ.MISSING_CODE
-    rspObj.errMsg = programMessages.READ.MISSING_MESSAGE
+    rspObj.errCode = programMessages.CREATE.MISSING_CODE
+    rspObj.errMsg = programMessages.CREATE.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
     logger.error({
       msg: 'Error due to missing request or request config or request rootOrgId or request type',
@@ -87,8 +91,8 @@ function updateProgram(req, response) {
   var data = req.body
   var rspObj = req.rspObj
   if (!data.request || !data.request.program_id ) {
-    rspObj.errCode = programMessages.READ.MISSING_CODE
-    rspObj.errMsg = programMessages.READ.MISSING_MESSAGE
+    rspObj.errCode = programMessages.UPDATE.MISSING_CODE
+    rspObj.errMsg = programMessages.UPDATE.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
     logger.error({
       msg: 'Error due to missing request or request program_id',
@@ -185,12 +189,13 @@ async function deleteProgram(req, response) {
 function programList(req, response) {
   var data = req.body
   var rspObj = req.rspObj
-  if (!data.request) {
+  var res_limit = queryRes_Min;
+  if (!data.request || !data.request.filters) {
     rspObj.errCode = programMessages.READ.MISSING_CODE
     rspObj.errMsg = programMessages.READ.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
     logger.error({
-      msg: 'Error due to missing request or request rootorg_id',
+      msg: 'Error due to missing request or request.filters',
       err: {
         errCode: rspObj.errCode,
         errMsg: rspObj.errMsg,
@@ -200,38 +205,85 @@ function programList(req, response) {
     }, req)
     return response.status(400).send(errorResponse(rspObj))
   }
-  model.program.findAll({
-    where: {...data.request},
-    order: [
-      ['updatedon', 'DESC']
-  ]
-  })
-  .then(function(res) {
-    return response.status(200).send(successResponse({
-      apiId: 'api.program.list',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'OK',
-      result: res
-    }))
-  })
-  .catch(function(err) {
-    return response.status(400).send(errorResponse({
-      apiId: 'api.program.list',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'ERR_LIST_PROGRAM',
-      result: err
-    }));
-  });
+  if (data.request.limit) {
+  res_limit = (data.request.limit < queryRes_Max) ? data.request.limit : (queryRes_Max);
+  }
+  if (data.request.filters && data.request.filters.enrolled_id) {
+    if (!data.request.filters.enrolled_id.user_id) {
+      rspObj.errCode = programMessages.READ.MISSING_CODE
+      rspObj.errMsg = programMessages.READ.MISSING_MESSAGE
+      rspObj.responseCode = responseCode.CLIENT_ERROR
+      logger.error({
+        msg: 'Error due to missing request.filters.enrolled_id.user_id',
+        err: {
+          errCode: rspObj.errCode,
+          errMsg: rspObj.errMsg,
+          responseCode: rspObj.responseCode
+        },
+        additionalInfo: { data }
+      }, req)
+      return response.status(400).send(errorResponse(rspObj))
+    }
+    model.nomination.findAndCountAll({
+      where: {user_id: data.request.filters.enrolled_id.user_id},
+      limit: res_limit,
+      include: [{
+        model: model.program
+      }]
+    })
+    .then((prg_list) => {
+      return response.status(200).send(successResponse({
+        apiId: 'api.program.list',
+        ver: '1.0',
+        msgid: uuid(),
+        responseCode: 'OK',
+        result: {count: prg_list.count, programs: prg_list.rows}
+      }))
+    })
+    .catch(function(err) {
+      return response.status(400).send(errorResponse({
+        apiId: 'api.program.list',
+        ver: '1.0',
+        msgid: uuid(),
+        responseCode: 'ERR_LIST_PROGRAM',
+        result: err
+      }));
+    });
+  } else {
+    model.program.findAndCountAll({
+      where: {...data.request.filters},
+      limit: res_limit,
+      order: [
+        ['updatedon', 'DESC']
+    ]
+    })
+    .then(function(res) {
+      return response.status(200).send(successResponse({
+        apiId: 'api.program.list',
+        ver: '1.0',
+        msgid: uuid(),
+        responseCode: 'OK',
+        result: {count: res.count, programs: res.rows}
+      }))
+    })
+    .catch(function(err) {
+      return response.status(400).send(errorResponse({
+        apiId: 'api.program.list',
+        ver: '1.0',
+        msgid: uuid(),
+        responseCode: 'ERR_LIST_PROGRAM',
+        result: err
+      }));
+    });
+  }
 }
 
 function addNomination(req, response) {
   var data = req.body
   var rspObj = req.rspObj
   if (!data.request || !data.request.program_id || !data.request.user_id || !data.request.status) {
-    rspObj.errCode = programMessages.READ.MISSING_CODE
-    rspObj.errMsg = programMessages.READ.MISSING_MESSAGE
+    rspObj.errCode = programMessages.NOMINATION.CREATE.MISSING_CODE
+    rspObj.errMsg = programMessages.NOMINATION.CREATE.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
     logger.error({
       msg: 'Error due to missing request or request program_id or request user_id or request status',
@@ -275,8 +327,8 @@ function updateNomination(req, response) {
   var data = req.body
   var rspObj = req.rspObj
   if (!data.request || !data.request.program_id || !data.request.user_id) {
-    rspObj.errCode = programMessages.READ.MISSING_CODE
-    rspObj.errMsg = programMessages.READ.MISSING_MESSAGE
+    rspObj.errCode = programMessages.NOMINATION.UPDATE.MISSING_CODE
+    rspObj.errMsg = programMessages.NOMINATION.UPDATE.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
     logger.error({
       msg: 'Error due to missing request or request config or request rootOrgId or request type',
@@ -333,44 +385,20 @@ function removeNomination(req, response) {
 }
 
 function getNominationsList(req, response) {
-  var data = req.body
-  var rspObj = req.rspObj
-  if (!data.request || !data.request.program_id) {
-    rspObj.errCode = programMessages.READ.MISSING_CODE
-    rspObj.errMsg = programMessages.READ.MISSING_MESSAGE
-    rspObj.responseCode = responseCode.CLIENT_ERROR
-    logger.error({
-      msg: 'Error due to missing request',
-      err: {
-        errCode: rspObj.errCode,
-        errMsg: rspObj.errMsg,
-        responseCode: rspObj.responseCode
-      },
-      additionalInfo: { data }
-    }, req)
-    return response.status(400).send(errorResponse(rspObj))
-  }
-
-  model.nomination.findAll({
-    where: {...data.request},
-    order: [
-      ['updatedon', 'DESC']
-    ]
-  }).then(async function(result){
-   try {
-    var userList = [];
-    _.forEach(result, function(data){
-      userList.push(data.user_id);
-    })
-   var userRes = await getUsersDetails(req, userList);
-      _.forEach(result, function(data, index){
-        var userInfo = _.find(userRes.data.result.response.content, function(d){
-          return d.id === data.user_id;
-        });
-        if(userInfo){
-          result[index].dataValues.userData = userInfo;
-        }
-      });
+  var data = req.body;
+  var rspObj = req.rspObj;
+  var res_limit = queryRes_Min;
+  if (data.request.limit) {
+    res_limit = (data.request.limit < queryRes_Max) ? data.request.limit : (queryRes_Max);
+    }
+  const findQuery = data.request.filters ? data.request.filters : {}
+  if(data.request.facets) {
+    const facets = data.request.facets;
+    model.nomination.findAll({
+      where: {...findQuery},
+      attributes: [...facets, [Sequelize.fn('count', Sequelize.col(facets[0])), 'count']],
+      group: [...facets]
+    }).then((result) => {
       return response.status(200).send(successResponse({
         apiId: 'api.nomination.list',
         ver: '1.0',
@@ -378,26 +406,65 @@ function getNominationsList(req, response) {
         responseCode: 'OK',
         result: result
       }))
-
+    }).catch((err) => {
+      return response.status(400).send(errorResponse({
+        apiId: 'api.nomination.list',
+        ver: '1.0',
+        msgid: uuid(),
+        responseCode: 'ERR_NOMINATION_LIST',
+        result: err
+      }));
+    })
+  }else {
+    model.nomination.findAll({
+      where: {...findQuery},
+      limit: res_limit,
+      order: [
+        ['updatedon', 'DESC']
+      ]
+    }).then(async function(result){
+     try {
+      var userList = [];
+      _.forEach(result, function(data){
+        userList.push(data.user_id);
+      })
+     var userRes = await getUsersDetails(req, userList);
+        _.forEach(result, function(data, index){
+          var userInfo = _.find(userRes.data.result.response.content, function(d){
+            return d.id === data.user_id;
+          });
+          if(userInfo){
+            result[index].dataValues.userData = userInfo;
+          }
+        });
+        return response.status(200).send(successResponse({
+          apiId: 'api.nomination.list',
+          ver: '1.0',
+          msgid: uuid(),
+          responseCode: 'OK',
+          result: result
+        }))
+  
+    }
+    catch(err) {
+      return response.status(400).send(errorResponse({
+        apiId: 'api.nomination.list',
+        ver: '1.0',
+        msgid: uuid(),
+        responseCode: 'ERR_NOMINATION_LIST',
+        result: err
+      }));
+    }
+    }).catch(function(err) {
+      return response.status(400).send(errorResponse({
+        apiId: 'api.nomination.list',
+        ver: '1.0',
+        msgid: uuid(),
+        responseCode: 'ERR_NOMINATION_LIST',
+        result: err
+      }));
+    });
   }
-  catch(err) {
-    return response.status(400).send(errorResponse({
-      apiId: 'api.nomination.list',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'ERR_NOMINATION_LIST',
-      result: err
-    }));
-  }
-  }).catch(function(err) {
-    return response.status(400).send(errorResponse({
-      apiId: 'api.nomination.list',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'ERR_NOMINATION_LIST',
-      result: err
-    }));
-  });
 }
 
 function getUsersDetails(req, userList){
@@ -443,6 +510,31 @@ function programSearch(req, response) {
         result: error
       }));
     })
+}
+
+function getProgramContentTypes(req, response) {
+  var rspObj = req.rspObj;
+  rspObj.errCode = contentTypeMessages.FETCH.FAILED_CODE
+  rspObj.errMsg = contentTypeMessages.FETCH.FAILED_MESSAGE
+  rspObj.responseCode = responseCode.SERVER_ERROR
+  logger.debug({ msg: 'Request to program to fetch content types'}, req)
+  model.content.findAndCountAll()
+  .then(res => {
+    rspObj.result = {count: res.count, contentType: res.rows}
+    rspObj.responseCode = 'OK'
+    return response.status(200).send(successResponse(rspObj))
+  }).catch(error => {
+    logger.error({
+      msg: 'Error fetching program content types',
+      err: {
+        errCode: rspObj.errCode,
+        errMsg: rspObj.errMsg,
+        responseCode: rspObj.responseCode
+      },
+      additionalInfo: { error }
+    }, req)
+    return response.status(400).send(errorResponse(rspObj));
+  })
 }
 
 function programUpdateCollection(req, response) {
@@ -570,4 +662,5 @@ module.exports.updateNominationAPI = updateNomination
 module.exports.removeNominationAPI = removeNomination
 module.exports.programUpdateCollectionAPI = programUpdateCollection
 module.exports.nominationsListAPI = getNominationsList
+module.exports.programGetContentTypesAPI = getProgramContentTypes
 

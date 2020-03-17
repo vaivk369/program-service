@@ -26,4 +26,7 @@ fs.readdirSync(__dirname)
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
+db.program.hasMany(db.nomination, {foreignKey: 'program_id'});
+db.nomination.belongsTo(db.program, {foreignKey: 'program_id'});
+
 module.exports = db;
