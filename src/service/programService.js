@@ -428,13 +428,22 @@ function getNominationsList(req, response) {
       _.forEach(result, function(data){
         userList.push(data.user_id);
       })
-     var userRes = await getUsersDetails(req, userList);
-        _.forEach(result, function(data, index){
-          var userInfo = _.find(userRes.data.result.response.content, function(d){
-            return d.id === data.user_id;
-          });
-          if(userInfo){
-            result[index].dataValues.userData = userInfo;
+      if(_.isEmpty(userList)){
+        return response.status(200).send(successResponse({
+          apiId: 'api.nomination.list',
+          ver: '1.0',
+          msgid: uuid(),
+          responseCode: 'OK',
+          result: result
+        }))
+      }
+      const userMap = _.map(userList, user => {
+        return getUsersDetails(req, user);
+      })
+      forkJoin(...userMap).subscribe(resData => {
+        _.forEach(resData, function(data, index){
+          if(data.data.result){
+            result[index].dataValues.userData = data.data.result.User[0];
           }
         });
         return response.status(200).send(successResponse({
@@ -444,36 +453,52 @@ function getNominationsList(req, response) {
           responseCode: 'OK',
           result: result
         }))
-  
-    }
-    catch(err) {
+      }, (error) => {
+        return response.status(400).send(errorResponse({
+          apiId: 'api.nomination.list',
+          ver: '1.0',
+          msgid: uuid(),
+          responseCode: 'ERR_NOMINATION_LIST',
+          result: error
+        }));
+      });
+     } catch(err) {
       return response.status(400).send(errorResponse({
         apiId: 'api.nomination.list',
         ver: '1.0',
         msgid: uuid(),
         responseCode: 'ERR_NOMINATION_LIST',
-        result: err
+        result: err.message || err
       }));
-    }
+     }
     }).catch(function(err) {
       return response.status(400).send(errorResponse({
         apiId: 'api.nomination.list',
         ver: '1.0',
         msgid: uuid(),
         responseCode: 'ERR_NOMINATION_LIST',
-        result: err
+        result: err.message || err
       }));
     });
   }
 }
 
-function getUsersDetails(req, userList){
-  const url = `${envVariables.baseURL}/api/user/v1/search`;
+function getUsersDetails(req, userId){
+  const url = `${envVariables.baseURL}/content/reg/search`;
   const reqData = {
+    "id": "open-saber.registry.search",
+    "ver": "1.0",
+    "ets": "11234",
+    "params": {
+      "did": "",
+      "key": "",
+      "msgid": ""
+    },
     "request": {
-      "filters": {
-        "id": userList
-      }
+       "entityType":["User"],
+       "filters": {
+         "userId": {"eq": userId}
+       }
     }
   }
   return axios({
@@ -507,7 +532,7 @@ function programSearch(req, response) {
         ver: '1.0',
         msgid: uuid(),
         responseCode: 'ERR_SEARCH_PROGRAM',
-        result: error
+        result: error.message || error
       }));
     })
 }
@@ -540,7 +565,7 @@ function getProgramContentTypes(req, response) {
 function programUpdateCollection(req, response) {
   const data = req.body
   const rspObj = req.rspObj
-  const url = `${envVariables.baseURL}/action/system/v3/content/update`;
+  const url = `${envVariables.SUNBIRD_URL}/action/system/v3/content/update`;
   if (!data.request || !data.request.program_id || !data.request.collection) {
     rspObj.errCode = programMessages.LINK.MISSING_CODE
     rspObj.errMsg = programMessages.LINK.MISSING_MESSAGE
