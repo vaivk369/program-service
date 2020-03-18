@@ -688,4 +688,3 @@ module.exports.removeNominationAPI = removeNomination
 module.exports.programUpdateCollectionAPI = programUpdateCollection
 module.exports.nominationsListAPI = getNominationsList
 module.exports.programGetContentTypesAPI = getProgramContentTypes
-
