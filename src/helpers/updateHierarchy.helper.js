@@ -89,7 +89,14 @@ class HierarchyService {
                 "idealScreenDensity",
                 "depth",
                 "origin",
-                "originData"
+                "originData",
+                "apoc_text", 
+                "apoc_num",
+                "apoc_json",
+                "createdOn",
+                "lastUpdatedOn",
+                "lastStatusChangedOn",
+                "lockKey"
               ])
             }
           }
@@ -273,7 +280,14 @@ class HierarchyService {
             "os",
             "idealScreenDensity",
             "depth",
-            "index"
+            "index",
+            "apoc_text", 
+            "apoc_num",
+            "apoc_json",
+            "createdOn",
+            "lastUpdatedOn",
+            "lastStatusChangedOn",
+            "lockKey"
           ]),
           ...(data.primaryCategory === "Digital Textbook" && {
             chapterCount : data.children ? data.children.length : 0
