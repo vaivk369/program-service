@@ -861,9 +861,13 @@ class ProgramServiceHelper {
    */
   sortPrograms(programs, sort) {
     _.map(programs, program => {
-      program.matchCount =  _.intersection(JSON.parse(program.medium), sort.medium).length
-        + _.intersection(JSON.parse(program.gradeLevel), sort.gradeLevel).length
-        + _.intersection(JSON.parse(program.subject), sort.subject).length;
+      const medium = _.get(program, 'medium') || _.get(program, 'program.dataValues.medium') || null;
+      const gradeLevel = _.get(program, 'gradeLevel') || _.get(program, 'program.dataValues.gradeLevel') || null;
+      const subject = _.get(program, 'subject') || _.get(program, 'program.dataValues.subject') || null;
+
+      program.matchCount =  _.intersection(JSON.parse(medium), sort.medium).length
+        + _.intersection(JSON.parse(gradeLevel), sort.gradeLevel).length
+        + _.intersection(JSON.parse(subject), sort.subject).length;
       return program;
     });
 

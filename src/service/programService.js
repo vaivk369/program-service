@@ -1105,7 +1105,11 @@ function programList(req, response) {
         ]
       })
       .then((prg_list) => {
-        const apiRes = _.map(prg_list, 'dataValues');
+        let apiRes = _.map(prg_list, 'dataValues');
+        if (data.request.sort){
+          apiRes = programServiceHelper.sortPrograms(apiRes, data.request.sort);
+        }
+
         return response.status(200).send(successResponse({
           apiId: 'api.program.list',
           ver: '1.0',
