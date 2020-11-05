@@ -38,7 +38,8 @@ function getPublishContentEvent(metadata, textbookId, units) {
       "itemSets",
       "origin",
       "originData",
-      "contentPolicyCheck"
+      "contentPolicyCheck",
+      "questions"
     ]);
     metadata.processId = uuid();
     var ets = Date.now();
