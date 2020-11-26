@@ -176,6 +176,7 @@ class HierarchyService {
         "content.originData"
       ])
     };
+
     additionalMetaData = {
       ...collection.creationResult.result,
       ...additionalMetaData,
@@ -217,7 +218,7 @@ class HierarchyService {
   getFlatHierarchyObj(data, additionalMetaData, children) {
     let instance = this;
     if (data) {
-      if (additionalMetaData.isFirstTime && data.primaryCategory === "Digital Textbook") {
+      if (additionalMetaData.isFirstTime && _.includes(additionalMetaData.projCollectionCategories, data.primaryCategory)) {
         data.identifier = additionalMetaData.identifier;
       }
       instance.hierarchy[data.identifier] = {
@@ -227,20 +228,20 @@ class HierarchyService {
           _.map(data.children, function(child) {
             if (
               child.mimeType === "application/vnd.ekstep.content-collection" &&
-              (child.primaryCategory === "Digital Textbook" ||
-                child.primaryCategory === "Textbook Unit")
+              (_.includes(additionalMetaData.projCollectionCategories, child.primaryCategory) ||
+                child.primaryCategory === "Textbook Unit" ||  child.primaryCategory === "Course Unit")
             ) {
               return child.identifier;
             }
           })
         ),
-        root: data.primaryCategory === "Digital Textbook" ? true : false
+        root: _.includes(additionalMetaData.projCollectionCategories, data.primaryCategory) ? true : false
       };
     }
     _.forEach(data.children, child => {
       if (
-        child.primaryCategory === "Textbook Unit" ||
-        child.primaryCategory === "Digital Textbook"
+        child.primaryCategory === "Textbook Unit" || child.primaryCategory === "Course Unit" ||
+        _.includes(additionalMetaData.projCollectionCategories, child.primaryCategory)
       ) {
         instance.getFlatHierarchyObj(child, additionalMetaData, children);
       }
@@ -252,7 +253,7 @@ class HierarchyService {
     let instance = this;
     let nodeId;
     if (data) {
-      if (additionalMetaData.isFirstTime && data.primaryCategory === "Digital Textbook") {
+      if (additionalMetaData.isFirstTime && _.includes(additionalMetaData.projCollectionCategories, data.primaryCategory)) {
         nodeId = additionalMetaData.identifier;
       } else {
         nodeId = data.identifier;
@@ -260,7 +261,7 @@ class HierarchyService {
 
       instance.nodeModified[nodeId] = {
         isNew: true,
-        root: data.primaryCategory === "Digital Textbook" ? true : false,
+        root: _.includes(additionalMetaData.projCollectionCategories, data.primaryCategory) ? true : false,
         metadata: {
           ..._.omit(data, [
             "children",
@@ -281,7 +282,7 @@ class HierarchyService {
             "idealScreenDensity",
             "depth",
             "index",
-            "apoc_text", 
+            "apoc_text",
             "apoc_num",
             "apoc_json",
             "createdOn",
@@ -289,7 +290,7 @@ class HierarchyService {
             "lastStatusChangedOn",
             "lockKey"
           ]),
-          ...(data.primaryCategory === "Digital Textbook" && {
+          ...(_.includes(additionalMetaData.projCollectionCategories, data.primaryCategory) && {
             chapterCount : data.children ? data.children.length : 0
           }),
           programId: additionalMetaData.programId,
@@ -301,15 +302,15 @@ class HierarchyService {
           }
         }
       };
-      if(data.primaryCategory !== "Digital Textbook" && instance.nodeModified[nodeId].metadata && instance.nodeModified[nodeId].metadata.audience) {
+      if(!_.includes(additionalMetaData.projCollectionCategories, data.primaryCategory) && instance.nodeModified[nodeId].metadata && instance.nodeModified[nodeId].metadata.audience) {
         delete instance.nodeModified[nodeId].metadata.audience;
       }
     }
 
     _.forEach(data.children, child => {
       if (
-        child.primaryCategory === "Textbook Unit" ||
-        child.primaryCategory === "Digital Textbook"
+        child.primaryCategory === "Textbook Unit" || child.primaryCategory === "Course Unit"||
+        _.includes(additionalMetaData.projCollectionCategories, child.primaryCategory)
       ) {
         instance.getFlatNodesModified(child, additionalMetaData, children);
       }
