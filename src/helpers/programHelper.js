@@ -590,7 +590,8 @@ class ProgramServiceHelper {
       programId: _.get(data, 'program_id'),
       allowedContentTypes: _.get(data, 'content_types'),
       channel: channel,
-      openForContribution: false
+      openForContribution: false,
+      projCollectionCategories: _.get(data, 'target_collection_category'),
     };
 
     hierarchyService.filterExistingTextbooks(collectionIds, additionalMetaData.programId, reqHeaders)
