@@ -123,7 +123,7 @@ class ProgramServiceHelper {
         'content-type': 'application/json',
       };
     const option = {
-      url: `${envVariables.baseURL}/action/composite/v3/search`,
+      url: `${envVariables.baseURL}/api/composite/v1/search`,
       method: 'post',
       headers: {...req.headers, ...headers},
       data: {
