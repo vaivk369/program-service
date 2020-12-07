@@ -1,5 +1,6 @@
 const { forkJoin } = require("rxjs");
 const { from  } = require("rxjs");
+const { of  } = require("rxjs");
 const _ = require("lodash");
 const envVariables = require("../envVariables");
 const axios = require("axios");
@@ -15,6 +16,8 @@ const HierarchyService = require('./updateHierarchy.helper');
 const RegistryService = require('../service/registryService');
 const hierarchyService = new HierarchyService();
 const registryService = new RegistryService();
+const SbCacheManager = require('sb_cache_manager');
+const cacheManager = new SbCacheManager({ttl: envVariables.CACHE_TTL});
 
 class ProgramServiceHelper {
   searchContent(programId, sampleContentCheck, reqHeaders) {
@@ -131,13 +134,14 @@ class ProgramServiceHelper {
     return axios(option);
   }
 
-  getCollectionWithProgramId(program_id, req) {
+  async getCollectionWithProgramId(program_id, req) {
+    const program = await this.getProgramDetails(program_id);
     const queryFilter = {
        filters: {
          programId: program_id,
          objectType: 'collection',
          status: ['Draft'],
-         primaryCategory: 'Digital Textbook'
+         primaryCategory: program.dataValues.target_collection_category
        },
        fields: ['name', 'medium', 'gradeLevel', 'subject', 'chapterCount', 'acceptedContents', 'rejectedContents', 'openForContribution', 'chapterCountForContribution', 'mvcContributions'],
        limit: 1000
@@ -348,11 +352,32 @@ class ProgramServiceHelper {
   }
 
   getProgramDetails(program_id) {
-    return model.program.findOne({
-      where: {
-        program_id: program_id
-      }
-    })
+    return new Promise((resolve, reject) => {
+      cacheManager.get(`program_obj_${program_id}`, (err, cacheData) => {
+        cacheData = null;
+        if (err || !cacheData) {
+          model.program.findOne({
+            where: {
+              program_id: program_id
+            }
+          }).then(res => {
+            cacheManager.set({ key: `program_obj_${program_id}`, value: res }, function (err, cacheCSVData) {
+              if (err) {
+                logger.error({msg: 'Error - caching', err, additionalInfo: {programObj: res}}, {})
+              } else {
+                logger.debug({msg: 'Caching program obj  - done', additionalInfo: {programObj: res}}, {})
+              }
+            });
+
+            return resolve(res);
+          }).catch(function (err) {
+            return reject({});
+          });
+        } else {
+          return resolve(cacheData);
+        }
+      });
+    });
   }
 
   hierarchyRequest(req, collectionId) {
@@ -426,7 +451,7 @@ class ProgramServiceHelper {
 
   collectionLevelCount(data) {
     const self = this;
-    if (data.primaryCategory === 'Digital Textbook') {
+    if ((data.primaryCategory === 'Digital Textbook' || data.primaryCategory === 'Course' || data.primaryCategory === 'Content Playlist') && data.visibility === 'Default') {
       this.collectionData['name'] = data.name;
       this.collectionData['identifier'] = data.identifier;
       this.collectionData['grade'] = _.isArray(data.gradeLevel) ? data.gradeLevel.join(", ") : data.gradeLevel || '';
@@ -518,9 +543,9 @@ class ProgramServiceHelper {
           }
         });
         return resolve(overalData);
-      }catch (err) {
-        reject('programServiceException: error in preparing textbookLevelContentMetrics');
-      }
+        }catch (err) {
+          reject('programServiceException: error in preparing textbookLevelContentMetrics');
+        }
       }, err => {
         reject('programServiceException: error in fetching contentTypes');
       });
