@@ -143,7 +143,7 @@ class ProgramServiceHelper {
          status: ['Draft'],
          primaryCategory: program.dataValues.target_collection_category
        },
-       fields: ['name', 'medium', 'gradeLevel', 'subject', 'chapterCount', 'acceptedContents', 'rejectedContents', 'openForContribution', 'chapterCountForContribution', 'mvcContributions'],
+       fields: ['name', 'medium', 'gradeLevel', 'subject', 'primaryCategory', 'chapterCount', 'acceptedContents', 'rejectedContents', 'openForContribution', 'chapterCountForContribution', 'mvcContributions'],
        limit: 1000
      };
     return this.searchWithProgramId(queryFilter, req);
@@ -266,7 +266,7 @@ class ProgramServiceHelper {
         tableData = _.map(openForContributionCollections, (collection) => {
         const result = {};
         // sequence of columns in tableData
-        result['Textbook Name'] = collection.name || '';
+        result[`${collection.primaryCategory} Name`] = collection.name || '';
         result['Medium'] = collection.medium || '';
         result['Class'] = collection.gradeLevel && collection.gradeLevel.length ? collection.gradeLevel.join(', ') : '';
         result['Subject'] = collection.subject || '';
