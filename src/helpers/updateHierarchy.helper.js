@@ -96,7 +96,8 @@ class HierarchyService {
                 "createdOn",
                 "lastUpdatedOn",
                 "lastStatusChangedOn",
-                "lockKey"
+                "lockKey",
+                "variants"
               ])
             }
           }
@@ -287,7 +288,8 @@ class HierarchyService {
             "createdOn",
             "lastUpdatedOn",
             "lastStatusChangedOn",
-            "lockKey"
+            "lockKey",
+            "variants"
           ]),
           ...(data.primaryCategory === "Digital Textbook" && {
             chapterCount : data.children ? data.children.length : 0
