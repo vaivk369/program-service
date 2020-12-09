@@ -525,7 +525,7 @@ class ProgramServiceHelper {
               final['Medium'] = collection.medium;
               final['Grade'] = collection.grade;
               final['Subject'] = collection.subject;
-              final['Textbook Name'] = collection.name;
+              final[`${collection.primaryCategory} Name`] = collection.name;
               final['Total Number of Chapters'] = collection.chapter ? collection.chapter.length : 0;
               final['Total Contents Contributed'] = collection.contributionsReceived ? collection.contributionsReceived : 0;
               final['Total Contents Reviewed'] = collection.totalContentsReviewed ? collection.totalContentsReviewed : 0;
@@ -565,7 +565,7 @@ class ProgramServiceHelper {
                   final['Medium'] = collection.medium;
                   final['Grade'] = collection.grade;
                   final['Subject'] = collection.subject;
-                  final['Textbook Name'] = collection.name;
+                  final[`${collection.primaryCategory} Name`] = collection.name;
                   final['Chapter Name'] = unit.name;
                   final['Total Contents Contributed'] = unit.contentsContributed || 0;
                   final['Total Contents Reviewed'] = unit.contentsReviewed || 0;
@@ -616,7 +616,8 @@ class ProgramServiceHelper {
       allowedContentTypes: _.get(data, 'content_types'),
       channel: channel,
       openForContribution: false,
-      projCollectionCategories: _.get(data, 'target_collection_category'),
+      projCollectionCategories: ["Digital Textbook", "Content Playlist", "Course"],
+      projUnitCategories: ["Textbook Unit", "Course Unit", "Lesson Plan Unit", "Content Playlist"],
     };
 
     hierarchyService.filterExistingTextbooks(collectionIds, additionalMetaData.programId, reqHeaders)
