@@ -228,8 +228,8 @@ class HierarchyService {
           _.map(data.children, function(child) {
             if (
               child.mimeType === "application/vnd.ekstep.content-collection" &&
-              (_.includes(additionalMetaData.projCollectionCategories, child.primaryCategory) ||
-                child.primaryCategory === "Textbook Unit" ||  child.primaryCategory === "Course Unit")
+              _.includes(additionalMetaData.projCollectionCategories, child.primaryCategory) ||
+              _.includes(additionalMetaData.projUnitCategories, child.primaryCategory)
             ) {
               return child.identifier;
             }
@@ -240,7 +240,7 @@ class HierarchyService {
     }
     _.forEach(data.children, child => {
       if (
-        child.primaryCategory === "Textbook Unit" || child.primaryCategory === "Course Unit" ||
+        _.includes(additionalMetaData.projUnitCategories, child.primaryCategory) ||
         _.includes(additionalMetaData.projCollectionCategories, child.primaryCategory)
       ) {
         instance.getFlatHierarchyObj(child, additionalMetaData, children);
@@ -302,14 +302,14 @@ class HierarchyService {
           }
         }
       };
-      if(!_.includes(additionalMetaData.projCollectionCategories, data.primaryCategory) && instance.nodeModified[nodeId].metadata && instance.nodeModified[nodeId].metadata.audience) {
+      if(!(_.includes(additionalMetaData.projCollectionCategories, data.primaryCategory) && data.visibility === 'Default') && instance.nodeModified[nodeId].metadata && instance.nodeModified[nodeId].metadata.audience) {
         delete instance.nodeModified[nodeId].metadata.audience;
       }
     }
 
     _.forEach(data.children, child => {
       if (
-        child.primaryCategory === "Textbook Unit" || child.primaryCategory === "Course Unit"||
+        _.includes(additionalMetaData.projUnitCategories, child.primaryCategory) ||
         _.includes(additionalMetaData.projCollectionCategories, child.primaryCategory)
       ) {
         instance.getFlatNodesModified(child, additionalMetaData, children);
