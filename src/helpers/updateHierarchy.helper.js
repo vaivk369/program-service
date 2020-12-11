@@ -96,7 +96,8 @@ class HierarchyService {
                 "createdOn",
                 "lastUpdatedOn",
                 "lastStatusChangedOn",
-                "lockKey"
+                "lockKey",
+                "variants"
               ])
             }
           }
@@ -282,7 +283,8 @@ class HierarchyService {
             "createdOn",
             "lastUpdatedOn",
             "lastStatusChangedOn",
-            "lockKey"
+            "lockKey",
+            "variants"
           ]),
           ...(_.includes(additionalMetaData.projCollectionCategories, data.primaryCategory) && data.visibility === 'Default' && {
             chapterCount : data.children ? data.children.length : 0
