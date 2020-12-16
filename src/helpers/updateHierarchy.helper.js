@@ -47,7 +47,6 @@ class HierarchyService {
           }
         }
       };
-      console.log(option.data.request.data);
       const logObject = {
         msg: 'bulk Update Hierarchy',
         channel: 'update hierarchy helper',

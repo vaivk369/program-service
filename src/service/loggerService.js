@@ -31,7 +31,6 @@ const telemetryEventConfig = require('../config/telemetryEventConfig.json');
           "params": [logObject.params] // Optional. Additional params in the log message
         }
       }
-      console.log(logFormate, 'logFormate');
       return logFormate;
 }
 
