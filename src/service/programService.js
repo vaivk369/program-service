@@ -6,6 +6,7 @@ const messageUtils = require('./messageUtil');
 const respUtil = require('response_util');
 const Sequelize = require('sequelize');
 const moment = require('moment');
+const loggerService = require('./loggerService');
 const Op = Sequelize.Op;
 const responseCode = messageUtils.RESPONSE_CODE;
 const programMessages = messageUtils.PROGRAM;
@@ -817,7 +818,15 @@ function addOrUpdateNomination(programDetails, orgosid) {
               });
           } else {
             model.nomination.create(insertObj).then(res => {
-              console.log("nomination successfully written to DB", res);
+              const logObject = {
+                msg: 'nomination successfully written to DB',
+                channel: 'programService',
+                level: 'INFO',
+                env: 'addOrUpdateNomination',
+                actorId: programDetails.createdby,
+                params: {}
+              }
+              console.log("nomination successfully written to DB", loggerService.logFormate(logObject));
               return resolve(insertObj);
             }).catch(err => {
               logger.error({ msg: 'Nomination creation failed', error, additionalInfo: { nomDetails: insertObj } }, {});
@@ -2593,7 +2602,15 @@ function addorUpdateUserOrgMapping(userProfile, filterRootOrg, orgOsid, userOsid
     registryService.updateRecord(regReq, (mapErr, mapRes) => {
       if (mapRes && mapRes.status == 200 && _.get(mapRes.data, 'params.status' == "SUCCESSFULL")) {
         consoleLogs[userProfile.identifier]['updatingUserOrgMapping']['mapped'] = true;
-        console.log(consoleLogs[userProfile.identifier]);
+        const logObject = {
+          msg: 'User mapping updated successfully',
+          channel: 'programService',
+          level: 'INFO',
+          env: 'addorUpdateUserOrgMapping(updateRecord)',
+          actorId: userProfile.identifier,
+          params: {}
+        }
+        console.log(loggerService.logFormate(logObject));
         callbackFunction(null, updateOsid);
       }
       else {
@@ -2636,7 +2653,15 @@ function addorUpdateUserOrgMapping(userProfile, filterRootOrg, orgOsid, userOsid
       if (mapRes && mapRes.status == 200 && _.get(mapRes.data, 'result') && _.get(mapRes.data, 'result.User_Org.osid')) {
         consoleLogs[userProfile.identifier]['creatingUserOrgMapping']['mappingOsid'] = _.get(mapRes.data, 'result.User_Org.osid');
         consoleLogs[userProfile.identifier]['creatingUserOrgMapping']['mapped'] = true;
-        console.log(consoleLogs[userProfile.identifier]);
+        const logObject = {
+          msg: 'created User Org Mapping',
+          channel: 'programService',
+          level: 'INFO',
+          env: 'addorUpdateUserOrgMapping(addRecord)',
+          actorId: userProfile.identifier,
+          params: {}
+        }
+        console.log(loggerService.logFormate(logObject));
         callbackFunction(null, _.get(mapRes.data, 'result.User_Org.osid'));
       }
       else {

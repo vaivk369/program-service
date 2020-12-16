@@ -2,6 +2,7 @@ const { forkJoin } = require("rxjs");
 const _ = require("lodash");
 const envVariables = require("../envVariables");
 const axios = require("axios");
+const loggerService = require('../service/loggerService');
 
 class HierarchyService {
   filterExistingTextbooks(collectionIds, programId, reqHeaders) {
@@ -47,6 +48,15 @@ class HierarchyService {
         }
       };
       console.log(option.data.request.data);
+      const logObject = {
+        msg: 'bulk Update Hierarchy',
+        channel: 'update hierarchy helper',
+        level: 'INFO',
+        env: 'bulkUpdateHierarchy',
+        actorId: '',
+        params: {collection: option.data.request.data}
+      }
+      console.log(loggerService.logFormate(logObject));
       return axios(option);
     });
     return forkJoin(...bulkRequest);
