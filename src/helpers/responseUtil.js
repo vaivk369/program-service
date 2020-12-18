@@ -23,6 +23,18 @@ const errorResponse = (data) => {
   return response
 }
 
+const exceptionErrorResponse = (data,errCode) => {
+  var response = {}
+  response.eid = 'Error'
+  response.edata = {
+    err : errCode,
+    errtype : data.errMsg,
+    requestid : data.msgId || uuid(),
+    stacktrace : _.truncate(JSON.stringify(data), { 'length': stackTrace_MaxLimit})
+  }
+  return response
+}
+
 const getParams = (msgId, status, errCode, msg) => {
   var params = {}
   params.resmsgid = uuid()
@@ -42,5 +54,6 @@ module.exports = {
   successResponse,
   errorResponse,
   getParams,
-  loggerError
+  loggerError,
+  exceptionErrorResponse
 }

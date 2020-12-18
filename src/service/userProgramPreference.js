@@ -18,6 +18,7 @@ const redisManager = new RedisManager();
 function getPreferences(req, response) {
   var data = req.body;
   var rspObj = req.rspObj;
+  const errCode = programMessages.EXCEPTION_CODE+programMessages.PREFERENCES.READ.EXCEPTION_CODE+programMessages.PREFERENCES.READ.CODE
   rspObj.apiId = 'api.preference.read';
   rspObj.apiVersion = '1.0'
 
@@ -27,7 +28,7 @@ function getPreferences(req, response) {
     rspObj.responseCode = responseCode.CLIENT_ERROR;
     loggerError('Error due to missing request or user_id or program_id',
       rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req)
-    return response.status(400).send(errorResponse(rspObj))
+    return response.status(400).send(exceptionErrorResponse(rspObj,errCode))
   }
 
   var redisKey = data.request.user_id + ':' + data.request.program_id;
@@ -52,7 +53,7 @@ function getPreferences(req, response) {
         } else {
           rspObj.responseCode = 'ERR_GET_USER_PREFERENCE_FAILED';
           rspObj.result = result.result;
-          return response.status(400).send(errorResponse(rspObj));
+          return response.status(400).send(exceptionErrorResponse(rspObj,errCode));
         }
       });
     } else {
@@ -237,6 +238,8 @@ function syncCacheToPreferenceTable(userId, programId, cacheObj) {
 function setPreferences(req, response) {
   var data = req.body
   var rspObj = req.rspObj
+  const errCode = programMessages.EXCEPTION_CODE+programMessages.PREFERENCES.CREATE.EXCEPTION_CODE+programMessages.PREFERENCES.CREATE.CODE
+  
   rspObj.apiId = 'api.preference.create';
   rspObj.apiVersion = '1.0';
 
@@ -246,7 +249,7 @@ function setPreferences(req, response) {
     rspObj.responseCode = responseCode.CLIENT_ERROR;
     loggerError('Error due to missing request or user_id or program_id or preference',
       rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req)
-    return response.status(400).send(errorResponse(rspObj))
+    return response.status(400).send(exceptionErrorResponse(rspObj,errCode))
   }
   // Todo- check if the preferences is json of MSG
   const userId = data.request.user_id;
@@ -272,7 +275,7 @@ function setPreferences(req, response) {
         if (result.error) {
           rspObj.responseCode = 'ERR_GET_USER_PREFERENCE_FAILED';
           rspObj.result = result.result;
-          return response.status(400).send(errorResponse(rspObj));
+          return response.status(400).send(exceptionErrorResponse(rspObj,errCode));
         }
 
         if (!result.res) {
@@ -281,7 +284,7 @@ function setPreferences(req, response) {
               rspObj.errMsg = programMessages.PREFERENCES.CREATE.FAILED_MESSAGE
               rspObj.responseCode = programMessages.PREFERENCES.CREATE.FAILED_CODE;
               rspObj.result = addRes.res;
-              return response.status(400).send(errorResponse(rspObj));
+              return response.status(400).send(exceptionErrorResponse(rspObj,errCode));
             }
             else {
               const tableRes = addRes.res;
@@ -293,10 +296,11 @@ function setPreferences(req, response) {
         } else if (result.res.id) {
           updatePreferencetotable(userId, programId, data.request).then((updateRes) => {
             if (updateRes.error) {
+              const errorCode = programMessages.EXCEPTION_CODE+programMessages.PREFERENCES.UPDATE.EXCEPTION_CODE+programMessages.PREFERENCES.UPDATE.CODE
               rspObj.errMsg = programMessages.PREFERENCES.UPDATE.FAILED_MESSAGE
               rspObj.responseCode = programMessages.PREFERENCES.UPDATE.FAILED_CODE;
               rspObj.result = updateRes.res;
-              return response.status(400).send(errorResponse(rspObj));
+              return response.status(400).send(exceptionErrorResponse(rspObj,errorCode));
             }
             else {
               const tableRes = updateRes.res;
@@ -351,6 +355,24 @@ function errorResponse(data) {
   response.params = getParams(data.msgId, 'failed', data.errCode, data.errMsg)
   response.responseCode = data.responseCode
   response.result = data.result
+  return response
+}
+
+/**
+ * Function for Exception Error Response Handler
+ * @param {Object} data
+ * @param {ErrCode}
+ * @returns {nm$_responseUtil.exceptionErrorResponse.response} 
+ */
+function exceptionErrorResponse(data,errCode) {
+  var response = {}
+  response.eid = 'Error'
+  response.edata = {
+    err : errCode,
+    errtype : data.errMsg,
+    requestid : data.msgid || uuid(),
+    stacktrace : _.truncate(JSON.stringify(data), { 'length': stackTrace_MaxLimit})
+  }
   return response
 }
 

@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const messageUtils = require('./messageUtil');
 const programFeedMessages = messageUtils.PROGRAM_FEED;
+const programMessages = messageUtils.PROGRAM;
 const responseCode = messageUtils.RESPONSE_CODE;
 const keyGenerator = require('../helpers/redisKeyGenerator');
 const RedisManager = require('../helpers/redisUtil');
@@ -20,6 +21,7 @@ const searchForUpdates = async (req, response) => {
   let data = req.body
   const rspObj = req.rspObj;
   const client =  redisManager.getClient();
+  const errCode = programMessages.EXCEPTION_CODE+'_'+programFeedMessages.SEARCH.EXCEPTION_CODE+programFeedMessages.SEARCH.CODE;
 
   const nominationRequest = _.get(data, 'request.nomination');
   const contributionRequest = _.get(data, 'request.contribution');
@@ -140,7 +142,7 @@ const searchForUpdates = async (req, response) => {
     rspObj.errMsg = error.message || programFeedMessages.SEARCH.FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
     loggerError('Unable to search for program feed', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, error, req);
-    return response.status(500).send(errorResponse(rspObj));
+    return response.status(500).send(exceptionErrorResponse(rspObj,errCode));
   }
 }
 

@@ -14,12 +14,13 @@ const searchResult_Min = 300;
 async function createJob(req, response) {
   let data = req.body
   const rspObj = req.rspObj
+  const errCode = bulkJobRequestMessages.EXCEPTION_CODE+'_'+bulkJobRequestMessages.CREATE.EXCEPTION_CODE+bulkJobRequestMessages.CREATE.CODE
   if(!data.request || !data.request.process_id || !data.request.program_id || !data.request.type || !data.request.createdby) {
     rspObj.errCode = bulkJobRequestMessages.CREATE.MISSING_CODE;
     rspObj.errMsg = bulkJobRequestMessages.CREATE.MISSING_MESSAGE;
     rspObj.responseCode = responseCode.CLIENT_ERROR;
     loggerError('Error due to missing fields in the request', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req)
-    return response.status(400).send(errorResponse(rspObj));
+    return response.status(400).send(exceptionErrorResponse(rspObj,errCode));
   }
   const insertObj = data.request;
   try {
@@ -34,12 +35,13 @@ async function createJob(req, response) {
     rspObj.errMsg = sequelizeErrorMessage ? sequelizeErrorMessage.message : error.message || bulkJobRequestMessages.CREATE.FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
     loggerError('Error while create a new bulk_job_request', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, error, req)
-    return response.status(500).send(errorResponse(rspObj));
+    return response.status(500).send(exceptionErrorResponse(rspObj,errCode));
   }
 }
 
 async function readJob(req, response) {
   const rspObj = req.rspObj;
+  const errCode = bulkJobRequestMessages.EXCEPTION_CODE+'_'+bulkJobRequestMessages.READ.EXCEPTION_CODE+bulkJobRequestMessages.READ.CODE
   try {
     const readResponse = await model.bulk_job_request.findOne({ where: { process_id: req.params.process_id }})
     if(!readResponse) {
@@ -47,7 +49,7 @@ async function readJob(req, response) {
       rspObj.errMsg = `process_id ${req.params.process_id} does not exist`;
       rspObj.responseCode = responseCode.PROCESS_NOT_FOUND;
       loggerError(`process_id ${req.params.process_id} does not exist`, rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req)
-      return response.status(404).send(errorResponse(rspObj))
+      return response.status(404).send(exceptionErrorResponse(rspObj,errCode))
     }
     rspObj.responseCode = responseCode.SUCCESS;
     rspObj.result = readResponse;
@@ -58,20 +60,21 @@ async function readJob(req, response) {
     rspObj.responseCode = responseCode.SERVER_ERROR;
     loggerError('Error fetching bulk job request for the requested process_id',
     rspObj.errCode, rspObj.errMsg, rspObj.responseCode, error, req);
-    return response.status(500).send(errorResponse(rspObj));
+    return response.status(500).send(exceptionErrorResponse(rspObj,errCode));
   }
 }
 
 async function updateJob(req, response) {
   let data = req.body
   const rspObj = req.rspObj
+  const errCode = bulkJobRequestMessages.EXCEPTION_CODE+'_'+bulkJobRequestMessages.UPDATE.EXCEPTION_CODE+bulkJobRequestMessages.UPDATE.CODE
   if(!data.request || !data.request.process_id) {
     rspObj.errCode = bulkJobRequestMessages.UPDATE.MISSING_CODE;
     rspObj.errMsg = bulkJobRequestMessages.UPDATE.MISSING_MESSAGE;
     rspObj.responseCode = responseCode.CLIENT_ERROR;
     loggerError('Error updating bulk job request due to missing process_id field',
     rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req);
-    return response.status(400).send(errorResponse(rspObj));
+    return response.status(400).send(exceptionErrorResponse(rspObj,errCode));
   }
 
   const updateStatement = {
@@ -91,7 +94,7 @@ async function updateJob(req, response) {
       rspObj.responseCode = responseCode.PROCESS_NOT_FOUND;
       loggerError('Unable to update job. process_id not found.',
       rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req);
-      return response.status(404).send(errorResponse(rspObj))
+      return response.status(404).send(exceptionErrorResponse(rspObj,errCode))
     }
     rspObj.responseCode = responseCode.SUCCESS;
     rspObj.result = {
@@ -103,13 +106,14 @@ async function updateJob(req, response) {
     rspObj.errMsg = error.message || bulkJobRequestMessages.UPDATE.UPDATE_FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
     loggerError('Unable to update job', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, error, req)
-    return response.status(500).send(errorResponse(rspObj));
+    return response.status(500).send(exceptionErrorResponse(rspObj,errCode));
   }
 }
 
 async function searchJob(req, response) {
   const data = req.body;
   const rspObj = req.rspObj;
+  const errCode = bulkJobRequestMessages.EXCEPTION_CODE+'_'+bulkJobRequestMessages.SEARCH.EXCEPTION_CODE+bulkJobRequestMessages.SEARCH.CODE
   let searchOffset = data.request.offset || 0;
   var searchLimit = searchResult_Min;
   if(data.request.limit) {
@@ -120,7 +124,7 @@ async function searchJob(req, response) {
     rspObj.errMsg = bulkJobRequestMessages.SEARCH.MISSING_MESSAGE;
     rspObj.responseCode = responseCode.CLIENT_ERROR
     loggerError('Unable to search of bulk jobs', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req);
-    return response.status(400).send(errorResponse(rspObj));
+    return response.status(400).send(exceptionErrorResponse(rspObj,errCode));
   }
   try {
     const searchResponse = await model.bulk_job_request.findAll({
@@ -148,7 +152,7 @@ async function searchJob(req, response) {
     rspObj.errMsg = error.message || bulkJobRequestMessages.SEARCH.FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
     loggerError('Unable to search for bulk job', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, error, req);
-    return response.status(500).send(errorResponse(rspObj));
+    return response.status(500).send(exceptionErrorResponse(rspObj,errCode));
   }
 }
 
@@ -172,6 +176,18 @@ function errorResponse(data) {
   response.params = getParams(data.msgId, 'failed', data.errCode, data.errMsg)
   response.responseCode = data.responseCode
   response.result = data.result
+  return response
+}
+
+function exceptionErrorResponse(data,errCode) {
+  var response = {}
+  response.eid = 'Error'
+  response.edata = {
+    err : errCode,
+    errtype : data.errMsg,
+    requestid : data.msgId || uuid(),
+    stacktrace : _.truncate(JSON.stringify(data), { 'length': stackTrace_MaxLimit})
+  }
   return response
 }
 
