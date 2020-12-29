@@ -10,6 +10,7 @@ const uuid = require("uuid/v1");
 
 const searchResult_Max = 1000;
 const searchResult_Min = 300;
+const stackTrace_MaxLimit = 500;
 
 async function createJob(req, response) {
   let data = req.body
@@ -19,8 +20,8 @@ async function createJob(req, response) {
     rspObj.errCode = bulkJobRequestMessages.CREATE.MISSING_CODE;
     rspObj.errMsg = bulkJobRequestMessages.CREATE.MISSING_MESSAGE;
     rspObj.responseCode = responseCode.CLIENT_ERROR;
-    loggerError('Error due to missing fields in the request', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req)
-    return response.status(400).send(exceptionErrorResponse(rspObj,errCode));
+    loggerError(rspObj,errCode);
+    return response.status(400).send(errorResponse(rspObj));
   }
   const insertObj = data.request;
   try {
@@ -34,8 +35,8 @@ async function createJob(req, response) {
     rspObj.errCode = bulkJobRequestMessages.CREATE.FAILED_CODE;
     rspObj.errMsg = sequelizeErrorMessage ? sequelizeErrorMessage.message : error.message || bulkJobRequestMessages.CREATE.FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
-    loggerError('Error while create a new bulk_job_request', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, error, req)
-    return response.status(500).send(exceptionErrorResponse(rspObj,errCode));
+    loggerError(rspObj,errCode);
+    return response.status(500).send(errorResponse(rspObj));
   }
 }
 
@@ -48,8 +49,8 @@ async function readJob(req, response) {
       rspObj.errCode = responseCode.PROCESS_NOT_FOUND;
       rspObj.errMsg = `process_id ${req.params.process_id} does not exist`;
       rspObj.responseCode = responseCode.PROCESS_NOT_FOUND;
-      loggerError(`process_id ${req.params.process_id} does not exist`, rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req)
-      return response.status(404).send(exceptionErrorResponse(rspObj,errCode))
+      loggerError(rspObj,errCode);
+      return response.status(404).send(errorResponse(rspObj))
     }
     rspObj.responseCode = responseCode.SUCCESS;
     rspObj.result = readResponse;
@@ -58,9 +59,8 @@ async function readJob(req, response) {
     rspObj.errCode =  bulkJobRequestMessages.READ.FAILED_CODE;
     rspObj.errMsg =  error.message || bulkJobRequestMessages.READ.FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
-    loggerError('Error fetching bulk job request for the requested process_id',
-    rspObj.errCode, rspObj.errMsg, rspObj.responseCode, error, req);
-    return response.status(500).send(exceptionErrorResponse(rspObj,errCode));
+    loggerError(rspObj,errCode);
+    return response.status(500).send(errorResponse(rspObj));
   }
 }
 
@@ -72,9 +72,8 @@ async function updateJob(req, response) {
     rspObj.errCode = bulkJobRequestMessages.UPDATE.MISSING_CODE;
     rspObj.errMsg = bulkJobRequestMessages.UPDATE.MISSING_MESSAGE;
     rspObj.responseCode = responseCode.CLIENT_ERROR;
-    loggerError('Error updating bulk job request due to missing process_id field',
-    rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req);
-    return response.status(400).send(exceptionErrorResponse(rspObj,errCode));
+    loggerError(rspObj,errCode);
+    return response.status(400).send(errorResponse(rspObj));
   }
 
   const updateStatement = {
@@ -92,9 +91,8 @@ async function updateJob(req, response) {
       rspObj.errCode = bulkJobRequestMessages.UPDATE.PROCESS_ID_MISSING_CODE;
       rspObj.errMsg = bulkJobRequestMessages.UPDATE.PROCESS_ID_FAILED_MESSAGE;
       rspObj.responseCode = responseCode.PROCESS_NOT_FOUND;
-      loggerError('Unable to update job. process_id not found.',
-      rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req);
-      return response.status(404).send(exceptionErrorResponse(rspObj,errCode))
+      loggerError(rspObj,errCode);
+      return response.status(404).send(errorResponse(rspObj))
     }
     rspObj.responseCode = responseCode.SUCCESS;
     rspObj.result = {
@@ -105,8 +103,8 @@ async function updateJob(req, response) {
     rspObj.errCode = bulkJobRequestMessages.UPDATE.UPDATE_FAILED_CODE;
     rspObj.errMsg = error.message || bulkJobRequestMessages.UPDATE.UPDATE_FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
-    loggerError('Unable to update job', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, error, req)
-    return response.status(500).send(exceptionErrorResponse(rspObj,errCode));
+    loggerError(rspObj,errCode);
+    return response.status(500).send(errorResponse(rspObj));
   }
 }
 
@@ -123,8 +121,8 @@ async function searchJob(req, response) {
     rspObj.errCode = bulkJobRequestMessages.SEARCH.MISSING_CODE;
     rspObj.errMsg = bulkJobRequestMessages.SEARCH.MISSING_MESSAGE;
     rspObj.responseCode = responseCode.CLIENT_ERROR
-    loggerError('Unable to search of bulk jobs', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req);
-    return response.status(400).send(exceptionErrorResponse(rspObj,errCode));
+    loggerError(rspObj,errCode);
+    return response.status(400).send(errorResponse(rspObj));
   }
   try {
     const searchResponse = await model.bulk_job_request.findAll({
@@ -151,8 +149,8 @@ async function searchJob(req, response) {
     rspObj.errCode = bulkJobRequestMessages.SEARCH.FAILED_CODE;
     rspObj.errMsg = error.message || bulkJobRequestMessages.SEARCH.FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
-    loggerError('Unable to search for bulk job', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, error, req);
-    return response.status(500).send(exceptionErrorResponse(rspObj,errCode));
+    loggerError(rspObj,errCode);
+    return response.status(500).send(errorResponse(rspObj));
   }
 }
 
@@ -179,18 +177,6 @@ function errorResponse(data) {
   return response
 }
 
-function exceptionErrorResponse(data,errCode) {
-  var response = {}
-  response.eid = 'Error'
-  response.edata = {
-    err : errCode,
-    errtype : data.errMsg,
-    requestid : data.msgId || uuid(),
-    stacktrace : _.truncate(JSON.stringify(data), { 'length': stackTrace_MaxLimit})
-  }
-  return response
-}
-
 function getParams(msgId, status, errCode, msg) {
   var params = {}
   params.resmsgid = uuid()
@@ -202,9 +188,16 @@ function getParams(msgId, status, errCode, msg) {
   return params
 }
 
-
-function loggerError(msg, errCode, errMsg, responseCode, error, req) {
-  logger.error({ msg: msg, err: { errCode, errMsg, responseCode }, additionalInfo: { error } }, req)
+function loggerError(data,errCode) {
+    var errObj = {}
+    errObj.eid = 'Error'
+    errObj.edata = {
+      err : errCode,
+      errtype : data.errMsg,
+      requestid : data.msgId || uuid(),
+      stacktrace : _.truncate(JSON.stringify(data), { 'length': stackTrace_MaxLimit})
+    }
+    logger.error(errObj)
 }
 
 

@@ -141,8 +141,8 @@ const searchForUpdates = async (req, response) => {
     rspObj.errCode = programFeedMessages.SEARCH.FAILED_CODE;
     rspObj.errMsg = error.message || programFeedMessages.SEARCH.FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
-    loggerError('Unable to search for program feed', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, error, req);
-    return response.status(500).send(exceptionErrorResponse(rspObj,errCode));
+    loggerError(rspObj,errCode);
+    return response.status(500).send(errorResponse(rspObj));
   }
 }
 
