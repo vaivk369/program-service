@@ -21,6 +21,11 @@ const DEFAULT_FEED_DAYS = config.get('application.feed.defaultFeedDays');
 const searchForUpdates = async (req, response) => {
   let data = req.body
   const rspObj = req.rspObj;
+  const entryExitlog = {
+    traceId : req.headers['x-request-id'] || '',
+    message : 'search For Program Feed Updates'
+   }
+   loggerService.entryLog(data, entryExitlog);
   const client =  redisManager.getClient();
   const errCode = programMessages.EXCEPTION_CODE+'_'+programFeedMessages.SEARCH.EXCEPTION_CODE+programFeedMessages.SEARCH.CODE;
 
@@ -169,6 +174,7 @@ const searchForUpdates = async (req, response) => {
       const result = await insertAndSetExpiry(newUpdates, channel, false);
       rspObj.responseCode = responseCode.SUCCESS;
       rspObj.result = mergedUpdates;
+      loggerService.exitLog({responseCode: rspObj.responseCode}, entryExitlog);
       return response.status(200).send(successResponse(rspObj));
     } else if(channelPrograms.length) {
       const existingUpdates = await findAll(channelPrograms, stripRedisKey);
@@ -177,6 +183,7 @@ const searchForUpdates = async (req, response) => {
       console.log('existingUpdates',loggerService.logFormate(logObject));
       rspObj.responseCode = responseCode.SUCCESS;
       rspObj.result = existingUpdates;
+      loggerService.exitLog({responseCode: rspObj.responseCode}, entryExitlog);
       return response.status(200).send(successResponse(rspObj));
     }
   } catch(error) {
@@ -185,6 +192,7 @@ const searchForUpdates = async (req, response) => {
     rspObj.errMsg = error.message || programFeedMessages.SEARCH.FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
     loggerError(rspObj,errCode);
+    loggerService.exitLog({responseCode: rspObj.responseCode}, entryExitlog);
     return response.status(500).send(errorResponse(rspObj));
   }
 }
