@@ -21,7 +21,7 @@ function getPreferences(req, response) {
   var rspObj = req.rspObj;
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'get user program preferences'
+    message : programMessages.PREFERENCES.READ.INFO
    }
    loggerService.entryLog(data, logObject);
   const errCode = programMessages.EXCEPTION_CODE+programMessages.PREFERENCES.READ.EXCEPTION_CODE+programMessages.PREFERENCES.READ.CODE
@@ -253,7 +253,7 @@ function setPreferences(req, response) {
   rspObj.apiVersion = '1.0';
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'set user program preferences'
+    message : programMessages.PREFERENCES.CREATE.INFO
    }
    loggerService.entryLog(data, logObject);
   if (!data.request || !data.request.program_id || !data.request.user_id || !data.request.preference) {

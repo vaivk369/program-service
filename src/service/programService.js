@@ -10,6 +10,7 @@ const loggerService = require('./loggerService');
 const Op = Sequelize.Op;
 const responseCode = messageUtils.RESPONSE_CODE;
 const programMessages = messageUtils.PROGRAM;
+const contentMessages = messageUtils.CONTENT;
 const contentTypeMessages = messageUtils.CONTENT_TYPE;
 const configurationMessages = messageUtils.CONFIGURATION;
 const model = require('../models');
@@ -43,7 +44,7 @@ const hierarchyService = new HierarchyService()
 function getProgram(req, response) {
  const logObject = {
        traceId : req.headers['x-request-id'] || '',
-       message : 'getProgram'
+       message : programMessages.READ.INFO
  }
   loggerService.entryLog(req.body, logObject);
 
@@ -78,7 +79,7 @@ async function createProgram(req, response) {
   var data = req.body
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'createProgram'
+    message : programMessages.CREATE.INFO
   }
  loggerService.entryLog(data, logObject);
   var rspObj = req.rspObj
@@ -129,7 +130,7 @@ function updateProgram(req, response) {
   var rspObj = req.rspObj
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'updateProgram'
+    message : programMessages.UPDATE.INFO
   }
  loggerService.entryLog(data, logObject);
   const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.UPDATE.EXCEPTION_CODE+programMessages.UPDATE.CODE
@@ -302,10 +303,10 @@ function unlistPublishProgram(req, response) {
   var rspObj = req.rspObj;
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'publishProgram'
+    message : contentMessages.UNLISTED_PUBLISH.INFO
   }
  loggerService.entryLog(data, logObject);
-  const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.UNLISTED_PUBLISH.EXCEPTION_CODE+programMessages.UNLISTED_PUBLISH.CODE
+ const errCode = programMessages.EXCEPTION_CODE+'_'+contentMessages.UNLISTED_PUBLISH.EXCEPTION_CODE+contentMessages.UNLISTED_PUBLISH.CODE
   if (!data.request || !data.request.program_id || !data.request.channel) {
     rspObj.errCode = programMessages.PUBLISH.MISSING_CODE
     rspObj.errMsg = programMessages.PUBLISH.MISSING_MESSAGE
@@ -455,11 +456,6 @@ function onAfterPublishProgram(programDetails, req, afterPublishCallback) {
   const onPublishResult = {};
   onPublishResult['nomination']= {};
   onPublishResult['userMapping']= {};
-  const logObject = {
-    traceId : req.headers['x-request-id'] || '',
-    message : 'onAfterPublishProgram'
-  }
- loggerService.entryLog(req.body, logObject);
   getUserRegistryDetails(programDetails.createdby).then((userRegData) => {
     getOsOrgForRootOrgId(programDetails.rootorg_id, userRegData, reqHeaders).then((osOrgforRootOrgRes) => {
       const iforgFoundInRegData = osOrgforRootOrgRes.orgFoundInRegData;
@@ -842,7 +838,7 @@ function addOrUpdateNomination(programDetails, orgosid) {
           } else {
             model.nomination.create(insertObj).then(res => {
               const logFormate = {
-                msg: 'nomination successfully written to DB',
+                msg: programMessages.LOG_MESSAGES.NOMINATION,
                 channel: 'programService',
                 level: 'INFO',
                 env: 'addOrUpdateNomination',
@@ -962,10 +958,10 @@ function getProgramCountsByOrg(req, response) {
   var rspObj = req.rspObj
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'getProgramCountsByOrg'
+    message : programMessages.PROGRAMCOUNTS_BYORG.PROGRAMCOUNTS_FETCH.INFO
   }
  loggerService.entryLog(data, logObject);
-  const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.PROGRAMCOUNTS_BYORG.EXCEPTION_CODE+programMessages.UNLISTED_PUBLISH.CODE
+ const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.PROGRAMCOUNTS_BYORG.PROGRAMCOUNTS_FETCH.EXCEPTION_CODE+programMessages.PROGRAMCOUNTS_BYORG.PROGRAMCOUNTS_FETCH.CODE
 
   rspObj.errCode = programMessages.PROGRAMCOUNTS_BYORG.PROGRAMCOUNTS_FETCH.FAILED_CODE
   rspObj.errMsg = programMessages.PROGRAMCOUNTS_BYORG.PROGRAMCOUNTS_FETCH.FAILED_MESSAGE
@@ -1038,7 +1034,7 @@ function programList(req, response) {
   var rspObj = req.rspObj
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'programList'
+    message : programMessages.READ.INFO
   }
  loggerService.entryLog(data, logObject);
   const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.READ.EXCEPTION_CODE+programMessages.READ.CODE
@@ -1269,7 +1265,7 @@ function addNomination(req, response) {
   var rspObj = req.rspObj
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'addNomination'
+    message : programMessages.NOMINATION.CREATE.INFO
   }
  loggerService.entryLog(data, logObject);
   const errCode = programMessages.NOMINATION.EXCEPTION_CODE+'_'+programMessages.NOMINATION.CREATE.EXCEPTION_CODE+programMessages.NOMINATION.CREATE.CODE
@@ -1315,7 +1311,7 @@ function updateNomination(req, response) {
   var rspObj = req.rspObj
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'updateNomination'
+    message : programMessages.NOMINATION.UPDATE.INFO
   }
  loggerService.entryLog(data, logObject);
   const errCode = programMessages.NOMINATION.EXCEPTION_CODE+'_'+programMessages.NOMINATION.UPDATE.EXCEPTION_CODE+programMessages.NOMINATION.UPDATE.CODE
@@ -1401,7 +1397,7 @@ function getNominationsList(req, response) {
   var rspObj = req.rspObj;
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'getNominationsList'
+    message : programMessages.NOMINATION.LIST.INFO
   }
  loggerService.entryLog(data, logObject);
   const errCode = programMessages.NOMINATION.EXCEPTION_CODE+'_'+programMessages.NOMINATION.LIST.EXCEPTION_CODE+programMessages.NOMINATION.LIST.CODE
@@ -1554,7 +1550,7 @@ async function downloadProgramDetails(req, res) {
   const rspObj = req.rspObj
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'downloadProgramDetails'
+    message : programMessages.GENERATE_DETAILS.INFO
   }
   loggerService.entryLog(data, logObject);
   const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.GENERATE_DETAILS.EXCEPTION_CODE+programMessages.GENERATE_DETAILS.CODE
@@ -1672,7 +1668,7 @@ function aggregatedNominationCount(data, result) {
   var rspObj = req.rspObj;
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'downloadNominationList'
+    message : programMessages.NOMINATION.DOWNLOAD_LIST.INFO
   }
   loggerService.entryLog(data, logObject);
   const errCode = programMessages.NOMINATION.EXCEPTION_CODE+'_'+programMessages.NOMINATION.DOWNLOAD_LIST.EXCEPTION_CODE+programMessages.NOMINATION.DOWNLOAD_LIST.CODE
@@ -1921,7 +1917,6 @@ async function getUsersDetailsById(req, response) {
     }
   ], function (err, res) {
     if (err) {
-      loggerService.exitLog({responseCode: 'ERR_READ_USER'}, logObject);
       return response.status(400).send(errorResponse({
         apiId: 'api.user.read',
         ver: '1.0',
@@ -1931,7 +1926,6 @@ async function getUsersDetailsById(req, response) {
       }))
 
     } else {
-      loggerService.exitLog({responseCode: 'OK'}, logObject);
       return response.status(200).send(successResponse({
         apiId: 'api.user.read',
         ver: '1.0',
@@ -2092,10 +2086,10 @@ function getProgramContentTypes(req, response) {
   var rspObj = req.rspObj;
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'getProgramContentTypes'
+    message : contentTypeMessages.FETCH.INFO
   }
   loggerService.entryLog(req.body, logObject);
-  const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.CONTENT_TYPE.FETCH.EXCEPTION_CODE+programMessages.CONTENT_TYPE.FETCH.CODE
+  const errCode = programMessages.EXCEPTION_CODE+'_'+contentTypeMessages.FETCH.EXCEPTION_CODE+contentTypeMessages.FETCH.CODE
   rspObj.errCode = contentTypeMessages.FETCH.FAILED_CODE
   rspObj.errMsg = contentTypeMessages.FETCH.FAILED_MESSAGE
   rspObj.responseCode = responseCode.SERVER_ERROR
@@ -2125,10 +2119,10 @@ function getAllConfigurations(req, response) {
   var rspObj = req.rspObj;
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'getAllConfigurations'
+    message : configurationMessages.FETCH.INFO
   }
   loggerService.entryLog(req.body, logObject);
-  const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.CONFIGURATION.FETCH.EXCEPTION_CODE+programMessages.CONFIGURATION.FETCH.CODE
+  const errCode = programMessages.EXCEPTION_CODE+'_'+configurationMessages.FETCH.EXCEPTION_CODE+configurationMessages.FETCH.CODE
   rspObj.errCode = configurationMessages.FETCH.FAILED_CODE
   rspObj.errMsg = configurationMessages.FETCH.FAILED_MESSAGE
   rspObj.responseCode = configurationMessages.SERVER_ERROR
@@ -2157,10 +2151,10 @@ function getConfigurationByKey(req, response) {
   var data = req.body;
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'getAllConfigurations'
+    message : configurationMessages.SEARCH.INFO
   }
   loggerService.entryLog(data, logObject);
-  const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.CONFIGURATION.SEARCH.EXCEPTION_CODE+programMessages.CONFIGURATION.SEARCH.CODE
+  const errCode = programMessages.EXCEPTION_CODE+'_'+configurationMessages.SEARCH.EXCEPTION_CODE+configurationMessages.SEARCH.CODE
   if(!data || !data.request || !data.request.key  || !data.request.status) {
     rspObj.errCode = configurationMessages.SEARCH.MISSING_CODE
     rspObj.errMsg = configurationMessages.SEARCH.MISSING_MESSAGE
@@ -2202,7 +2196,7 @@ function programUpdateCollection(req, response) {
   const rspObj = req.rspObj
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'programUpdateCollection'
+    message : programMessages.LINK.INFO
   }
   loggerService.entryLog(data, logObject);
   const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.LINK.EXCEPTION_CODE+programMessages.LINK.CODE
@@ -2267,7 +2261,7 @@ async function programCopyCollections(req, response) {
   const reqHeaders = req.headers;
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'programCopyCollections'
+    message : programMessages.COPY_COLLECTION.COPY.INFO
   }
   loggerService.entryLog(data, logObject);
   const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.COPY_COLLECTION.COPY.EXCEPTION_CODE+programMessages.COPY_COLLECTION.COPY.CODE
@@ -2442,7 +2436,7 @@ async function generateApprovedContentReport(req, res) {
   const rspObj = req.rspObj
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'generateApprovedContentReport'
+    message : programMessages.CONTENT_REPORT.INFO
   }
   loggerService.entryLog(data, logObject);
   const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.CONTENT_REPORT.EXCEPTION_CODE+programMessages.CONTENT_REPORT.CODE
@@ -2551,7 +2545,7 @@ function publishContent(req, response){
   var data = req.body;
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'publishContent'
+    message : programMessages.CONTENT_PUBLISH.INFO
   }
   loggerService.entryLog(data, logObject);
   const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.CONTENT_PUBLISH.EXCEPTION_CODE+programMessages.CONTENT_PUBLISH.CODE
@@ -2686,7 +2680,7 @@ function addorUpdateUserOrgMapping(userProfile, filterRootOrg, orgOsid, userOsid
       if (mapRes && mapRes.status == 200 && _.get(mapRes.data, 'params.status' == "SUCCESSFULL")) {
         consoleLogs[userProfile.identifier]['updatingUserOrgMapping']['mapped'] = true;
         const logFormate = {
-          msg: 'User mapping updated successfully',
+          msg: programMessages.LOG_MESSAGES.USERMAPPING.UPDATED,
           channel: 'programService',
           level: 'INFO',
           env: 'addorUpdateUserOrgMapping(updateRecord)',
@@ -2737,7 +2731,7 @@ function addorUpdateUserOrgMapping(userProfile, filterRootOrg, orgOsid, userOsid
         consoleLogs[userProfile.identifier]['creatingUserOrgMapping']['mappingOsid'] = _.get(mapRes.data, 'result.User_Org.osid');
         consoleLogs[userProfile.identifier]['creatingUserOrgMapping']['mapped'] = true;
         const logFormate = {
-          msg: 'created User Org Mapping',
+          msg: programMessages.LOG_MESSAGES.USERMAPPING.CREATED,
           channel: 'programService',
           level: 'INFO',
           env: 'addorUpdateUserOrgMapping(addRecord)',
@@ -2932,11 +2926,6 @@ function syncUsersToRegistry(req, response) {
   var rspObj = req.rspObj;
   const reqHeaders = req.headers;
   var data = req.body;
-  const logObject = {
-    traceId : req.headers['x-request-id'] || '',
-    message : 'publishContent'
-  }
-  loggerService.entryLog(data, logObject);
   if (!data.request || !data.request.rootorg_id) {
     rspObj.errCode = "SYNC_MISSING_REQUEST"
     rspObj.errMsg = "rootorg_id is not present in the request"
@@ -2952,7 +2941,6 @@ function syncUsersToRegistry(req, response) {
         data
       }
     }, req)
-    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(400).send(errorResponse(rspObj))
   }
 
@@ -2968,7 +2956,6 @@ function syncUsersToRegistry(req, response) {
     limit: 1000
   }).then(function (res) {
       if (res.length == 0) {
-        loggerService.exitLog({responseCode: 'OK'}, logObject);
         return response.status(200).send(successResponse({
           apiId: 'api.program.list',
           ver: '1.0',
@@ -3040,7 +3027,6 @@ function syncUsersToRegistry(req, response) {
                       {
                         rspObj.responseCode = "OK";
                         rspObj.result = syncRes;
-                        loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
                         return response.status(200).send(successResponse(rspObj));
                       }
                     }, (error) => {
@@ -3054,7 +3040,6 @@ function syncUsersToRegistry(req, response) {
                         rspObj.errMsg = "SYNC_FAILED"
                         rspObj.responseCode = "Failed to get the programs";
                         rspObj.result = syncRes;
-                        loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
                         return response.status(400).send(errorResponse(rspObj));
                       }
                     });
@@ -3066,7 +3051,6 @@ function syncUsersToRegistry(req, response) {
                     {
                       rspObj.responseCode = "OK";
                       rspObj.result = syncRes;
-                      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
                       return response.status(200).send(successResponse(rspObj));
                     }
                   }
@@ -3079,7 +3063,6 @@ function syncUsersToRegistry(req, response) {
                   {
                     rspObj.responseCode = "OK";
                     rspObj.result = syncRes;
-                    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
                     return response.status(200).send(successResponse(rspObj));
                   }
                 }
@@ -3093,7 +3076,6 @@ function syncUsersToRegistry(req, response) {
               {
                 rspObj.responseCode = "OK";
                 rspObj.result = syncRes;
-                loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
                 return response.status(200).send(successResponse(rspObj));
               }
             }
@@ -3106,7 +3088,6 @@ function syncUsersToRegistry(req, response) {
             {
               rspObj.responseCode = "OK";
               rspObj.result = syncRes;
-              loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
               return response.status(200).send(successResponse(rspObj));
             }
           }

@@ -10,7 +10,9 @@ const keyGenerator = require('./redisKeyGenerator');
 const redisManager = new RedisManager();
 const config = require('better-config');
 config.set('../config.json');
-
+const messageUtils = require('../service/messageUtil');
+const programFeedMessages = messageUtils.PROGRAM_FEED;
+const loggerService = require('../service/loggerService');
 
 const FEED_EXPIRY_TTL = config.get('dataStores.redis.feedExpiry');
 
@@ -169,7 +171,15 @@ const insertAndSetExpiry = async (updates, channel, setChannelExpiry) => {
   if(!setChannelExpiry) {
     channelTTL = await client.ttlAsync(programUpdatesChannelKey);
   }
-  console.log(`updates- ${JSON.stringify(updates)}`)
+  let logObject = {
+    msg: updateHierarchyMessages.UPDATE.INFO,
+    channel: 'program Feed Helper',
+    level: 'INFO',
+    env: 'programFeedHelper',
+    actorId: '',
+    params: {updates: `${JSON.stringify(updates)}`}
+  }
+  console.log(loggerService.logFormate(logObject));
   _.forEach(_.keys(updates), (program) => {
     const programUpdateHashKey = keyGenerator.getProgramUpdatesHashKey(program);
     consolidatedCacheRequest.push({
@@ -178,8 +188,10 @@ const insertAndSetExpiry = async (updates, channel, setChannelExpiry) => {
     });
     setInsert.push(programUpdateHashKey);
   })
-  console.log(`programUpdatesChannelKey - ${programUpdatesChannelKey}`)
-  console.log(`setInsert - ${setInsert}`)
+  logObject.params = {programUpdatesChannelKey: `${programUpdatesChannelKey}`}
+  console.log(loggerService.logFormate(logObject));
+  logObject.params = {setInsert: `${setInsert}`}
+  console.log(loggerService.logFormate(logObject));
   let cacheArray = [..._.map(consolidatedCacheRequest, 'hashInsert'),
   ..._.map(consolidatedCacheRequest, 'hashExpire'),
   client.saddAsync(programUpdatesChannelKey, setInsert)]

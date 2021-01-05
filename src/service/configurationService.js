@@ -15,7 +15,7 @@ async function createConfiguration(req, response) {
   const rspObj = req.rspObj
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'create Configuration'
+    message : configurationMessages.CREATE.INFO
    }
    loggerService.entryLog(data, logObject);
   if(!data.request || !data.request.key || !data.request.value || !data.request.status) {
@@ -50,7 +50,7 @@ async function updateConfiguration(req, response) {
   const rspObj = req.rspObj;
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'update Configuration'
+    message : configurationMessages.UPDATE.INFO
    }
    loggerService.entryLog(data, logObject);
   if(!data.request || (!data.request.id && !data.request.key)) {

@@ -18,7 +18,7 @@ async function createJob(req, response) {
   const rspObj = req.rspObj
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'create bulk Job'
+    message : bulkJobRequestMessages.CREATE.INFO
 }
 loggerService.entryLog(data, logObject);
   const errCode = bulkJobRequestMessages.EXCEPTION_CODE+'_'+bulkJobRequestMessages.CREATE.EXCEPTION_CODE+bulkJobRequestMessages.CREATE.CODE
@@ -53,7 +53,7 @@ async function readJob(req, response) {
   const rspObj = req.rspObj;
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'read bulk Job'
+    message : bulkJobRequestMessages.READ.INFO
   }
   loggerService.entryLog(req.params, logObject);
   const errCode = bulkJobRequestMessages.EXCEPTION_CODE+'_'+bulkJobRequestMessages.READ.EXCEPTION_CODE+bulkJobRequestMessages.READ.CODE
@@ -86,7 +86,7 @@ async function updateJob(req, response) {
   const rspObj = req.rspObj
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'update bulk Job'
+    message : bulkJobRequestMessages.UPDATE.INFO
   }
   loggerService.entryLog(data, logObject);
   const errCode = bulkJobRequestMessages.EXCEPTION_CODE+'_'+bulkJobRequestMessages.UPDATE.EXCEPTION_CODE+bulkJobRequestMessages.UPDATE.CODE
@@ -139,7 +139,7 @@ async function searchJob(req, response) {
   const rspObj = req.rspObj;
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'search bulk Job'
+    message : bulkJobRequestMessages.SEARCH.INFO
   }
   loggerService.entryLog(data, logObject);
   const errCode = bulkJobRequestMessages.EXCEPTION_CODE+'_'+bulkJobRequestMessages.SEARCH.EXCEPTION_CODE+bulkJobRequestMessages.SEARCH.CODE

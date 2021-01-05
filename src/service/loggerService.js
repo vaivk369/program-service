@@ -1,4 +1,5 @@
 const telemetryEventConfig = require('../config/telemetryEventConfig.json');
+const logger = require('sb_logger_util_v2');
  
  function logFormate(logObject) {
     const logFormate = 
@@ -44,7 +45,7 @@ function entryLog(data, logObject) {
       "params": data 
     }
   }
-  console.log(log,'entryLog');
+  logger.info(log);
   return log;
 }
 function exitLog(data, logObject) {
@@ -58,7 +59,7 @@ function exitLog(data, logObject) {
         "params": data 
       }
     }
-  console.log(log,'exitLog');
+  logger.info(log);
   return log;
 }
 

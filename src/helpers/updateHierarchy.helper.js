@@ -3,7 +3,8 @@ const _ = require("lodash");
 const envVariables = require("../envVariables");
 const axios = require("axios");
 const loggerService = require('../service/loggerService');
-
+const messageUtils = require('../service/messageUtil');
+const updateHierarchyMessages = messageUtils.BULK_JOB_REQUEST;
 class HierarchyService {
   filterExistingTextbooks(collectionIds, programId, reqHeaders) {
     const url = `${envVariables.baseURL}/api/composite/v1/search`;
@@ -48,7 +49,7 @@ class HierarchyService {
         }
       };
       const logObject = {
-        msg: 'bulk Update Hierarchy',
+        msg: updateHierarchyMessages.UPDATE.INFO,
         channel: 'update hierarchy helper',
         level: 'INFO',
         env: 'bulkUpdateHierarchy',
