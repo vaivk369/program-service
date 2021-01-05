@@ -193,7 +193,7 @@ function publishProgram(req, response) {
   var rspObj = req.rspObj;
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : 'publishProgram'
+    message : programMessages.PUBLISH.INFO
   }
  loggerService.entryLog(data, logObject);
   const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.PUBLISH.EXCEPTION_CODE+programMessages.PUBLISH.CODE
@@ -1429,8 +1429,6 @@ function getNominationsList(req, response) {
       }))
     }).catch((err) => {
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-      loggerError('Error fetching nomination count group by facets',
-      rspObj.errCode, rspObj.errMsg, rspObj.responseCode, err, req);
       loggerError('',rspObj,errCode);
       return response.status(400).send(errorResponse(rspObj));
     })
@@ -1897,11 +1895,6 @@ function getOrgDetails(req, orgList) {
 
 async function getUsersDetailsById(req, response) {
   const dikshaUserId = req.params.user_id
-  const logObject = {
-    traceId : req.headers['x-request-id'] || '',
-    message : 'getUsersDetailsById'
-  }
-  loggerService.entryLog(req.params, logObject);
   async.waterfall([
     function (callback1) {
       getUserDetailsFromRegistry(dikshaUserId, callback1)
@@ -2685,7 +2678,7 @@ function addorUpdateUserOrgMapping(userProfile, filterRootOrg, orgOsid, userOsid
           level: 'INFO',
           env: 'addorUpdateUserOrgMapping(updateRecord)',
           actorId: userProfile.identifier,
-          params: {}
+          params: {userProfile: consoleLogs[userProfile.identifier]}
         }
         console.log(loggerService.logFormate(logFormate));
         callbackFunction(null, updateOsid);
@@ -2736,7 +2729,7 @@ function addorUpdateUserOrgMapping(userProfile, filterRootOrg, orgOsid, userOsid
           level: 'INFO',
           env: 'addorUpdateUserOrgMapping(addRecord)',
           actorId: userProfile.identifier,
-          params: {}
+          params: {userProfile: consoleLogs[userProfile.identifier]}
         }
         console.log(loggerService.logFormate(logFormate));
         callbackFunction(null, _.get(mapRes.data, 'result.User_Org.osid'));
