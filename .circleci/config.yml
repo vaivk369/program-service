@@ -1,10 +1,5 @@
 version: 2.1
 jobs:
-  build:
-    machine:
-      image: circleci/classic:latest
-    steps:
-      - checkout
   test:
     working_directory: ~/program-service/src
     docker:
@@ -30,14 +25,7 @@ jobs:
             done
             echo Failed waiting for Postgres && exit 1
       - run:
-          name: ENV VAR 1
-          command: echo $dbpwd;
-      - run:
-          name: ENV VAR 2
-          command: |
-                echo "POSTGRES_DB" $db
-      - run:
-          name: Install PSQL CLI; Import dummy data; run an example query
+          name: PSQL import dummy data
           command: |
               sudo apt-get update
               sudo apt-get install postgresql-client
@@ -47,7 +35,7 @@ jobs:
           name: Remove Package Lock
           command: 'rm -f package-lock.json'
       - run:
-          name: Installing npm deps
+          name: Install npm deps
           command: 'npm install'
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
@@ -56,7 +44,7 @@ jobs:
           name: make directory & ng lint
           command: 'mkdir -p /tmp/logs'
       - run:
-          name: Executing test cases
+          name: Execute test cases
           command: 'npm run test-with-coverage | tee /tmp/logs/test_cases.log'
       - run:
           name: Run sonar scanner
@@ -64,9 +52,7 @@ jobs:
               sudo npm install -g sonarqube-scanner
               cd ../ && sonar-scanner
 
-# Orchestrate our job run sequence
 workflows:
   build_and_test:
     jobs:
-      # - build
       - test
