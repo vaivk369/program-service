@@ -11,6 +11,7 @@ const { searchNominations, searchContributions, splitProgramIdFromKey, getNumber
 const redisManager = new RedisManager();
 const config = require('better-config');
 config.set('../config.json');
+const loggerService = require('./loggerService');
 
 
 const DEFAULT_CONTENT_STATUS = config.get('application.feed.defaultContentStatus');
@@ -20,6 +21,11 @@ const DEFAULT_FEED_DAYS = config.get('application.feed.defaultFeedDays');
 const searchForUpdates = async (req, response) => {
   let data = req.body
   const rspObj = req.rspObj;
+  const entryExitlog = {
+    traceId : req.headers['x-request-id'] || '',
+    message : programFeedMessages.SEARCH.INFO
+   }
+   loggerService.entryLog(data, entryExitlog);
   const client =  redisManager.getClient();
   const errCode = programMessages.EXCEPTION_CODE+'_'+programFeedMessages.SEARCH.EXCEPTION_CODE+programFeedMessages.SEARCH.CODE;
 
@@ -35,6 +41,14 @@ const searchForUpdates = async (req, response) => {
     const userRequestedContributions = contributionRequest ? _.uniq(contributionRequest.programId) : [];
     const nonExistingNominations = _.difference(userRequestedNominations, existingProgramUpdates);
     const nonExistingContributions = _.difference(userRequestedContributions, existingProgramUpdates);
+    let logObject = {
+      msg: programFeedMessages.SEARCH.INFO,
+      channel: 'programFeedService',
+      level: 'INFO',
+      env: 'searchForUpdates',
+      actorId: programDetails.createdby,
+      params: {}
+    }
     if (!channelPrograms.length) {
       let programByNominationCount = {}
       let programByContentCount = {}
@@ -45,14 +59,16 @@ const searchForUpdates = async (req, response) => {
           days: numberOfDays || DEFAULT_FEED_DAYS
         }
         const newNominations = await searchNominations(nominationSearchRequest);
-        console.log(`newNominations - ${JSON.stringify(newNominations)}`)
+        logObject.params = { newNominations: `${JSON.stringify(newNominations)}`}
+        console.log("newNominations", loggerService.logFormate(logObject));
         if(newNominations.length) {
           const nominationsByProgram = _.groupBy(_.map(newNominations, 'dataValues'), 'program_id');
           programByNominationCount = generateUpdatesMap(nominationsByProgram, 'nominationCount');
         } else {
           programByNominationCount = generateUpdatesMap(userRequestedNominations, 'nominationCount');
         }
-        console.log(programByNominationCount);
+        logObject.params = { programByNominationCount: programByNominationCount}
+        console.log('programByNominationCount',loggerService.logFormate(logObject));
       }
       if(contributionRequest) {
         const contributionSearchRequest = {
@@ -62,7 +78,8 @@ const searchForUpdates = async (req, response) => {
         }
         const newContributions = await searchContributions(contributionSearchRequest, req.headers);
         const contents = _.get(newContributions, 'data.result.content');
-        console.log(`newContributions - ${JSON.stringify(contents)}`)
+        logObject.params = { newContributions: `${JSON.stringify(contents)}`}
+        console.log('newContributions',loggerService.logFormate(logObject));
         const notActedUponContents = await getActionPendingContents(contents, req.headers);
         if(notActedUponContents && notActedUponContents.length){
           const contentsByProgram = _.groupBy(notActedUponContents, 'programId');
@@ -70,7 +87,8 @@ const searchForUpdates = async (req, response) => {
         } else {
           programByContentCount = generateUpdatesMap(userRequestedContributions, 'contributionCount');
         }
-        console.log(programByContentCount);
+        logObject.params = { programByContentCount: programByContentCount}
+        console.log('programByContentCount',loggerService.logFormate(logObject));
       }
       const mergedUpdates = _.merge(programByNominationCount, programByContentCount);
       const result = await insertAndSetExpiry(mergedUpdates, channel, true);
@@ -81,8 +99,13 @@ const searchForUpdates = async (req, response) => {
     } else if(channelPrograms.length && (nonExistingNominations.length || nonExistingContributions.length)) {
       let programByNominationCount = {};
       let programByContentCount = {};
-      console.log(`nonExistingNominations - ${nonExistingNominations}`)
-      console.log(`nonExistingContributions - ${nonExistingContributions}`)
+
+      logObject.params = { nonExistingNominations: `${nonExistingNominations}`}
+      console.log('nonExistingNominations',loggerService.logFormate(logObject));
+
+      logObject.params = { nonExistingContributions: `${nonExistingContributions}`}
+      console.log('nonExistingContributions',loggerService.logFormate(logObject));
+
       if(nonExistingNominations.length) {
         const nominationSearchRequest = {
           program_id: nonExistingNominations,
@@ -90,15 +113,19 @@ const searchForUpdates = async (req, response) => {
           days: numberOfDays || DEFAULT_FEED_DAYS
         }
         const newNominations = await searchNominations(nominationSearchRequest);
-        console.log(`newNominations - ${JSON.stringify(newNominations)}`);
+        logObject.params = { newNominations: `${JSON.stringify(newNominations)}`}
+        console.log('newNominations',loggerService.logFormate(logObject));
         if(newNominations.length) {
           const nominationsByProgram = _.groupBy(_.map(newNominations, 'dataValues'), 'program_id');
           programByNominationCount = generateUpdatesMap(nominationsByProgram, 'nominationCount')
         } else {
           programByNominationCount = generateUpdatesMap(nonExistingNominations, 'nominationCount');
         }
-        console.log(programByNominationCount);
-        console.log(`programByNominationCount- ${JSON.stringify(programByNominationCount)}`);
+        logObject.params = { programByNominationCount: programByNominationCount}
+        console.log('programByNominationCount',loggerService.logFormate(logObject));
+
+        logObject.params = { programByNominationCount: `${JSON.stringify(programByNominationCount)}`}
+        console.log('programByNominationCount',loggerService.logFormate(logObject));
 
       }
       if(nonExistingContributions.length) {
@@ -109,31 +136,39 @@ const searchForUpdates = async (req, response) => {
         }
         const newContributions = await searchContributions(contributionSearchRequest, req.headers);
         const contents = _.get(newContributions, 'data.result.content');
-        console.log(`Contents - ${JSON.stringify(contents)}`)
+        logObject.params = { Contents: `${JSON.stringify(Contents)}`}
+        console.log('Contents',loggerService.logFormate(logObject));
         const notActedUponContents = await getActionPendingContents(contents, req.headers);
-        console.log(`notActedUponContents - ${JSON.stringify(notActedUponContents)}`);
+        logObject.params = { notActedUponContents: `${JSON.stringify(notActedUponContents)}`}
+        console.log('notActedUponContents',loggerService.logFormate(logObject));
         if(notActedUponContents && notActedUponContents.length) {
           const contentsByProgram = _.groupBy(notActedUponContents, 'programId');
-          console.log(`contentsByProgram- ${JSON.stringify(contentsByProgram)}`);
+          logObject.params = { contentsByProgram: `${JSON.stringify(contentsByProgram)}`}
+          console.log('contentsByProgram',loggerService.logFormate(logObject));
           programByContentCount = generateUpdatesMap(contentsByProgram, 'contributionCount');
         } else {
           programByContentCount = generateUpdatesMap(nonExistingContributions, 'contributionCount');
         }
-        console.log(`programByContentCount- ${JSON.stringify(programByContentCount)}`);
+        logObject.params = { programByContentCount: `${JSON.stringify(programByContentCount)}`}
+        console.log('programByContentCount',loggerService.logFormate(logObject));
       }
       const newUpdates = _.merge(programByNominationCount, programByContentCount);
-      console.log(`New updates -  ${JSON.stringify(newUpdates)}`)
+      logObject.params = { 'New updates': `${JSON.stringify(newUpdates)}`}
+      console.log('newUpdates',loggerService.logFormate(logObject));
       const existingUpdates = await findAll(channelPrograms, stripRedisKey);
       const mergedUpdates = _.merge(existingUpdates, newUpdates);
       const result = await insertAndSetExpiry(newUpdates, channel, false);
       rspObj.responseCode = responseCode.SUCCESS;
       rspObj.result = mergedUpdates;
+      loggerService.exitLog({responseCode: rspObj.responseCode}, entryExitlog);
       return response.status(200).send(successResponse(rspObj));
     } else if(channelPrograms.length) {
       const existingUpdates = await findAll(channelPrograms, stripRedisKey);
-      console.log(existingUpdates)
+      logObject.params = { 'existingUpdates': existingUpdates}
+      console.log('existingUpdates',loggerService.logFormate(logObject));
       rspObj.responseCode = responseCode.SUCCESS;
       rspObj.result = existingUpdates;
+      loggerService.exitLog({responseCode: rspObj.responseCode}, entryExitlog);
       return response.status(200).send(successResponse(rspObj));
     }
   } catch(error) {
@@ -142,6 +177,7 @@ const searchForUpdates = async (req, response) => {
     rspObj.errMsg = error.message || programFeedMessages.SEARCH.FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
     loggerError(rspObj,errCode);
+    loggerService.exitLog({responseCode: rspObj.responseCode}, entryExitlog);
     return response.status(500).send(errorResponse(rspObj));
   }
 }

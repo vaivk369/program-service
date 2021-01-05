@@ -2,7 +2,9 @@ const { forkJoin } = require("rxjs");
 const _ = require("lodash");
 const envVariables = require("../envVariables");
 const axios = require("axios");
-
+const loggerService = require('../service/loggerService');
+const messageUtils = require('../service/messageUtil');
+const updateHierarchyMessages = messageUtils.BULK_JOB_REQUEST;
 class HierarchyService {
   filterExistingTextbooks(collectionIds, programId, reqHeaders) {
     const url = `${envVariables.baseURL}/api/composite/v1/search`;
@@ -46,7 +48,15 @@ class HierarchyService {
           }
         }
       };
-      console.log(option.data.request.data);
+      const logObject = {
+        msg: updateHierarchyMessages.UPDATE.INFO,
+        channel: 'update hierarchy helper',
+        level: 'INFO',
+        env: 'bulkUpdateHierarchy',
+        actorId: '',
+        params: {collection: option.data.request.data}
+      }
+      console.log(loggerService.logFormate(logObject));
       return axios(option);
     });
     return forkJoin(...bulkRequest);

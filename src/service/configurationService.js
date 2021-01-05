@@ -6,17 +6,24 @@ const responseCode = messageUtils.RESPONSE_CODE;
 const model = require('../models');
 const uuid = require("uuid/v1");
 const { async } = require('rxjs/internal/scheduler/async');
+const loggerService = require('./loggerService');
 
 
 
 async function createConfiguration(req, response) {
   let data = req.body
   const rspObj = req.rspObj
+  const logObject = {
+    traceId : req.headers['x-request-id'] || '',
+    message : configurationMessages.CREATE.INFO
+   }
+   loggerService.entryLog(data, logObject);
   if(!data.request || !data.request.key || !data.request.value || !data.request.status) {
     rspObj.errCode = configurationMessages.CREATE.MISSING_CODE;
     rspObj.errMsg = configurationMessages.CREATE.MISSING_MESSAGE;
     rspObj.responseCode = responseCode.CLIENT_ERROR;
     loggerError('Error due to missing fields in the request', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req)
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(400).send(errorResponse(rspObj));
   }
   const insertObj = data.request;
@@ -24,6 +31,7 @@ async function createConfiguration(req, response) {
     const createdResponse = await model.configuration.create(insertObj)
     rspObj.responseCode = responseCode.SUCCESS;
     rspObj.result = createdResponse;
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(200).send(successResponse(rspObj))
   } catch(error) {
     const sequelizeErrorMessage = _.first(_.get(error, 'errors'));
@@ -31,6 +39,7 @@ async function createConfiguration(req, response) {
     rspObj.errMsg = sequelizeErrorMessage ? sequelizeErrorMessage.message : error.message || bulkJobRequestMessages.CREATE.FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
     loggerError('Error while create a new bulk_job_request', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, error, req)
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(500).send(errorResponse(rspObj));
   }
 }
@@ -39,12 +48,18 @@ async function createConfiguration(req, response) {
 async function updateConfiguration(req, response) {
   let data = req.body;
   const rspObj = req.rspObj;
+  const logObject = {
+    traceId : req.headers['x-request-id'] || '',
+    message : configurationMessages.UPDATE.INFO
+   }
+   loggerService.entryLog(data, logObject);
   if(!data.request || (!data.request.id && !data.request.key)) {
     rspObj.errCode = configurationMessages.UPDATE.MISSING_CODE;
     rspObj.errMsg = configurationMessages.UPDATE.MISSING_MESSAGE;
     rspObj.responseCode = responseCode.CLIENT_ERROR;
     loggerError('Error updating configuration request due to missing key field',
     rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req);
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(400).send(errorResponse(rspObj));
   }
   const updateStatement = {
@@ -65,18 +80,21 @@ async function updateConfiguration(req, response) {
       rspObj.responseCode = responseCode.CONFIGURATION_KEY_NOT_FOUND;
       loggerError('Unable to update configuration. key not found.',
       rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req);
+      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       return response.status(404).send(errorResponse(rspObj))
     }
     rspObj.responseCode = responseCode.SUCCESS;
     rspObj.result = {
       'key': data.request.key
     }
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(200).send(successResponse(rspObj));
   } catch(error) {
     rspObj.errCode = configurationMessages.UPDATE.UPDATE_FAILED_CODE;
     rspObj.errMsg = error.message || configurationMessages.UPDATE.UPDATE_FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
     loggerError('Unable to update configuration', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, error, req)
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(500).send(errorResponse(rspObj));
   }
 }

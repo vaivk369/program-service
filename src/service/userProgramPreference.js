@@ -7,6 +7,7 @@ const moment = require('moment');
 const responseCode = messageUtils.RESPONSE_CODE;
 const programMessages = messageUtils.PROGRAM;
 const model = require('../models');
+const loggerService = require('./loggerService');
 const {
   forkJoin
 } = require('rxjs');
@@ -18,6 +19,11 @@ const redisManager = new RedisManager();
 function getPreferences(req, response) {
   var data = req.body;
   var rspObj = req.rspObj;
+  const logObject = {
+    traceId : req.headers['x-request-id'] || '',
+    message : programMessages.PREFERENCES.READ.INFO
+   }
+   loggerService.entryLog(data, logObject);
   const errCode = programMessages.EXCEPTION_CODE+programMessages.PREFERENCES.READ.EXCEPTION_CODE+programMessages.PREFERENCES.READ.CODE
   rspObj.apiId = 'api.preference.read';
   rspObj.apiVersion = '1.0'
@@ -27,6 +33,7 @@ function getPreferences(req, response) {
     rspObj.errMsg = programMessages.PREFERENCES.READ.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR;
     loggerError('',rspObj,errCode);
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(400).send(errorResponse(rspObj))
   }
 
@@ -48,10 +55,12 @@ function getPreferences(req, response) {
             rspObj.result.sourcing_preference = result.res.sourcing_preference
           }
           rspObj.responseCode = 'OK';
+          loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
           return response.status(200).send(successResponse(rspObj));
         } else {
           rspObj.responseCode = 'ERR_GET_USER_PREFERENCE_FAILED';
           rspObj.result = result.result;
+          loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
           return response.status(400).send(errorResponse(rspObj));
         }
       });
@@ -60,6 +69,7 @@ function getPreferences(req, response) {
       syncCacheToPreferenceTable(data.request.user_id, data.request.program_id, cacheData);
       rspObj.responseCode = 'OK'
       rspObj.result = JSON.parse(cacheData);
+      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       return response.status(200).send(successResponse(rspObj))
     }
   });
@@ -241,12 +251,17 @@ function setPreferences(req, response) {
   
   rspObj.apiId = 'api.preference.create';
   rspObj.apiVersion = '1.0';
-
+  const logObject = {
+    traceId : req.headers['x-request-id'] || '',
+    message : programMessages.PREFERENCES.CREATE.INFO
+   }
+   loggerService.entryLog(data, logObject);
   if (!data.request || !data.request.program_id || !data.request.user_id || !data.request.preference) {
     rspObj.errCode = programMessages.PREFERENCES.CREATE.MISSING_CODE
     rspObj.errMsg = programMessages.PREFERENCES.CREATE.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR;
     loggerError('',rspObj,errCode);
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(400).send(errorResponse(rspObj))
   }
   // Todo- check if the preferences is json of MSG
@@ -273,6 +288,7 @@ function setPreferences(req, response) {
         if (result.error) {
           rspObj.responseCode = 'ERR_GET_USER_PREFERENCE_FAILED';
           rspObj.result = result.result;
+          loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
           return response.status(400).send(errorResponse(rspObj));
         }
 
@@ -282,12 +298,14 @@ function setPreferences(req, response) {
               rspObj.errMsg = programMessages.PREFERENCES.CREATE.FAILED_MESSAGE
               rspObj.responseCode = programMessages.PREFERENCES.CREATE.FAILED_CODE;
               rspObj.result = addRes.res;
+              loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
               return response.status(400).send(errorResponse(rspObj));
             }
             else {
               const tableRes = addRes.res;
               setDatainRedis(userId, programId, tableRes, true);
               rspObj.responseCode = 'OK';
+              loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
               return response.status(200).send(successResponse(rspObj));
             }
           });
@@ -298,12 +316,14 @@ function setPreferences(req, response) {
               rspObj.errMsg = programMessages.PREFERENCES.UPDATE.FAILED_MESSAGE
               rspObj.responseCode = programMessages.PREFERENCES.UPDATE.FAILED_CODE;
               rspObj.result = updateRes.res;
+              loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
               return response.status(400).send(errorResponse(rspObj));
             }
             else {
               const tableRes = updateRes.res;
               setDatainRedis(userId, programId, tableRes, true);
               rspObj.responseCode = 'OK';
+              loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
               return response.status(200).send(successResponse(rspObj));
             }
           });
@@ -313,6 +333,7 @@ function setPreferences(req, response) {
       data.request.timestamp = JSON.parse(cacheData).timestamp;
       setDatainRedis(data.request.user_id, data.request.program_id, data.request, false);
       rspObj.responseCode = 'OK';
+      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       return response.status(200).send(successResponse(rspObj));
     }
   });
