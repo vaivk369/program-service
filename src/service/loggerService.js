@@ -45,7 +45,7 @@ function entryLog(data, logObject) {
       "params": data 
     }
   }
-  logger.info(log);
+  logger.info({ msg: 'Entry info', log})
   return log;
 }
 function exitLog(data, logObject) {
@@ -59,7 +59,7 @@ function exitLog(data, logObject) {
         "params": data 
       }
     }
-  logger.info(log);
+  logger.info({ msg: 'Exit info', log})
   return log;
 }
 

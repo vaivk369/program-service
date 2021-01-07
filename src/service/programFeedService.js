@@ -46,7 +46,7 @@ const searchForUpdates = async (req, response) => {
       channel: 'programFeedService',
       level: 'INFO',
       env: 'searchForUpdates',
-      actorId: programDetails.createdby,
+      actorId: '',
       params: {}
     }
     if (!channelPrograms.length) {

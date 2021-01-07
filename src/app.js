@@ -10,6 +10,9 @@ const createError = require('http-errors')
   envVariables = require('./envVariables'),
   port = envVariables.port;
   const telemetryService = require('./service/telemetryService');
+  const  sb_logger = require('sb_logger_util_v2');
+  const logLevel = process.env.sunbird_service_log_level || 'info';
+  var logFilePath = path.join(__dirname, './logs/microservice.log');
 
   const createAppServer = () => {
     const app = express();
@@ -33,7 +36,10 @@ const createError = require('http-errors')
     module.exports = app;
     return app;
   }
-
+  sb_logger.init({
+    path: logFilePath,
+    logLevel
+  })
 const app = createAppServer();
 app.listen(port, () => {
   console.log(`program-service is running in test env on port ${port} with ${process.pid} pid`);

@@ -1,6 +1,8 @@
 const logger = require('sb_logger_util_v2');
 const uuid = require("uuid/v1");
 const stackTrace_MaxLimit = 500;
+const _ = require('lodash');
+
 
 const successResponse = (data) => {
   var response = {}
@@ -43,7 +45,7 @@ const loggerError = (data,errCode) => {
     requestid : data.msgId || uuid(),
     stacktrace : _.truncate(JSON.stringify(data), { 'length': stackTrace_MaxLimit})
   }
-  logger.error(errObj)
+  logger.error({msg: 'Error log', errObj})
 }
 
 module.exports = {
