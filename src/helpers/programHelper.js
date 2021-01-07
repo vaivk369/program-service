@@ -595,7 +595,7 @@ class ProgramServiceHelper {
   copyCollections(data, channel, reqHeaders, cb) { //
     const logObject = {
       traceId : reqHeaders['x-request-id'] || '',
-      message : programMessages.PUBLISH.INFO + ' copyCollections'
+      message : programMessages.PUBLISH.INFO
     }
    loggerService.entryLog({programId: _.get(data, 'program_id') || ''}, logObject);
     const rspObj = {};
