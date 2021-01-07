@@ -3,6 +3,7 @@ const messageUtils = require('../service/messageUtil');
 const programFeedMessages = messageUtils.PROGRAM_FEED;
 const responseCode = messageUtils.RESPONSE_CODE;
 const { errorResponse, loggerError } = require('../helpers/responseUtil');
+const loggerService = require('../service/loggerService');
 
 
 const programFeedSearch = () => {
@@ -34,11 +35,17 @@ const validate = (req, res, next) => {
   if (errors.isEmpty()) {
     return next()
   }
+  const entryExitlog = {
+    traceId : req.headers['x-request-id'] || '',
+    message : programFeedMessages.SEARCH.INFO
+   }
+   loggerService.entryLog(req.body, entryExitlog);
   const extractedErrors = []
   errors.array().map(err => extractedErrors.push({ [err.param]: err.msg }))
   rspObj.errCode = programFeedMessages.SEARCH.MISSING_CODE;
   rspObj.errMsg = JSON.stringify(extractedErrors) || programFeedMessages.SEARCH.MISSING_MESSAGE;
   rspObj.responseCode = responseCode.CLIENT_ERROR;
+  loggerService.exitLog({responseCode: rspObj.responseCode}, entryExitlog);
   loggerError('Error due to missing fields in the request', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req)
   return res.status(400).send(errorResponse(rspObj));
 }
