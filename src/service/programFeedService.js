@@ -47,6 +47,7 @@ const searchForUpdates = async (req, response) => {
       channel: 'programFeedService',
       level: 'INFO',
       env: 'searchForUpdates',
+      traceId : req.headers['x-request-id'] || '',
       actorId: '',
       params: {}
     }
