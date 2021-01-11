@@ -3,6 +3,7 @@ const messageUtils = require('./messageUtil');
 const programFeedMessages = messageUtils.PROGRAM_FEED;
 const programMessages = messageUtils.PROGRAM;
 const responseCode = messageUtils.RESPONSE_CODE;
+const errorCode = messageUtils.ERRORCODES;
 const keyGenerator = require('../helpers/redisKeyGenerator');
 const RedisManager = require('../helpers/redisUtil');
 const { successResponse, errorResponse, loggerError } = require('../helpers/responseUtil');
@@ -27,7 +28,7 @@ const searchForUpdates = async (req, response) => {
    }
    loggerService.entryLog(data, entryExitlog);
   const client =  redisManager.getClient();
-  const errCode = programMessages.EXCEPTION_CODE+'_'+programFeedMessages.SEARCH.EXCEPTION_CODE+programFeedMessages.SEARCH.CODE;
+  const errCode = programMessages.EXCEPTION_CODE+'_'+programFeedMessages.SEARCH.EXCEPTION_CODE;
 
   const nominationRequest = _.get(data, 'request.nomination');
   const contributionRequest = _.get(data, 'request.contribution');
@@ -46,6 +47,7 @@ const searchForUpdates = async (req, response) => {
       channel: 'programFeedService',
       level: 'INFO',
       env: 'searchForUpdates',
+      traceId : req.headers['x-request-id'] || '',
       actorId: '',
       params: {}
     }
@@ -176,9 +178,9 @@ const searchForUpdates = async (req, response) => {
     rspObj.errCode = programFeedMessages.SEARCH.FAILED_CODE;
     rspObj.errMsg = error.message || programFeedMessages.SEARCH.FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
-    loggerError(rspObj,errCode);
+    loggerError(rspObj,errCode+errorCode.CODE1);
     loggerService.exitLog({responseCode: rspObj.responseCode}, entryExitlog);
-    return response.status(500).send(errorResponse(rspObj));
+    return response.status(500).send(errorResponse(rspObj,errCode+errorCode.CODE1));
   }
 }
 

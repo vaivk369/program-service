@@ -27,7 +27,7 @@ const logger = require('sb_logger_util_v2');
         "edata": {
           "type": "system", 
           "level": logObject['level'],
-          "requestid": '', 
+          "requestid": logObject['traceId'] || '',
           "message": logObject['msg'], 
           "params": [logObject.params]
         }

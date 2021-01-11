@@ -5,6 +5,16 @@ exports.COMPOSITE = {
   ]
 }
 
+exports.ERRORCODES = {
+  CODE1: '01',
+  CODE2: '02',
+  CODE3: '03',
+  CODE4: '04',
+  CODE5: '05',
+  CODE6: '06',
+  CODE7: '07'
+}
+
 exports.COURSE = {
 
   SEARCH: {
@@ -176,7 +186,6 @@ exports.CONTENT = {
 
   UNLISTED_PUBLISH: {
     EXCEPTION_CODE: 'UNLSTPUB',
-    CODE: '01',
     MISSING_CODE: 'ERR_UNLISTED_PUBLISH_FIELDS_MISSING',
     MISSING_MESSAGE: 'Required fields for unlisted publish content are missing',
     FAILED_CODE: 'ERR_UNLISTED_PUBLISH_FIELDS_FAILED',
@@ -656,7 +665,6 @@ exports.PROGRAM = {
   EXCEPTION_CODE: 'PRG',
   READ: {
     EXCEPTION_CODE: 'RED',
-    CODE: '01',
     MISSING_CODE: 'ERR_GET_PROGRAM_DATA',
     MISSING_MESSAGE: 'Required fields to get program are missing',
     FAILED_CODE: 'ERR_GET_PROGRAM_DATA_FAILED',
@@ -665,7 +673,6 @@ exports.PROGRAM = {
   },
   CREATE: {
     EXCEPTION_CODE: 'CRT',
-    CODE: '01',
     MISSING_CODE: 'ERR_CREATE_PROGRAM_DATA',
     MISSING_MESSAGE: 'Required fields for creating program data are missing',
     FAILED_CODE: 'ERR_CREATE_PROGRAM_DATA_FAILED',
@@ -674,7 +681,6 @@ exports.PROGRAM = {
   },
   UPDATE: {
     EXCEPTION_CODE: 'UPD',
-    CODE: '01',
     MISSING_CODE: 'ERR_UPDATE_PROGRAM_DATA',
     MISSING_MESSAGE: 'Required fields while updating program data are missing',
     FAILED_CODE: 'ERR_UPDATE_PROGRAM_DATA_FAILED',
@@ -683,7 +689,6 @@ exports.PROGRAM = {
   },
   PUBLISH: {
     EXCEPTION_CODE: 'PUB',
-    CODE: '01',
     MISSING_CODE: 'ERR_PUBLISH_PROGRAM_DATA',
     MISSING_MESSAGE: 'Required fields while publishing program data are missing',
     FAILED_CODE: 'ERR_PUBLISH_PROGRAM_DATA_FAILED',
@@ -692,7 +697,6 @@ exports.PROGRAM = {
   },
   LINK: {
     EXCEPTION_CODE: 'LNK',
-    CODE: '01',
     MISSING_CODE: 'ERR_LINKING_PROGRAM_TEXTBOOK',
     MISSING_MESSAGE: 'Required fields while linking textbook to program are missing',
     FAILED_CODE: 'ERR_LINKING_TEXBOOK_FAILED',
@@ -701,7 +705,6 @@ exports.PROGRAM = {
   },
   GENERATE_DETAILS: {
     EXCEPTION_CODE: 'GND',
-    CODE: '01',
     MISSING_CODE: 'ERR_GENERATING_PROGRAM_DATA',
     MISSING_MESSAGE: 'Required fields like program_id<Array>, is missing',
     FAILED_CODE: 'ERR_GENERATING_PROGRAM_DATA_FAILED',
@@ -710,7 +713,6 @@ exports.PROGRAM = {
   },
   CONTENT_REPORT: {
     EXCEPTION_CODE: 'RPT',
-    CODE: '01',
     MISSING_CODE: 'ERR_GENERATING_CONTENT_REPORT',
     MISSING_MESSAGE: 'Required fields like program_id<Array>,report is missing',
     FAILED_CODE: 'ERR_GENERATING_CONTENT_REPORT_FAILED',
@@ -719,7 +721,6 @@ exports.PROGRAM = {
   },
   CONTENT_PUBLISH: {
     EXCEPTION_CODE: 'CNTPUB',
-    CODE: '01',
     MISSING_CODE: 'ERR_CONTENT_PUBLISH',
     MISSING_MESSAGE: 'Required fields like content_id or textbook_id or units missing',
     FAILED_CODE: 'ERR_CONTENT_PUBLISH_FAILED',
@@ -737,7 +738,6 @@ exports.PROGRAM = {
     EXCEPTION_CODE: 'NOM',
     READ: {
       EXCEPTION_CODE: 'RED',
-      CODE: '01',
       MISSING_CODE: 'ERR_GET_NOMINATION_DATA',
       MISSING_MESSAGE: 'Required fields like program_id to get nomination are missing',
       FAILED_CODE: 'ERR_GET_NOMINATION_DATA_FAILED',
@@ -745,7 +745,6 @@ exports.PROGRAM = {
     },
     CREATE: {
       EXCEPTION_CODE: 'CRT',
-      CODE: '01',
       MISSING_CODE: 'ERR_CREATE_NOMINATION_DATA',
       MISSING_MESSAGE: 'Required fields like program_id, user_id, status for creating nomination data are missing',
       FAILED_CODE: 'ERR_CREATE_NOMINATION_DATA_FAILED',
@@ -754,7 +753,6 @@ exports.PROGRAM = {
     },
     UPDATE: {
       EXCEPTION_CODE: 'UPD',
-      CODE: '01',
       MISSING_CODE: 'ERR_UPDATE_NOMINATION_DATA',
       MISSING_MESSAGE: 'Required fields like program_id, user_id or organisation_id while updating nomination data are missing',
       FAILED_CODE: 'ERR_UPDATE_NOMINATION_DATA_FAILED',
@@ -763,7 +761,6 @@ exports.PROGRAM = {
     },
     LIST: {
       EXCEPTION_CODE: 'LST',
-      CODE: '01',
       MISSING_CODE: 'ERR_GET_NOMINATION_LIST',
       MISSING_MESSAGE: 'Required fields like program_id/user_id to get nomination are missing',
       FAILED_CODE: 'ERR_GET_NOMINATION_LIST_FAILED',
@@ -772,7 +769,6 @@ exports.PROGRAM = {
     },
     DOWNLOAD_LIST: {
       EXCEPTION_CODE: 'DWN',
-      CODE: '01',
       MISSING_CODE: 'ERR_DOWNLOADING_NOMINATION_DATA',
       MISSING_MESSAGE: 'Required fields like program_id, program_name, status while getting nomination data are missing',
       FAILED_CODE: 'ERR_DOWNLOADING_NOMINATION_DATA_FAILED',
@@ -785,7 +781,6 @@ exports.PROGRAM = {
   PREFERENCES: {
     CREATE: {
       EXCEPTION_CODE: 'PF_CRT', 
-      CODE: '01',
       MISSING_CODE: 'ERR_CREATE_USER_PREFERENCE',
       MISSING_MESSAGE: 'Required fields like user_id, program_id for adding user preferences are missing',
       FAILED_CODE: 'ERR_CREATE_USER_PREFERENCE_FAILED',
@@ -794,7 +789,6 @@ exports.PROGRAM = {
     },
     READ: {
       EXCEPTION_CODE: 'PF_RED',
-      CODE: '01',
       MISSING_CODE: 'ERR_GET_USER_PREFERENCE',
       MISSING_MESSAGE: 'Required fields like user_id to get preference are missing',
       FAILED_CODE: 'ERR_GET_USER_PREFERENCE_FAILED',
@@ -803,7 +797,6 @@ exports.PROGRAM = {
     },
     UPDATE: {
       EXCEPTION_CODE: 'PF_UPD',
-      CODE: '01',
       MISSING_CODE: 'ERR_GET_USER_PREFERENCE',
       MISSING_MESSAGE: 'Required fields like user_id to get preference are missing',
       FAILED_CODE: 'ERR_UPDATE_USER_PREFERENCE_FAILED',
@@ -813,7 +806,6 @@ exports.PROGRAM = {
   COPY_COLLECTION: {
     COPY: {
       EXCEPTION_CODE: 'CPYCL_CPY',
-      CODE: '01',
       MISSING_CODE: 'ERR_COPYING_COLLECTIONS',
       MISSING_MESSAGE: 'Required fields like program_id, collections, allow_content_types, channel to copy textbook are missing',
       FAILED_CODE: 'ERR_COPY_COLLECTIONS_FAILED',
@@ -840,7 +832,6 @@ exports.PROGRAM = {
   PROGRAMCOUNTS_BYORG: {
     PROGRAMCOUNTS_FETCH: {
       EXCEPTION_CODE: 'PRMCNT',
-      CODE: '01',
       MISSING_CODE: 'ERR_GETTING_COUNTS',
       MISSING_MESSAGE: 'Error due to missing request or request.facets or request.facets.rootorg_id',
       FAILED_CODE: 'ERR_GET_PROGRAMCOUNTS_FAILED',
@@ -857,7 +848,6 @@ exports.PROGRAM = {
 exports.CONTENT_TYPE = {
   FETCH: {
     EXCEPTION_CODE: 'CNTFETCH',
-    CODE: '01',
     FAILED_CODE: 'ERR_GET_PROGRAM_CONTENT_TYPE_FAILED',
     FAILED_MESSAGE: 'Unable to get the program content type',
     INFO: 'Program content type'
@@ -885,14 +875,12 @@ exports.CONFIGURATION = {
   },
   SEARCH: {
     EXCEPTION_CODE: 'CSE',
-    CODE: '01',
     MISSING_CODE: 'ERR_SEARCHING_CONFIGURATION',
     MISSING_MESSAGE: 'Required fields like key, status to search for configuration are missing',
     INFO: 'Get configuration details by key'
   },
   FETCH: {
     EXCEPTION_CODE: 'FTCH',
-    CODE: '01',
     FAILED_CODE: 'ERR_GETTING_CONFIGURATION_FAILED',
     FAILED_MESSAGE: 'Unable to fetch configuration',
     INFO: 'fetch configuration'
@@ -912,7 +900,6 @@ exports.BULK_JOB_REQUEST = {
   EXCEPTION_CODE: 'BLKJP',
   CREATE: {
     EXCEPTION_CODE: 'CRT',
-    CODE: '01',
     MISSING_CODE: 'ERR_CREATE_BULK_JOB',
     MISSING_MESSAGE: 'Required fields to create bulk job request are missing',
     FAILED_CODE: 'ERR_CREATE_BULK_JOB_REQUEST_FAILED',
@@ -921,14 +908,12 @@ exports.BULK_JOB_REQUEST = {
   },
   READ: {
     EXCEPTION_CODE: 'RED',
-    CODE: '01',
     FAILED_CODE: 'ERROR_READING_BULK_JOB_REQUEST',
     FAILED_MESSAGE: 'Error fetching bulk job request for the requested process_id',
     INFO: 'Read bulk Job'
   },
   UPDATE: {
     EXCEPTION_CODE: 'UPD',
-    CODE: '01',
     MISSING_CODE: 'ERR_UPDATING_BULK_JOB_REQUEST',
     MISSING_MESSAGE: 'Required fields like process_id to update bulk job request are missing',
     FAILED_CODE: 'ERR_UPDATE_BULK_JOB_REQUEST_FAILED',
@@ -941,7 +926,6 @@ exports.BULK_JOB_REQUEST = {
   },
   SEARCH: {
     EXCEPTION_CODE: 'SEA',
-    CODE: '01',
     MISSING_CODE: 'ERR_SEARCHING_BULK_JOB_REQUEST',
     MISSING_MESSAGE: 'Required fields like filters are missing',
     FAILED_CODE: 'ERROR_SEARCHING_BULK_JOB_REQUEST',
@@ -954,7 +938,6 @@ exports.BULK_JOB_REQUEST = {
 exports.PROGRAM_FEED = {
   SEARCH: {
     EXCEPTION_CODE: 'FSE',
-    CODE: '01',
     MISSING_CODE: 'ERR_SEARCHING_PROGRAM_FEED',
     MISSING_MESSAGE: 'Required fields like <> are missing',
     FAILED_CODE: 'ERROR_SEARCHING_PROGRAM_FEED',
