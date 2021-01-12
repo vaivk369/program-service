@@ -131,7 +131,7 @@ exports.CONTENT = {
     FAILED_CODE: 'ERR_CONTENT_GET_FAILED',
     FAILED_MESSAGE: 'Get content failed',
     INFOCREATOR: 'Api Access For Creator User',
-    INFOREVIEWER: 'Api Access For Reviewer User'
+    INFOREVIEWER: 'Api access for reviewer user'
   },
 
   GET_MY: {
@@ -184,7 +184,7 @@ exports.CONTENT = {
   HIERARCHY_UPDATE: {
     MISSING_CODE: 'ERR_CONTENT_HIERARCHY_UPDATE_FIELDS_MISSING',
     MISSING_MESSAGE: 'Required fields for update hierarchy are missing',
-    INFO: 'Hierarchy Update Api Access'
+    INFO: 'Hierarchy update api access'
   },
 
   UNLISTED_PUBLISH: {
@@ -327,8 +327,8 @@ exports.REQUEST = {
     MISSING_MESSAGE: 'Required field token is missing',
     INVALID_CODE: 'ERR_TOKEN_INVALID',
     INVALID_MESSAGE: 'Access denied',
-    INFOVALIDATETOKEN: 'Validate User Token',
-    INFOMISSINGTOKEN: 'Missing Token'
+    INFOVALIDATETOKEN: 'Validate user token',
+    INFOMISSINGTOKEN: 'Missing token'
   }
 }
 
