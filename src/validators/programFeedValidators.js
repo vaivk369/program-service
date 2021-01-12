@@ -1,6 +1,9 @@
 const { body, validationResult } = require('express-validator');
 const messageUtils = require('../service/messageUtil');
 const programFeedMessages = messageUtils.PROGRAM_FEED;
+const programMessages = messageUtils.PROGRAM;
+const errorCodes = messageUtils.ERRORCODES;
+const loggerService = require('../service/loggerService');
 const responseCode = messageUtils.RESPONSE_CODE;
 const { errorResponse, loggerError } = require('../helpers/responseUtil');
 
@@ -30,6 +33,12 @@ const programFeedSearch = () => {
 
 const validate = (req, res, next) => {
   const rspObj = req.rspObj;
+  const errCode = programMessages.EXCEPTION_CODE+'_'+programFeedMessages.SEARCH.EXCEPTION_CODE;
+  const logObject = {
+    traceId : req.headers['x-request-id'] || '',
+    message : programFeedMessages.SEARCH.INFO
+   }
+  loggerService.entryLog(req.body, logObject);
   const errors = validationResult(req)
   if (errors.isEmpty()) {
     return next()
@@ -39,8 +48,9 @@ const validate = (req, res, next) => {
   rspObj.errCode = programFeedMessages.SEARCH.MISSING_CODE;
   rspObj.errMsg = JSON.stringify(extractedErrors) || programFeedMessages.SEARCH.MISSING_MESSAGE;
   rspObj.responseCode = responseCode.CLIENT_ERROR;
-  loggerError('Error due to missing fields in the request', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req)
-  return res.status(400).send(errorResponse(rspObj));
+  loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+  loggerError(rspObj,errCode+errorCodes.CODE1)
+  return res.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1));
 }
 
 module.exports = {
