@@ -129,7 +129,9 @@ exports.CONTENT = {
     MISSING_CODE: 'ERR_CONTENT_GET_FIELDS_MISSING',
     MISSING_MESSAGE: 'Required fields for get content are missing',
     FAILED_CODE: 'ERR_CONTENT_GET_FAILED',
-    FAILED_MESSAGE: 'Get content failed'
+    FAILED_MESSAGE: 'Get content failed',
+    INFOCREATOR: 'Api Access For Creator User',
+    INFOREVIEWER: 'Api Access For Reviewer User'
   },
 
   GET_MY: {
@@ -181,7 +183,8 @@ exports.CONTENT = {
 
   HIERARCHY_UPDATE: {
     MISSING_CODE: 'ERR_CONTENT_HIERARCHY_UPDATE_FIELDS_MISSING',
-    MISSING_MESSAGE: 'Required fields for update hierarchy are missing'
+    MISSING_MESSAGE: 'Required fields for update hierarchy are missing',
+    INFO: 'Hierarchy Update Api Access'
   },
 
   UNLISTED_PUBLISH: {
@@ -316,13 +319,16 @@ exports.REQUEST = {
     MISSING_CID_CODE: 'ERR_REQUEST_FIELDS_CID_MISSING',
     MISSING_CID_MESSAGE: 'Required field consumer id is missing',
     MISSING_CHANNELID_CODE: 'ERR_REQUEST_FIELDS_CHANNEL_ID_MISSING',
-    MISSING_CHANNELID_MESSAGE: 'Required field channel id is missing'
+    MISSING_CHANNELID_MESSAGE: 'Required field channel id is missing',
+    INFO: 'Check for channel id'
   },
   TOKEN: {
     MISSING_CODE: 'ERR_TOKEN_FIELD_MISSING',
     MISSING_MESSAGE: 'Required field token is missing',
     INVALID_CODE: 'ERR_TOKEN_INVALID',
-    INVALID_MESSAGE: 'Access denied'
+    INVALID_MESSAGE: 'Access denied',
+    INFOVALIDATETOKEN: 'Validate User Token',
+    INFOMISSINGTOKEN: 'Missing Token'
   }
 }
 
