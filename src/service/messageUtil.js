@@ -130,7 +130,7 @@ exports.CONTENT = {
     MISSING_MESSAGE: 'Required fields for get content are missing',
     FAILED_CODE: 'ERR_CONTENT_GET_FAILED',
     FAILED_MESSAGE: 'Get content failed',
-    INFOCREATOR: 'Api Access For Creator User',
+    INFOCREATOR: 'Api access for creator user',
     INFOREVIEWER: 'Api access for reviewer user'
   },
 
