@@ -91,7 +91,7 @@ function createAndValidateRequestBody (req, res, next) {
  */
 function validateToken (req, res, next) {
   const logObject = {
-    traceId : req.headers['x-request-id'] || '',
+    traceId : req.headers['x-request-id'] || uuidV1(),
     message : reqMsg.TOKEN.INFOMISSINGTOKEN
    }
    loggerService.entryLog(req.body, logObject);
@@ -170,7 +170,7 @@ function gzipCompression (req, res, next) {
  */
 function validateUserToken (req, res, next) {
   const logObject = {
-    traceId : req.headers['x-request-id'] || '',
+    traceId : req.headers['x-request-id'] || uuidV1(),
     message : reqMsg.TOKEN.INFOVALIDATETOKEN
    }
    loggerService.entryLog(req.body, logObject);
@@ -225,7 +225,7 @@ function validateUserToken (req, res, next) {
  */
 function apiAccessForCreatorUser (req, response, next) {
   const logObject = {
-    traceId : req.headers['x-request-id'] || '',
+    traceId : req.headers['x-request-id'] || uuidV1(),
     message : contentMessage.GET.INFOCREATOR
    }
    loggerService.entryLog(req.body, logObject);
@@ -299,7 +299,7 @@ function apiAccessForCreatorUser (req, response, next) {
  */
 function apiAccessForReviewerUser (req, response, next) {
   const logObject = {
-    traceId : req.headers['x-request-id'] || '',
+    traceId : req.headers['x-request-id'] || uuidV1(),
     message : contentMessage.GET.INFOREVIEWER
    }
   loggerService.entryLog(req.body, logObject);
@@ -371,7 +371,7 @@ function apiAccessForReviewerUser (req, response, next) {
  */
 function hierarchyUpdateApiAccess (req, response, next) {
   const logObject = {
-    traceId : req.headers['x-request-id'] || '',
+    traceId : req.headers['x-request-id'] || uuidV1(),
     message : contentMessage.HIERARCHY_UPDATE.INFO
    }
   loggerService.entryLog(req.body, logObject);
@@ -465,7 +465,7 @@ function hierarchyUpdateApiAccess (req, response, next) {
 function checkChannelID (req, res, next) {
   logger.debug({ msg: 'checkChannelID() called' }, req)
   const logObject = {
-    traceId : req.headers['x-request-id'] || '',
+    traceId : req.headers['x-request-id'] || uuidV1(),
     message : reqMsg.PARAMS.INFO
    }
   loggerService.entryLog(req.body, logObject);
