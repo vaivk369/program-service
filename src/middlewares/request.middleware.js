@@ -90,6 +90,11 @@ function createAndValidateRequestBody (req, res, next) {
  * @param  {Function} next
  */
 function validateToken (req, res, next) {
+  const logObject = {
+    traceId : req.headers['x-request-id'] || uuidV1(),
+    message : reqMsg.TOKEN.INFOMISSINGTOKEN
+   }
+   loggerService.entryLog(req.body, logObject);
   logger.debug({ msg: 'validateToken() called' }, req)
   var token = req.get('x-authenticated-user-token')
   var rspObj = req.rspObj
@@ -106,7 +111,7 @@ function validateToken (req, res, next) {
         responseCode: rspObj.responseCode
       }
     }, req)
-
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return res.status(401).send(respUtil.errorResponse(rspObj))
   }
 
@@ -124,6 +129,7 @@ function validateToken (req, res, next) {
           responseCode: rspObj.responseCode
         }
       }, req)
+      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       return res.status(401).send(respUtil.errorResponse(rspObj))
     } else {
       var payload = jwt.decode(tokenData.token)
@@ -163,6 +169,11 @@ function gzipCompression (req, res, next) {
  * @param  {Function} next
  */
 function validateUserToken (req, res, next) {
+  const logObject = {
+    traceId : req.headers['x-request-id'] || uuidV1(),
+    message : reqMsg.TOKEN.INFOVALIDATETOKEN
+   }
+   loggerService.entryLog(req.body, logObject);
   var token = req.get('x-authenticated-user-token')
   var rspObj = req.rspObj || {}
 
@@ -178,6 +189,7 @@ function validateUserToken (req, res, next) {
         responseCode: rspObj.responseCode
       }
     }, req)
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return res.status(401).send(respUtil.errorResponse(rspObj))
   }
 
@@ -196,6 +208,7 @@ function validateUserToken (req, res, next) {
         },
         additionalInfo: { token }
       }, req)
+      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       return res.status(401).send(respUtil.errorResponse(rspObj))
     } else {
       delete req.headers['x-authenticated-user-token']
@@ -211,6 +224,11 @@ function validateUserToken (req, res, next) {
  * @param  {Function} next
  */
 function apiAccessForCreatorUser (req, response, next) {
+  const logObject = {
+    traceId : req.headers['x-request-id'] || uuidV1(),
+    message : contentMessage.GET.INFOCREATOR
+   }
+   loggerService.entryLog(req.body, logObject);
   logger.debug({ msg: 'apiAccessForCreatorUser() called' }, req)
   var userId = req.get('x-authenticated-userid')
   var data = {}
@@ -242,6 +260,7 @@ function apiAccessForCreatorUser (req, response, next) {
               res
             }, req)
             var httpStatus = res && res.statusCode >= 100 && res.statusCode < 600 ? res.statusCode : 500
+            loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
             return response.status(httpStatus).send(respUtil.errorResponse(rspObj))
           } else {
             CBW(null, res)
@@ -263,6 +282,7 @@ function apiAccessForCreatorUser (req, response, next) {
             responseCode: rspObj.responseCode
           }
         }, req)
+        loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
         return response.status(401).send(respUtil.errorResponse(rspObj))
       } else {
         next()
@@ -278,6 +298,11 @@ function apiAccessForCreatorUser (req, response, next) {
  * @param  {Function} next
  */
 function apiAccessForReviewerUser (req, response, next) {
+  const logObject = {
+    traceId : req.headers['x-request-id'] || uuidV1(),
+    message : contentMessage.GET.INFOREVIEWER
+   }
+  loggerService.entryLog(req.body, logObject);
   logger.debug({ msg: 'apiAccessForReviewerUser() called' }, req)
   var userId = req.get('x-authenticated-userid')
   var data = {}
@@ -309,6 +334,7 @@ function apiAccessForReviewerUser (req, response, next) {
               additionalInfo: { qs }
             }, req)
             var httpStatus = res && res.statusCode >= 100 && res.statusCode < 600 ? res.statusCode : 500
+            loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
             return response.status(httpStatus).send(respUtil.errorResponse(rspObj))
           } else {
             CBW(null, res)
@@ -328,6 +354,7 @@ function apiAccessForReviewerUser (req, response, next) {
             responseCode: rspObj.responseCode
           }
         }, req)
+        loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
         return response.status(401).send(respUtil.errorResponse(rspObj))
       } else {
         next()
@@ -343,6 +370,11 @@ function apiAccessForReviewerUser (req, response, next) {
  * @param  {Function} next
  */
 function hierarchyUpdateApiAccess (req, response, next) {
+  const logObject = {
+    traceId : req.headers['x-request-id'] || uuidV1(),
+    message : contentMessage.HIERARCHY_UPDATE.INFO
+   }
+  loggerService.entryLog(req.body, logObject);
   logger.debug({ msg: 'hierarchyUpdateApiAccess() called' }, req)
   var userId = req.get('x-authenticated-userid')
   var data = req.body
@@ -365,6 +397,7 @@ function hierarchyUpdateApiAccess (req, response, next) {
         responseCode: rspObj.responseCode
       }
     }, req)
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(400).send(respUtil.errorResponse(rspObj))
   }
 
@@ -393,6 +426,7 @@ function hierarchyUpdateApiAccess (req, response, next) {
           }, req)
 
           var httpStatus = res && res.statusCode >= 100 && res.statusCode < 600 ? res.statusCode : 500
+          loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
           return response.status(httpStatus).send(respUtil.errorResponse(rspObj))
         } else {
           CBW(null, res)
@@ -413,6 +447,7 @@ function hierarchyUpdateApiAccess (req, response, next) {
             responseCode: rspObj.responseCode
           }
         }, req)
+        loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
         return response.status(401).send(respUtil.errorResponse(rspObj))
       } else {
         next()
@@ -429,6 +464,11 @@ function hierarchyUpdateApiAccess (req, response, next) {
  */
 function checkChannelID (req, res, next) {
   logger.debug({ msg: 'checkChannelID() called' }, req)
+  const logObject = {
+    traceId : req.headers['x-request-id'] || uuidV1(),
+    message : reqMsg.PARAMS.INFO
+   }
+  loggerService.entryLog(req.body, logObject);
   var channelID = req.get('x-channel-id')
   var rspObj = req.rspObj
   if (!channelID) {
@@ -443,6 +483,7 @@ function checkChannelID (req, res, next) {
         responseCode: rspObj.responseCode
       }
     }, req)
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return res.status(400).send(respUtil.errorResponse(rspObj))
   }
   logger.debug({ msg: `channel id = ${channelID}` })
