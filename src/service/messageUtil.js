@@ -670,6 +670,14 @@ exports.PROGRAM = {
     FAILED_CODE: 'ERR_GET_PROGRAM_DATA_FAILED',
     FAILED_MESSAGE: 'Unable to get the program data',
     INFO: 'Get the program data'
+  }, 
+  LIST: {
+    EXCEPTION_CODE: 'LST',
+    MISSING_CODE: 'ERR_LIST_PROGRAM_DATA',
+    MISSING_MESSAGE: 'Required fields to get program are missing',
+    FAILED_CODE: 'ERR_LIST_PROGRAM_DATA_FAILED',
+    FAILED_MESSAGE: 'Unable to get list of the program data',
+    INFO: 'List of the program data'
   },
   CREATE: {
     EXCEPTION_CODE: 'CRT',
@@ -704,7 +712,7 @@ exports.PROGRAM = {
     INFO: 'Get program update collection'
   },
   GENERATE_DETAILS: {
-    EXCEPTION_CODE: 'GND',
+    EXCEPTION_CODE: 'DWN',
     MISSING_CODE: 'ERR_GENERATING_PROGRAM_DATA',
     MISSING_MESSAGE: 'Required fields like program_id<Array>, is missing',
     FAILED_CODE: 'ERR_GENERATING_PROGRAM_DATA_FAILED',
@@ -786,6 +794,14 @@ exports.PROGRAM = {
       FAILED_CODE: 'ERR_CREATE_USER_PREFERENCE_FAILED',
       FAILED_MESSAGE: 'Unable to add user preferences',
       INFO: 'Set user program preferences'
+    }, 
+    SET: {
+      EXCEPTION_CODE: 'PF_SET', 
+      MISSING_CODE: 'ERR_SET_USER_PREFERENCE',
+      MISSING_MESSAGE: 'Required fields like user_id, program_id for setting user preferences are missing',
+      FAILED_CODE: 'ERR_SET_USER_PREFERENCE_FAILED',
+      FAILED_MESSAGE: 'Unable to set user preferences',
+      INFO: 'Set user program preferences'
     },
     READ: {
       EXCEPTION_CODE: 'PF_RED',
@@ -856,13 +872,15 @@ exports.CONTENT_TYPE = {
 
 exports.CONFIGURATION = {
   CREATE: {
+    EXCEPTION_CODE: 'CONF_CRT',
     MISSING_CODE: 'ERR_CREATING_CONFIGURATION',
     MISSING_MESSAGE: 'Required fields like key, value, status to create configuration are missing',
     FAILED_CODE: 'ERR_CREATE_CONFIGURATION_FAILED',
     FAILED_MESSAGE: 'Unable to create the configuration',
     INFO: 'Create the configuration'
   },
-  UPDATE: {
+  UPDATE: { 
+    EXCEPTION_CODE: 'CONF_UPD',
     MISSING_CODE: 'ERR_UPDATING_CONFIGURATION',
     MISSING_MESSAGE: 'Required fields like key to update configuration are missing',
     FAILED_CODE: 'ERR_UPDATE_CONFIGURATION_FAILED',

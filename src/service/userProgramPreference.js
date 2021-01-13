@@ -250,7 +250,6 @@ function syncCacheToPreferenceTable(userId, programId, cacheObj) {
 function setPreferences(req, response) {
   var data = req.body
   var rspObj = req.rspObj
-  const errCode = programMessages.EXCEPTION_CODE+programMessages.PREFERENCES.CREATE.EXCEPTION_CODE
   
   rspObj.apiId = 'api.preference.create';
   rspObj.apiVersion = '1.0';
@@ -260,8 +259,9 @@ function setPreferences(req, response) {
    }
    loggerService.entryLog(data, logObject);
   if (!data.request || !data.request.program_id || !data.request.user_id || !data.request.preference) {
-    rspObj.errCode = programMessages.PREFERENCES.CREATE.MISSING_CODE
-    rspObj.errMsg = programMessages.PREFERENCES.CREATE.MISSING_MESSAGE
+    const errCode = programMessages.EXCEPTION_CODE+programMessages.PREFERENCES.SET.EXCEPTION_CODE
+    rspObj.errCode = programMessages.PREFERENCES.SET.MISSING_CODE
+    rspObj.errMsg = programMessages.PREFERENCES.SET.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR;
     loggerError('',rspObj,errCode+errorCodes.CODE1);
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
@@ -289,6 +289,7 @@ function setPreferences(req, response) {
       // If redis cache is failed to give the response
       getPreferencefromtable(userId, programId).then((result) => {
         if (result.error) {
+          const errCode = programMessages.EXCEPTION_CODE+programMessages.PREFERENCES.READ.EXCEPTION_CODE
           rspObj.responseCode = 'ERR_GET_USER_PREFERENCE_FAILED';
           rspObj.result = result.result;
           loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
@@ -299,6 +300,7 @@ function setPreferences(req, response) {
         if (!result.res) {
           addPreferencetotable(userId, programId, data.request).then((addRes) => {
             if (addRes.error) {
+              const errCode = programMessages.EXCEPTION_CODE+programMessages.PREFERENCES.CREATE.EXCEPTION_CODE
               rspObj.errMsg = programMessages.PREFERENCES.CREATE.FAILED_MESSAGE
               rspObj.responseCode = programMessages.PREFERENCES.CREATE.FAILED_CODE;
               rspObj.result = addRes.res;

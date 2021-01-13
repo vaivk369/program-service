@@ -65,14 +65,15 @@ function getProgram(req, response) {
     })
     .catch(function (err) {
       // console.log(err)
+     loggerError('',rspObj,errCode+errorCodes.CODE1);
      loggerService.exitLog({responseCode: 'ERR_READ_PROGRAM'}, logObject);
       return response.status(400).send(errorResponse({
         apiId: 'api.program.read',
         ver: '1.0',
         msgid: uuid(),
-        responseCode: errCode+errorCodes.CODE1 +'_'+ 'ERR_READ_PROGRAM',
+        responseCode: 'ERR_READ_PROGRAM',
         result: err	
-      }));	
+      },errCode+errorCodes.CODE1));	
     });
 }
 
@@ -115,14 +116,15 @@ async function createProgram(req, response) {
   }).catch(err => {
     // console.log(err)
     // console.log("Error adding Program to db", err);
+    loggerError('Error Adding program to DB',rspObj,errCode+errorCodes.CODE2);
     loggerService.exitLog({responseCode: 'ERR_CREATE_PROGRAM'}, logObject);
     return response.status(400).send(errorResponse({
       apiId: 'api.program.create',
       ver: '1.0',
       msgid: uuid(),
-      responseCode: errCode+errorCodes.CODE2 +'_'+ 'ERR_CREATE_PROGRAM',
+      responseCode: 'ERR_CREATE_PROGRAM',
       result: err
-    }));
+    },errCode+errorCodes.CODE2));
   });
 }
 
@@ -157,14 +159,15 @@ function updateProgram(req, response) {
   }
   model.program.update(updateValue, updateQuery).then(resData => {
     if (_.isArray(resData) && !resData[0]) {
-    loggerService.exitLog({responseCode: 'ERR_UPDATE_PROGRAM'}, logObject);
+      loggerError('',rspObj,errCode+errorCodes.CODE2);
+      loggerService.exitLog({responseCode: 'ERR_UPDATE_PROGRAM'}, logObject);
       return response.status(400).send(errorResponse({
         apiId: 'api.program.update',
         ver: '1.0',
         msgid: uuid(),
-        responseCode: errCode+errorCodes.CODE2 +'_'+ 'ERR_UPDATE_PROGRAM',
+        responseCode: 'ERR_UPDATE_PROGRAM',
         result: 'Program_id Not Found'
-      }));
+      },errCode+errorCodes.CODE2));
     }
     loggerService.exitLog({responseCode: 'OK'}, logObject);
     return response.status(200).send(successResponse({
@@ -178,14 +181,15 @@ function updateProgram(req, response) {
     }));
   }).catch(error => {
     // console.log(error)
+    loggerError('',rspObj,errCode+errorCodes.CODE3);
     loggerService.exitLog({responseCode: 'ERR_UPDATE_PROGRAM'}, logObject);
     return response.status(400).send(errorResponse({
       apiId: 'api.program.update',
       ver: '1.0',
       msgid: uuid(),
-      responseCode: errCode+errorCodes.CODE3 +'_'+ 'ERR_UPDATE_PROGRAM',
+      responseCode: 'ERR_UPDATE_PROGRAM',
       result: error
-    }));
+    },errCode+errorCodes.CODE3));
   });
 }
 
@@ -241,14 +245,15 @@ function publishProgram(req, response) {
 
         model.program.update(updateValue, updateQuery).then(resData => {
           if (_.isArray(resData) && !resData[0]) {
-             loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM'}, logObject);
+            loggerError('',rspObj,errCode+errorCodes.CODE2);
+            loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM'}, logObject);
             return response.status(400).send(errorResponse({
               apiId: 'api.program.publish',
               ver: '1.0',
               msgid: uuid(),
-              responseCode: errCode+errorCodes.CODE2 + '_' + 'ERR_PUBLISH_PROGRAM',
+              responseCode: 'ERR_PUBLISH_PROGRAM',
               result: 'Program_id Not Found'
-            }));
+            },errCode+errorCodes.CODE2));
           }
           onAfterPublishProgram(res,req, function(afterPublishResponse) {
               loggerService.exitLog({responseCode: 'OK'}, logObject);
@@ -268,18 +273,19 @@ function publishProgram(req, response) {
         .catch(error => {
           // console.log(error)
           loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM'}, logObject);
+          loggerError('',rspObj,errCode+errorCodes.CODE3);
           return response.status(400).send(errorResponse({
             apiId: 'api.program.publish',
             ver: '1.0',
             msgid: uuid(),
-            responseCode: errCode+errorCodes.CODE3 +'_'+ 'ERR_PUBLISH_PROGRAM',
+            responseCode: 'ERR_PUBLISH_PROGRAM',
             result: error
-          }));
+          },errCode+errorCodes.CODE3));
         });
       }
       else {
         loggerService.exitLog({responseCode: errObj.responseCode}, logObject);
-        loggerError('',errObj,errCode+errorCodes.CODE4);
+        loggerError('',rspObj,errCode+errorCodes.CODE4);
         return response.status(400).send(errorResponse(errObj,errCode+errorCodes.CODE4));
       }
     };
@@ -289,13 +295,14 @@ function publishProgram(req, response) {
   .catch(function (err) {
     console.log(err)
     loggerService.exitLog({responseCode: 'ERR_READ_PROGRAM'}, logObject);
+    loggerError('',rspObj,errCode+errorCodes.CODE5);
     return response.status(400).send(errorResponse({
       apiId: 'api.program.publish',
       ver: '1.0',
       msgid: uuid(),
-      responseCode: errCode+errorCodes.CODE5 +'_'+ 'ERR_READ_PROGRAM',
+      responseCode: 'ERR_READ_PROGRAM',
       result: err
-    }));
+    },errCode+errorCodes.CODE5));
   });
 }
 
@@ -351,13 +358,14 @@ function unlistPublishProgram(req, response) {
         model.program.update(updateValue, updateQuery).then(resData => {
           if (_.isArray(resData) && !resData[0]) {
             loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM'}, logObject);
+            loggerError('',rspObj,errCode+errorCodes.CODE2);
             return response.status(400).send(errorResponse({
               apiId: 'api.program.unlist.publish',
               ver: '1.0',
               msgid: uuid(),
-              responseCode: errCode+errorCodes.CODE2 +'_'+ 'ERR_PUBLISH_PROGRAM',
+              responseCode: 'ERR_PUBLISH_PROGRAM',
               result: 'Program_id Not Found'
-            }));
+            },errCode+errorCodes.CODE2));
           }
           onAfterPublishProgram(res,req, function(afterPublishResponse) {
             loggerService.exitLog({responseCode: 'OK'}, logObject);            
@@ -375,18 +383,19 @@ function unlistPublishProgram(req, response) {
         }).catch(error => {
           console.log(error)
           loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM'}, logObject);
+          loggerError('',rspObj,errCode+errorCodes.CODE3);
           return response.status(400).send(errorResponse({
             apiId: 'api.program.unlist.publish',
             ver: '1.0',
             msgid: uuid(),
-            responseCode: errCode+errorCodes.CODE3 +'_'+ 'ERR_PUBLISH_PROGRAM',
+            responseCode: 'ERR_PUBLISH_PROGRAM',
             result: error	
-          }));
+          },errCode+errorCodes.CODE3));
         });
       }
       else {
         loggerService.exitLog({responseCode: errObj.responseCode}, logObject);
-        loggerError('',errObj,errCode+errorCodes.CODE4);
+        loggerError('',rspObj,errCode+errorCodes.CODE4);
         return response.status(400).send(errorResponse(errObj,errCode+errorCodes.CODE4));
       }
     };
@@ -396,13 +405,14 @@ function unlistPublishProgram(req, response) {
   .catch(function (err) {
     console.log(err)
     loggerService.exitLog({responseCode: 'ERR_READ_PROGRAM'}, logObject);
+    loggerError('',rspObj,errCode+errorCodes.CODE5);
     return response.status(400).send(errorResponse({
       apiId: 'api.program.publish',
       ver: '1.0',
       msgid: uuid(),
-      responseCode: errCode+errorCodes.CODE5 +'_'+ 'ERR_READ_PROGRAM',
+      responseCode: 'ERR_READ_PROGRAM',
       result: err	
-    }));
+    },errCode+errorCodes.CODE5));
   });
 }
 
@@ -1038,12 +1048,12 @@ function programList(req, response) {
     message : programMessages.READ.INFO
   }
  loggerService.entryLog(data, logObject);
-  const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.READ.EXCEPTION_CODE
+  const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.LIST.EXCEPTION_CODE
   var res_limit = queryRes_Min;
   var res_offset = data.request.offset || 0;
   if (!data.request || !data.request.filters) {
-    rspObj.errCode = programMessages.READ.MISSING_CODE
-    rspObj.errMsg = programMessages.READ.MISSING_MESSAGE
+    rspObj.errCode = programMessages.LIST.MISSING_CODE
+    rspObj.errMsg = programMessages.LIST.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     loggerError('',rspObj,errCode+errorCodes.CODE1);
@@ -1098,8 +1108,8 @@ function programList(req, response) {
 
   if (data.request.filters && data.request.filters.enrolled_id) {
     if (!data.request.filters.enrolled_id.user_id) {
-      rspObj.errCode = programMessages.READ.MISSING_CODE
-      rspObj.errMsg = programMessages.READ.MISSING_MESSAGE
+      rspObj.errCode = programMessages.LIST.MISSING_CODE
+      rspObj.errMsg = programMessages.LIST.MISSING_MESSAGE
       rspObj.responseCode = responseCode.CLIENT_ERROR
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       loggerError('',rspObj,errCode+errorCodes.CODE2);
@@ -1150,13 +1160,14 @@ function programList(req, response) {
       .catch(function (err) {
         console.log(err)
         loggerService.exitLog({responseCode: 'ERR_LIST_PROGRAM'}, logObject);
+        loggerError('',rspObj,errCode+errorCodes.CODE3);
         return response.status(400).send(errorResponse({
           apiId: 'api.program.list',
           ver: '1.0',
           msgid: uuid(),
-          responseCode: errCode+errorCodes.CODE3 +'_'+ 'ERR_LIST_PROGRAM',
+          responseCode: 'ERR_LIST_PROGRAM',
           result: err	
-        }));
+        },errCode+errorCodes.CODE3));
       });
   } else if (data.request.filters && data.request.filters.role && data.request.filters.user_id) {
     const promises = [];
@@ -1207,13 +1218,14 @@ function programList(req, response) {
     .catch(function (err) {
       console.log(err)
       loggerService.exitLog({responseCode: 'ERR_LIST_PROGRAM'}, logObject);
+      loggerError('',rspObj,errCode+errorCodes.CODE4);
       return response.status(400).send(errorResponse({
         apiId: 'api.program.list',
         ver: '1.0',
         msgid: uuid(),
-        responseCode: errCode+errorCodes.CODE4 +'_'+ 'ERR_LIST_PROGRAM',
+        responseCode: 'ERR_LIST_PROGRAM',
         result: err
-      }));
+      },errCode+errorCodes.CODE4));
     });
   } else {
     model.program.findAll({
@@ -1250,13 +1262,14 @@ function programList(req, response) {
       })
       .catch(function (err) {
         loggerService.exitLog({responseCode: 'ERR_LIST_PROGRAM'}, logObject);
+        loggerError('',rspObj,errCode+errorCodes.CODE5);
         return response.status(400).send(errorResponse({
           apiId: 'api.program.list',
           ver: '1.0',
           msgid: uuid(),
-          responseCode: errCode+errorCodes.CODE5 +'_'+ 'ERR_LIST_PROGRAM',
+          responseCode: 'ERR_LIST_PROGRAM',
           result: err
-        }));
+        },errCode+errorCodes.CODE5));
       });
   }
 }
@@ -1297,13 +1310,14 @@ function addNomination(req, response) {
   }).catch(err => {
     console.log("Error adding nomination to db", err);
     loggerService.exitLog({responseCode: 'ERR_CREATE_PROGRAM'}, logObject);
+    loggerError('',rspObj,errCode+errorCodes.CODE2);
     return response.status(400).send(errorResponse({
       apiId: 'api.nomination.add',
       ver: '1.0',
       msgid: uuid(),
-      responseCode: errCode+errorCodes.CODE2 +'_'+ 'ERR_CREATE_PROGRAM',
+      responseCode: 'ERR_CREATE_PROGRAM',
       result: err
-    }));
+    },errCode+errorCodes.CODE2));
   });
 }
 
@@ -1351,13 +1365,14 @@ function updateNomination(req, response) {
   model.nomination.update(updateValue, updateQuery).then(res => {
     if (_.isArray(res) && !res[0]) {
       loggerService.exitLog({responseCode: 'ERR_UPDATE_NOMINATION'}, logObject);
+      loggerError('',rspObj,errCode+errorCodes.CODE2);
       return response.status(400).send(errorResponse({
         apiId: 'api.nomination.update',	     
         ver: '1.0',	     
         msgid: uuid(),	     
-        responseCode: errCode+errorCodes.CODE2 +'_'+ 'ERR_UPDATE_NOMINATION',	
+        responseCode: 'ERR_UPDATE_NOMINATION',	
         result: 'Nomination Not Found'	
-      }));
+      },errCode+errorCodes.CODE2));
     }
     const successRes = {
       program_id: updateQuery.where.program_id,
@@ -1379,13 +1394,14 @@ function updateNomination(req, response) {
   }).catch(err => {
     loggerService.exitLog({responseCode: 'ERR_UPDATE_NOMINATION'}, logObject);
     console.log("Error updating nomination to db", err);
+    loggerError('',rspObj,errCode+errorCodes.CODE3);
     return response.status(400).send(errorResponse({   
       apiId: 'api.nomination.update',	    
       ver: '1.0',	    
       msgid: uuid(),	    
-      responseCode: errCode+errorCodes.CODE3 +'_'+ 'ERR_UPDATE_NOMINATION',
+      responseCode: 'ERR_UPDATE_NOMINATION',
       result: err	
-    }));
+    },errCode+errorCodes.CODE3));
   });
 }
 
@@ -1772,7 +1788,7 @@ function aggregatedNominationCount(data, result) {
           rspObj.errCode = _.get(error, 'name');
           rspObj.errMsg = _.get(error, 'message');
           rspObj.responseCode = responseCode.SERVER_ERROR;
-            loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+          loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
           loggerError('',rspObj,errCode+errorCodes.CODE3);
           return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE3))
         }
@@ -1780,7 +1796,7 @@ function aggregatedNominationCount(data, result) {
         rspObj.errCode = programMessages.NOMINATION.DOWNLOAD_LIST.QUERY_FAILED_CODE;
         rspObj.errMsg = programMessages.NOMINATION.DOWNLOAD_LIST.QUERY_FAILED_MESSAGE;
         rspObj.responseCode = responseCode.SERVER_ERROR;
-          loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+        loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
         loggerError('',rspObj,errCode+errorCodes.CODE4);
         return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE4))
       })
@@ -2179,6 +2195,7 @@ function getConfigurationByKey(req, response) {
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       return response.status(200).send(successResponse(rspObj))
     }).catch(error => {
+      rspObj.responseCode = responseCode.CLIENT_ERROR
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       loggerError('',rspObj,errCode+errorCodes.CODE2);
       return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
@@ -2243,9 +2260,9 @@ function programUpdateCollection(req, response) {
       errCode: error.response.data.params.err,	
       status: error.response.data.params.status,	
       errMsg: error.response.data.params.errmsg,	
-      responseCode: errCode+errorCodes.CODE2 +'_'+ error.response.data.responseCode,	
+      responseCode:  error.response.data.responseCode,	
       result: error.response.data.result	
-    }));
+    },errCode+errorCodes.CODE2));
   })
 }
 
