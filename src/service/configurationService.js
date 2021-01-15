@@ -3,6 +3,8 @@ const logger = require('sb_logger_util_v2');
 const messageUtils = require('./messageUtil');
 const configurationMessages = messageUtils.CONFIGURATION;
 const responseCode = messageUtils.RESPONSE_CODE;
+const errorCodes = messageUtils.ERRORCODES;
+const programMessages = messageUtils.PROGRAM;
 const model = require('../models');
 const uuid = require("uuid/v1");
 const { async } = require('rxjs/internal/scheduler/async');
@@ -13,6 +15,7 @@ const loggerService = require('./loggerService');
 async function createConfiguration(req, response) {
   let data = req.body
   const rspObj = req.rspObj
+  const errCode = programMessages.EXCEPTION_CODE+configurationMessages.CREATE.EXCEPTION_CODE
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
     message : configurationMessages.CREATE.INFO
@@ -22,9 +25,9 @@ async function createConfiguration(req, response) {
     rspObj.errCode = configurationMessages.CREATE.MISSING_CODE;
     rspObj.errMsg = configurationMessages.CREATE.MISSING_MESSAGE;
     rspObj.responseCode = responseCode.CLIENT_ERROR;
-    loggerError('Error due to missing fields in the request', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req)
+    loggerError('Error due to missing fields in the request',rspObj,errCode+errorCodes.CODE1)
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-    return response.status(400).send(errorResponse(rspObj));
+    return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1));
   }
   const insertObj = data.request;
   try {
@@ -38,9 +41,9 @@ async function createConfiguration(req, response) {
     rspObj.errCode = configurationMessages.CREATE.FAILED_CODE;
     rspObj.errMsg = sequelizeErrorMessage ? sequelizeErrorMessage.message : error.message || bulkJobRequestMessages.CREATE.FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
-    loggerError('Error while create a new bulk_job_request', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, error, req)
+    loggerError('Error while create a new bulk_job_request',rspObj,errCode+errorCodes.CODE2)
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-    return response.status(500).send(errorResponse(rspObj));
+    return response.status(500).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
   }
 }
 
@@ -48,6 +51,7 @@ async function createConfiguration(req, response) {
 async function updateConfiguration(req, response) {
   let data = req.body;
   const rspObj = req.rspObj;
+  const errCode = programMessages.EXCEPTION_CODE+configurationMessages.UPDATE.EXCEPTION_CODE
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
     message : configurationMessages.UPDATE.INFO
@@ -57,10 +61,9 @@ async function updateConfiguration(req, response) {
     rspObj.errCode = configurationMessages.UPDATE.MISSING_CODE;
     rspObj.errMsg = configurationMessages.UPDATE.MISSING_MESSAGE;
     rspObj.responseCode = responseCode.CLIENT_ERROR;
-    loggerError('Error updating configuration request due to missing key field',
-    rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req);
+    loggerError('Error updating configuration request due to missing key field',rspObj,errCode+errorCodes.CODE1)
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-    return response.status(400).send(errorResponse(rspObj));
+    return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1));
   }
   const updateStatement = {
     where: {
@@ -78,10 +81,9 @@ async function updateConfiguration(req, response) {
       rspObj.errCode = configurationMessages.UPDATE.PROCESS_ID_MISSING_CODE;
       rspObj.errMsg = configurationMessages.UPDATE.PROCESS_ID_FAILED_MESSAGE;
       rspObj.responseCode = responseCode.CONFIGURATION_KEY_NOT_FOUND;
-      loggerError('Unable to update configuration. key not found.',
-      rspObj.errCode, rspObj.errMsg, rspObj.responseCode, null, req);
+      loggerError('Unable to update configuration. key not found.',rspObj,errCode+errorCodes.CODE2)
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-      return response.status(404).send(errorResponse(rspObj))
+      return response.status(404).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
     }
     rspObj.responseCode = responseCode.SUCCESS;
     rspObj.result = {
@@ -93,9 +95,9 @@ async function updateConfiguration(req, response) {
     rspObj.errCode = configurationMessages.UPDATE.UPDATE_FAILED_CODE;
     rspObj.errMsg = error.message || configurationMessages.UPDATE.UPDATE_FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
-    loggerError('Unable to update configuration', rspObj.errCode, rspObj.errMsg, rspObj.responseCode, error, req)
+    loggerError('Unable to update configuration.',rspObj,errCode+errorCodes.CODE3)
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-    return response.status(500).send(errorResponse(rspObj));
+    return response.status(500).send(errorResponse(rspObj,errCode+errorCodes.CODE3));
   }
 }
 
@@ -111,13 +113,13 @@ function successResponse(data) {
   return response
 }
 
-function errorResponse(data) {
+function errorResponse(data,errCode) {
   var response = {}
   response.id = data.apiId
   response.ver = data.apiVersion
   response.ts = new Date()
   response.params = getParams(data.msgId, 'failed', data.errCode, data.errMsg)
-  response.responseCode = data.responseCode
+  response.responseCode = errCode + '_' + data.responseCode
   response.result = data.result
   return response
 }
@@ -134,8 +136,16 @@ function getParams(msgId, status, errCode, msg) {
 }
 
 
-function loggerError(msg, errCode, errMsg, responseCode, error, req) {
-  logger.error({ msg, err: { errCode, errMsg, responseCode }, additionalInfo: { error } }, req)
+function loggerError(errmsg,data,errCode) {
+  var errObj = {}
+  errObj.eid = 'Error'
+  errObj.edata = {
+    err : errCode,
+    errtype : errmsg || data.errMsg,
+    requestid : data.msgId || uuid(),
+    stacktrace : _.truncate(JSON.stringify(data), { 'length': stackTrace_MaxLimit})
+  }
+  logger.error({ msg: 'Error log', errObj})
 }
 
 
