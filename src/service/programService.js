@@ -1418,7 +1418,7 @@ function getNominationsList(req, response) {
   }
  loggerService.entryLog(data, logObject);
   const errCode = programMessages.NOMINATION.EXCEPTION_CODE+'_'+programMessages.NOMINATION.LIST.EXCEPTION_CODE
-  var res_limit = queryRes_Min;
+  var res_limit = 500; // @TODO: for now hardcoded, but need to fix with new wrapper API
   var res_offset = data.request.offset || 0;
   rspObj.errCode = programMessages.NOMINATION.LIST.FAILED_CODE
   rspObj.errMsg = programMessages.NOMINATION.LIST.FAILED_MESSAGE
