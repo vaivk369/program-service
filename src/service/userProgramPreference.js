@@ -26,7 +26,7 @@ function getPreferences(req, response) {
     message : programMessages.PREFERENCES.READ.INFO
    }
    loggerService.entryLog(data, logObject);
-  const errCode = programMessages.EXCEPTION_CODE+programMessages.PREFERENCES.READ.EXCEPTION_CODE
+  const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.PREFERENCES.READ.EXCEPTION_CODE
   rspObj.apiId = 'api.preference.read';
   rspObj.apiVersion = '1.0'
 
@@ -259,7 +259,7 @@ function setPreferences(req, response) {
    }
    loggerService.entryLog(data, logObject);
   if (!data.request || !data.request.program_id || !data.request.user_id || !data.request.preference) {
-    const errCode = programMessages.EXCEPTION_CODE+programMessages.PREFERENCES.SET.EXCEPTION_CODE
+    const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.PREFERENCES.SET.EXCEPTION_CODE
     rspObj.errCode = programMessages.PREFERENCES.SET.MISSING_CODE
     rspObj.errMsg = programMessages.PREFERENCES.SET.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR;
@@ -289,7 +289,7 @@ function setPreferences(req, response) {
       // If redis cache is failed to give the response
       getPreferencefromtable(userId, programId).then((result) => {
         if (result.error) {
-          const errCode = programMessages.EXCEPTION_CODE+programMessages.PREFERENCES.READ.EXCEPTION_CODE
+          const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.PREFERENCES.READ.EXCEPTION_CODE
           rspObj.responseCode = 'ERR_GET_USER_PREFERENCE_FAILED';
           rspObj.result = result.result;
           loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
@@ -300,7 +300,7 @@ function setPreferences(req, response) {
         if (!result.res) {
           addPreferencetotable(userId, programId, data.request).then((addRes) => {
             if (addRes.error) {
-              const errCode = programMessages.EXCEPTION_CODE+programMessages.PREFERENCES.CREATE.EXCEPTION_CODE
+              const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.PREFERENCES.CREATE.EXCEPTION_CODE
               rspObj.errMsg = programMessages.PREFERENCES.CREATE.FAILED_MESSAGE
               rspObj.responseCode = programMessages.PREFERENCES.CREATE.FAILED_CODE;
               rspObj.result = addRes.res;
@@ -319,7 +319,7 @@ function setPreferences(req, response) {
         } else if (result.res.id) {
           updatePreferencetotable(userId, programId, data.request).then((updateRes) => {
             if (updateRes.error) {
-              const errorCode = programMessages.EXCEPTION_CODE+programMessages.PREFERENCES.UPDATE.EXCEPTION_CODE
+              const errorCode = programMessages.EXCEPTION_CODE+'_'+programMessages.PREFERENCES.UPDATE.EXCEPTION_CODE
               rspObj.errMsg = programMessages.PREFERENCES.UPDATE.FAILED_MESSAGE
               rspObj.responseCode = programMessages.PREFERENCES.UPDATE.FAILED_CODE;
               rspObj.result = updateRes.res;

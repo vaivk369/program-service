@@ -1282,7 +1282,7 @@ function addNomination(req, response) {
     message : programMessages.NOMINATION.CREATE.INFO
   }
  loggerService.entryLog(data, logObject);
-  const errCode = programMessages.NOMINATION.EXCEPTION_CODE+'_'+programMessages.NOMINATION.CREATE.EXCEPTION_CODE
+  const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.NOMINATION.CREATE.EXCEPTION_CODE
   if (!data.request || !data.request.program_id || !data.request.user_id || !data.request.status) {
     rspObj.errCode = programMessages.NOMINATION.CREATE.MISSING_CODE
     rspObj.errMsg = programMessages.NOMINATION.CREATE.MISSING_MESSAGE
@@ -1329,7 +1329,7 @@ function updateNomination(req, response) {
     message : programMessages.NOMINATION.UPDATE.INFO
   }
  loggerService.entryLog(data, logObject);
-  const errCode = programMessages.NOMINATION.EXCEPTION_CODE+'_'+programMessages.NOMINATION.UPDATE.EXCEPTION_CODE
+  const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.NOMINATION.UPDATE.EXCEPTION_CODE
   if (!data.request || !data.request.program_id || !(data.request.user_id || data.request.organisation_id)) {
     rspObj.errCode = programMessages.NOMINATION.UPDATE.MISSING_CODE
     rspObj.errMsg = programMessages.NOMINATION.UPDATE.MISSING_MESSAGE
@@ -1416,9 +1416,8 @@ function getNominationsList(req, response) {
     traceId : req.headers['x-request-id'] || '',
     message : programMessages.NOMINATION.LIST.INFO
   }
- loggerService.entryLog(data, logObject);
-  const errCode = programMessages.NOMINATION.EXCEPTION_CODE+'_'+programMessages.NOMINATION.LIST.EXCEPTION_CODE
-  var res_limit = 500; // @TODO: for now hardcoded, but need to fix with new wrapper API
+  const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.NOMINATION.LIST.EXCEPTION_CODE
+  var res_limit = queryRes_Min;
   var res_offset = data.request.offset || 0;
   rspObj.errCode = programMessages.NOMINATION.LIST.FAILED_CODE
   rspObj.errMsg = programMessages.NOMINATION.LIST.FAILED_MESSAGE
@@ -1686,7 +1685,7 @@ function aggregatedNominationCount(data, result) {
     message : programMessages.NOMINATION.DOWNLOAD_LIST.INFO
   }
   loggerService.entryLog(data, logObject);
-  const errCode = programMessages.NOMINATION.EXCEPTION_CODE+'_'+programMessages.NOMINATION.DOWNLOAD_LIST.EXCEPTION_CODE
+  const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.NOMINATION.DOWNLOAD_LIST.EXCEPTION_CODE
   rspObj.errCode = programMessages.NOMINATION.DOWNLOAD_LIST.MISSING_CODE;
   rspObj.errMsg = programMessages.NOMINATION.DOWNLOAD_LIST.MISSING_MESSAGE;
   rspObj.responseCode = responseCode.CLIENT_ERROR;
@@ -3115,7 +3114,7 @@ function syncUsersToRegistry(req, response) {
   });
 }
 
-function loggerError(errmsg,data,errCode) {
+function loggerError(errmsg, data, errCode) {
   var errObj = {}
   errObj.eid = 'Error'
   errObj.edata = {

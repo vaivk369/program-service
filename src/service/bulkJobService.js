@@ -4,6 +4,7 @@ const envVariables = require('../envVariables');
 const logger = require('sb_logger_util_v2');
 const messageUtils = require('./messageUtil');
 const bulkJobRequestMessages = messageUtils.BULK_JOB_REQUEST;
+const programMessages = messageUtils.PROGRAM;
 const responseCode = messageUtils.RESPONSE_CODE;
 const errorCode = messageUtils.ERRORCODES;
 const model = require('../models');
@@ -22,7 +23,7 @@ async function createJob(req, response) {
     message : bulkJobRequestMessages.CREATE.INFO
 }
 loggerService.entryLog(data, logObject);
-  const errCode = bulkJobRequestMessages.EXCEPTION_CODE+'_'+bulkJobRequestMessages.CREATE.EXCEPTION_CODE
+  const errCode = programMessages.EXCEPTION_CODE+'_'+bulkJobRequestMessages.CREATE.EXCEPTION_CODE
   if(!data.request || !data.request.process_id || !data.request.program_id || !data.request.type || !data.request.createdby) {
     rspObj.errCode = bulkJobRequestMessages.CREATE.MISSING_CODE;
     rspObj.errMsg = bulkJobRequestMessages.CREATE.MISSING_MESSAGE;
@@ -57,7 +58,7 @@ async function readJob(req, response) {
     message : bulkJobRequestMessages.READ.INFO
   }
   loggerService.entryLog(req.params, logObject);
-  const errCode = bulkJobRequestMessages.EXCEPTION_CODE+'_'+bulkJobRequestMessages.READ.EXCEPTION_CODE
+  const errCode = programMessages.EXCEPTION_CODE+'_'+bulkJobRequestMessages.READ.EXCEPTION_CODE
   try {
     const readResponse = await model.bulk_job_request.findOne({ where: { process_id: req.params.process_id }})
     if(!readResponse) {
@@ -90,7 +91,7 @@ async function updateJob(req, response) {
     message : bulkJobRequestMessages.UPDATE.INFO
   }
   loggerService.entryLog(data, logObject);
-  const errCode = bulkJobRequestMessages.EXCEPTION_CODE+'_'+bulkJobRequestMessages.UPDATE.EXCEPTION_CODE
+  const errCode = programMessages.EXCEPTION_CODE+'_'+bulkJobRequestMessages.UPDATE.EXCEPTION_CODE
   if(!data.request || !data.request.process_id) {
     rspObj.errCode = bulkJobRequestMessages.UPDATE.MISSING_CODE;
     rspObj.errMsg = bulkJobRequestMessages.UPDATE.MISSING_MESSAGE;
@@ -143,7 +144,7 @@ async function searchJob(req, response) {
     message : bulkJobRequestMessages.SEARCH.INFO
   }
   loggerService.entryLog(data, logObject);
-  const errCode = bulkJobRequestMessages.EXCEPTION_CODE+'_'+bulkJobRequestMessages.SEARCH.EXCEPTION_CODE
+  const errCode = programMessages.EXCEPTION_CODE+'_'+bulkJobRequestMessages.SEARCH.EXCEPTION_CODE
   let searchOffset = data.request.offset || 0;
   var searchLimit = searchResult_Min;
   if(data.request.limit) {

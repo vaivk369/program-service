@@ -15,7 +15,7 @@ const loggerService = require('./loggerService');
 async function createConfiguration(req, response) {
   let data = req.body
   const rspObj = req.rspObj
-  const errCode = programMessages.EXCEPTION_CODE+configurationMessages.CREATE.EXCEPTION_CODE
+  const errCode = programMessages.EXCEPTION_CODE+'_'+configurationMessages.CREATE.EXCEPTION_CODE
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
     message : configurationMessages.CREATE.INFO
@@ -51,7 +51,7 @@ async function createConfiguration(req, response) {
 async function updateConfiguration(req, response) {
   let data = req.body;
   const rspObj = req.rspObj;
-  const errCode = programMessages.EXCEPTION_CODE+configurationMessages.UPDATE.EXCEPTION_CODE
+  const errCode = programMessages.EXCEPTION_CODE+'_'+configurationMessages.UPDATE.EXCEPTION_CODE
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
     message : configurationMessages.UPDATE.INFO
