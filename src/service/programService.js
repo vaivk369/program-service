@@ -2253,15 +2253,15 @@ function programUpdateCollection(req, response) {
     rspObj.responseCode = responseCode.RESOURCE_NOT_FOUND
     loggerService.exitLog({responseCode: error.response.data.responseCode}, logObject);
     loggerError('',rspObj,errCode+errorCodes.CODE2);
-    return response.status(400).send(errorResponse({	
-      apiId: 'api.program.collection.link',	
-      ver: '1.0',	
-      msgId: uuid(),	
-      errCode: error.response.data.params.err,	
-      status: error.response.data.params.status,	
-      errMsg: error.response.data.params.errmsg,	
-      responseCode:  error.response.data.responseCode,	
-      result: error.response.data.result	
+    return response.status(400).send(errorResponse({
+      apiId: 'api.program.collection.link',
+      ver: '1.0',
+      msgId: uuid(),
+      errCode: _.get(error, 'response.data.params.err') || rspObj.errCode,
+      status: _.get(error, 'response.data.params.status'),
+      errMsg: _.get(error, 'response.data.params.errmsg') || rspObj.errMsg,
+      responseCode:  _.get(error,'response.data.responseCode') || rspObj.responseCode,
+      result: error.response.data.result
     },errCode+errorCodes.CODE2));
   })
 }
@@ -3120,8 +3120,8 @@ function loggerError(errmsg, data, errCode) {
   errObj.eid = 'Error'
   errObj.edata = {
     err : errCode,
-    errtype : errmsg || data.errMsg,
-    requestid : data.msgId || uuid(),
+    errtype : errmsg || _.get(data,'errMsg'),
+    requestid : _.get(data, 'msgId') || uuid(),
     stacktrace : _.truncate(JSON.stringify(data), { 'length': stackTrace_MaxLimit})
   }
   logger.error({ msg: 'Error log', errObj})
