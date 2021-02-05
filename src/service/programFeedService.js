@@ -138,7 +138,7 @@ const searchForUpdates = async (req, response) => {
         }
         const newContributions = await searchContributions(contributionSearchRequest, req.headers);
         const contents = _.get(newContributions, 'data.result.content');
-        logObject.params = { Contents: `${JSON.stringify(Contents)}`}
+        logObject.params = { 'contents': `${JSON.stringify(contents)}`}
         console.log('Contents',loggerService.logFormate(logObject));
         const notActedUponContents = await getActionPendingContents(contents, req.headers);
         logObject.params = { notActedUponContents: `${JSON.stringify(notActedUponContents)}`}
