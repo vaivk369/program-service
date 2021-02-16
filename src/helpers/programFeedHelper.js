@@ -172,7 +172,7 @@ const insertAndSetExpiry = async (updates, channel, setChannelExpiry) => {
     channelTTL = await client.ttlAsync(programUpdatesChannelKey);
   }
   let logObject = {
-    msg: updateHierarchyMessages.UPDATE.INFO,
+    msg: programFeedMessages.UPDATE.INFO,
     channel: 'program Feed Helper',
     level: 'INFO',
     env: 'programFeedHelper',
