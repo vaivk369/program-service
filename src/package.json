@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node app.js",
     "test": "mocha 'test/**/*.js'",
+    "test-print": "mocha 'test/service/printService.js'",
     "test-with-coverage": "nyc --reporter=lcov --reporter=text-lcov mocha test/**/*.js --exit --timeout 20000"
   },
   "dependencies": {
@@ -29,9 +30,12 @@
     "kafka-node": "^3.0.1",
     "lodash": "^4.17.15",
     "morgan": "~1.9.1",
+    "node-fetch": "2.6.1",
+    "pdfmake": "^0.1.70",
     "pg": "^7.18.2",
     "redis": "^3.0.2",
     "response_util": "file:libs/response_util",
+    "rewire": "^5.0.0",
     "rxjs": "^6.5.4",
     "rxjs-compat": "^6.5.4",
     "sb-config-util": "file:libs/sb-config-util",
@@ -49,9 +53,10 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
-    "mocha": "^8.0.1",
+    "chai-match": "^1.1.1",
+    "mocha": "^8.3.0",
+    "nock": "^13.0.2",
     "nyc": "^15.1.0",
-    "request": "^2.88.2",
-    "nock": "^13.0.2"
+    "request": "^2.88.2"
   }
 }
