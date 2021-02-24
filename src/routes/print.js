@@ -16,7 +16,7 @@ async function printPDF(req, res) {
     if (!error) {
       if (format === "json") {
         const resJSON = {
-          id: "api.hierarchy.update",
+          id: "api.collection.print",
           ver: "1.0",
           ts: date.toISOString(),
           params: {
