@@ -9,8 +9,6 @@ async function printPDF(req, res) {
   const id = req.query.id;
   const format = req.query.format;
 
-  console.log({ format });
-
   buildPDFWithCallback(id, function (binary, error, errorMsg) {
     var date = new Date();
     if (!error) {
@@ -31,8 +29,7 @@ async function printPDF(req, res) {
             content_id: id,
             base64string: binary,
           },
-        };
-        console.log(resJSON);
+        };        
         res.send(resJSON);
       } else {
         res.contentType(`application/pdf; name=${id}.pdf`);
