@@ -119,8 +119,7 @@ describe("Print Service", () => {
       "do_113213251762339840191",
       (base64PDF, error, errorMsg) => {
         expect(error).to.be.false;
-        expect(errorMsg).to.equal("");
-        expect(base64PDF).to.match(/^data:application/);
+        expect(errorMsg).to.equal("");        
         done();
       }
     );

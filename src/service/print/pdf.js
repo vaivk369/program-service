@@ -138,11 +138,7 @@ const buildPDFWithCallback = (id, callback) => {
         });
         doc.on("end", function () {
           result = Buffer.concat(chunks);
-          callback(
-            `data:application/pdf;base64,` + result.toString("base64"),
-            error,
-            errorMsg
-          );
+          callback(result.toString("base64"), error, errorMsg);
         });
         doc.end();
       }
