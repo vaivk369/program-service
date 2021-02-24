@@ -7,10 +7,21 @@ const BASE_URL = "/program/v1";
 // Refactor this to move to service
 async function printPDF(req, res) {
   const id = req.query.id;
+  const format = req.query.format;
+
+  console.log({ format });
+
   buildPDFWithCallback(id, function (binary, error, errorMsg) {
     if (!error) {
-      res.contentType(`application/pdf; name=${id}.pdf`);
-      res.send(binary);
+      if (format === "json") {
+        res.send({
+          responseCode: "OK",
+          data: binary,
+        });
+      } else {
+        res.contentType(`application/pdf; name=${id}.pdf`);
+        res.send(binary);
+      }
     } else {
       res.status(404).send({
         error: errorMsg,
