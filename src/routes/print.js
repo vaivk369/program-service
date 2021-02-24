@@ -12,15 +12,31 @@ async function printPDF(req, res) {
   console.log({ format });
 
   buildPDFWithCallback(id, function (binary, error, errorMsg) {
+    var date = new Date();
     if (!error) {
       if (format === "json") {
-        res.send({
+        const resJSON = {
+          id: "api.hierarchy.update",
+          ver: "1.0",
+          ts: date.toISOString(),
+          params: {
+            id,
+            format,
+            status: "successful",
+            err: null,
+            errmsg: null,
+          },
           responseCode: "OK",
-          data: binary,
-        });
+          result: {
+            content_id: id,
+            base64string: binary,
+          },
+        };
+        console.log(resJSON);
+        res.send(resJSON);
       } else {
         res.contentType(`application/pdf; name=${id}.pdf`);
-        res.send(binary);
+        res.send(`data:application/pdf;base64, ${binary}`);
       }
     } else {
       res.status(404).send({
