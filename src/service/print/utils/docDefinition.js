@@ -47,46 +47,27 @@ const docDefinition = {
   styles: styles,
 };
 
-function getLA(questionTitle, language, marks) {
+function getLA() {
   return {
-    // Time + Marks
+    text: "21. What advice did the old bird give to the other birds?",
+    style: "question_LA",
+
     table: {
-      widths: ["*", "auto"],
+      widths: ["*"],
       body: [
         [
           {
             border: [false, false, false, false],
-            // Question LA
-            text: questionTitle,
+            text: "21. What advice did the old bird give to the other birds?",
             style: "question_LA",
-            font: language,
-
-            table: {
-              widths: ["*"],
-              body: [
-                [
-                  {
-                    border: [false, false, false, false],
-                    text: questionTitle,
-                    style: "question_LA",
-                    font: language,
-                  },
-                ],
-                [
-                  {
-                    border: [false, false, false, false],
-                    text:
-                      "_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________",
-                    style: "question_VSA",
-                  },
-                ],
-              ],
-            },
           },
+        ],
+        [
           {
             border: [false, false, false, false],
-            text: marks,
-            style: "header_right",
+            text:
+              "____________________________________________________________________________________________\n\n____________________________________________________________________________________________\n\n____________________________________________________________________________________________\n\n____________________________________________________________________________________________\n\n____________________________________________________________________________________________\n\n____________________________________________________________________________________________\n\n____________________________________________________________________________________________\n\n____________________________________________________________________________________________\n\n____________________________________________________________________________________________\n\n____________________________________________________________________________________________\n\n____________________________________________________________________________________________",
+            style: "question_VSA",
           },
         ],
       ],
@@ -97,38 +78,22 @@ function getLA(questionTitle, language, marks) {
 function getVSA(questionTitle, language, marks) {
   return {
     table: {
-      widths: ["*", "auto"],
+      widths: ["*"],
       body: [
         [
           {
             border: [false, false, false, false],
-            // Question VSA
-            table: {
-              widths: ["*"],
-              body: [
-                [
-                  {
-                    border: [false, false, false, false],
-                    text: questionTitle,
-                    style: "question_VSA",
-                    font: language,
-                  },
-                ],
-                [
-                  {
-                    border: [false, false, false, false],
-                    text:
-                      "______________________________________________________________________________________",
-                    style: "question_VSA",
-                  },
-                ],
-              ],
-            },
+            text: questionTitle,
+            style: "question_VSA",
+            font: language,
           },
+        ],
+        [
           {
             border: [false, false, false, false],
-            text: marks,
-            style: "header_right",
+            text:
+              "____________________________________________________________________________________________",
+            style: "question_VSA",
           },
         ],
       ],
@@ -195,60 +160,6 @@ function getTF(questionTitle, language, marks) {
             border: [true, true, true, true],
             text: "",
             style: "question_TF",
-          },
-        ],
-      ],
-    },
-  };
-}
-
-function getMTFHeader(left, right, language) {
-  return {
-    table: {
-      widths: ["*", "*"],
-      body: [
-        [
-          {
-            border: [false, false, true, true],
-            margin: [40, 0],
-            text: left,
-            style: "question_MTF",
-            font: language,
-            bold: "true",
-          },
-          {
-            border: [false, false, false, true],
-            margin: [40, 0],
-            text: right,
-            style: "question_MTF",
-            bold: "true",
-            font: language,
-          },
-        ],
-      ],
-    },
-  };
-}
-
-function getMTFChoice(left, right, language) {
-  return {
-    table: {
-      widths: ["*", "*"],
-      body: [
-        [
-          {
-            border: [false, false, true, true],
-            text: left,
-            margin: [40, 0],
-            style: "question_MTF",
-            font: language,
-          },
-          {
-            border: [false, false, false, true],
-            text: right,
-            margin: [40, 0],
-            style: "question_MTF",
-            font: language,
           },
         ],
       ],
@@ -372,16 +283,21 @@ function getInstructions(instructions, language) {
   };
 }
 
-function getTimeAndMarks(time, marks) {
+function getTimeAndMarks() {
   return {
     table: {
-      widths: ["*"],
+      widths: ["*", "*"],
       body: [
         [
           {
             border: [false, false, false, false],
-            text: "Marks - " + marks,
+            text: "Time - " + "90" + "Minutes",
             style: "header_left",
+          },
+          {
+            border: [false, false, false, false],
+            text: "Marks - " + "100",
+            style: "header_right",
           },
         ],
       ],
@@ -411,6 +327,4 @@ module.exports = {
   getSA,
   getVSA,
   getLA,
-  getMTFHeader,
-  getMTFChoice,
 };
