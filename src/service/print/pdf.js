@@ -99,7 +99,7 @@ const buildPDFWithCallback = (id, callback) => {
 
           d.questions
             .filter((question) => {
-              return question.status === "Live";
+              return (question.status === "Live" && question.sourcingStatus === "Approved");
             })
             .map((question, index) => {
               // Check question type and proceed based on that.
