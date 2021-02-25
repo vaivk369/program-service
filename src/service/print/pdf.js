@@ -102,7 +102,6 @@ const buildPDFWithCallback = (id, callback) => {
             questionCounter += 1;
             const marks = section.children[index].marks;
             let questionContent;
-            console.log("Hello", question);
             try {
               if (question.category === "MCQ")
                 questionContent = renderMCQ(question, questionCounter, marks);
