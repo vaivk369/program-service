@@ -1,5 +1,6 @@
 var PdfPrinter = require("pdfmake");
 const { getData } = require("./dataImporter");
+
 var {
   docDefinition,
   getStudentTeacherDetails,
@@ -15,12 +16,7 @@ var {
   getSA,
   getVSA,
   getLA,
-  getMTFHeader,
-  getMTFChoice,
 } = require("./utils/docDefinition");
-var cheerio = require("cheerio");
-var cheerioTableparser = require("cheerio-tableparser");
-
 // /Users/apple/chaks/sunbird/exp/program-service/src/service/print/service/print/utils/fonts/Roboto/DroidSans-Bold.ttf
 var fonts = {
   Roboto: {
@@ -51,7 +47,6 @@ var fonts = {
 
 var printer = new PdfPrinter(fonts);
 var fs = require("fs");
-const { language } = require("googleapis/build/src/apis/language");
 
 var options = {
   // ...
@@ -69,7 +64,6 @@ const buildPDF = async (id) => {
 const buildPDFWithCallback = (id, callback) => {
   let error = false;
   let errorMsg = "";
-  let totalMarks = 0;
   getData(id)
     .then((data) => {
       if (data.error) {
@@ -82,19 +76,13 @@ const buildPDFWithCallback = (id, callback) => {
         let language = data.paperData.medium[0];
 
         // const language = "Noto";
-        data.sectionData.forEach((d) => {
-          d.questions.forEach((element, index) => {
-            const marks = parseInt(d.section.children[index].marks);
-            if (!isNaN(marks)) totalMarks += marks;
-          });
-        });
 
         const contentBase = [
           getStudentTeacherDetails(),
           getExamName(examName),
           getGradeHeader(grade),
           getSubject(subject),
-          getTimeAndMarks(90, totalMarks),
+          getTimeAndMarks(),
           getInstructions(instructions, language),
         ];
 
@@ -116,22 +104,20 @@ const buildPDFWithCallback = (id, callback) => {
             let questionContent;
             try {
               if (question.category === "MCQ")
-                questionContent = [renderMCQ(question, questionCounter, marks)];
+                questionContent = renderMCQ(question, questionCounter, marks);
               else if (question.category === "FTB") {
-                questionContent = [renderFTB(question, questionCounter, marks)];
+                questionContent = renderFTB(question, questionCounter, marks);
               } else if (question.category === "SA") {
-                questionContent = [renderSA(question, questionCounter, marks)];
+                questionContent = renderSA(question, questionCounter, marks);
               } else if (question.category === "LA") {
-                questionContent = [renderLA(question, questionCounter, marks)];
+                questionContent = renderLA(question, questionCounter, marks);
               } else if (question.category === "VSA") {
-                questionContent = [renderVSA(question, questionCounter, marks)];
+                questionContent = renderVSA(question, questionCounter, marks);
               } else if (question.category === "TF") {
-                questionContent = [renderTF(question, questionCounter, marks)];
-              } else if (question.category === "MTF") {
-                questionContent = renderMTF(question, questionCounter, marks);
+                questionContent = renderTF(question, questionCounter, marks);
               }
 
-              questionPaperContent.push(...questionContent);
+              questionPaperContent.push(questionContent);
             } catch (e) {
               console.log(e);
             }
@@ -252,35 +238,6 @@ function renderTF(question, questionCounter, marks) {
   const questionTitle =
     questionCounter + ". " + cleanHTML(question.editorState.question);
   return getTF(questionTitle, detectLanguage(questionTitle[0]), marks);
-}
-
-function renderMTF(question, questionCounter, marks) {
-  $ = cheerio.load(question.editorState.question);
-  cheerioTableparser($);
-  var data = [];
-  var columns = $("table").parsetable(false, false, false);
-  let transposeColumns = columns[0].map((_, colIndex) =>
-    columns.map((row) => row[colIndex])
-  );
-
-  const heading = questionCounter + ". " + cleanHTML($("p").text());
-  data.push(getFTB(heading, detectLanguage(heading), marks));
-
-  data.push(
-    getMTFHeader(
-      cleanHTML(transposeColumns[0][0]),
-      cleanHTML(transposeColumns[0][1]),
-      detectLanguage(cleanHTML(transposeColumns[0][0]))
-    )
-  );
-
-  transposeColumns.shift();
-
-  const rows = transposeColumns.map((r) => {
-    return getMTFChoice(cleanHTML(r[0]), cleanHTML(r[1]), detectLanguage(r[0]));
-  });
-
-  return data.concat(rows);
 }
 
 module.exports = {
