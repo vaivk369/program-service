@@ -29,123 +29,123 @@ var cheerioTableparser = require("cheerio-tableparser");
 
 // eslint-disable-next-line no-undef
 describe("Print Service", () => {
-  // it("[Integration test] should output error for wrong heirarchy ID", (done) => {
-  //   getQuestionForSection("test").then((res) => {
-  //     expect(res.error).to.equal(true);
-  //     expect(res.errorMsg).to.equal(
-  //       "Invalid Response for Hierarchy ID :: test"
-  //     );
-  //     done();
-  //   });
-  // });
+  it("[Integration test] should output error for wrong heirarchy ID", (done) => {
+    getQuestionForSection("test").then((res) => {
+      expect(res.error).to.equal(true);
+      expect(res.errorMsg).to.equal(
+        "Invalid Response for Hierarchy ID :: test"
+      );
+      done();
+    });
+  });
 
-  // it("[Integration test] should respond with question data for correct ID", (done) => {
-  //   getQuestionForSection("do_1132132525993082881105")
-  //     .then((response) => {
-  //       expect(response).to.not.be.undefined;
-  //       expect(response.itemType).to.equal("UNIT");
-  //       expect(response).to.have.property("itemType");
-  //       done();
-  //     })
-  //     .catch((e) => {
-  //       done(e);
-  //     });
-  // });
+  it("[Integration test] should respond with question data for correct ID", (done) => {
+    getQuestionForSection("do_1132132525993082881105")
+      .then((response) => {
+        expect(response).to.not.be.undefined;
+        expect(response.itemType).to.equal("UNIT");
+        expect(response).to.have.property("itemType");
+        done();
+      })
+      .catch((e) => {
+        done(e);
+      });
+  });
 
-  // it("[Integration test] should get Items from itemset for correct itemset ID", (done) => {
-  //   getItemsFromItemset("do_113213256596070400127")
-  //     .then((response) => {
-  //       expect(response).to.not.be.undefined;
-  //       done();
-  //     })
-  //     .catch((e) => {
-  //       done(e);
-  //     });
-  // });
+  it("[Integration test] should get Items from itemset for correct itemset ID", (done) => {
+    getItemsFromItemset("do_113213256596070400127")
+      .then((response) => {
+        expect(response).to.not.be.undefined;
+        done();
+      })
+      .catch((e) => {
+        done(e);
+      });
+  });
 
-  // it("[Integration test] should throw PDFDataImportError from itemset for incorrect itemset ID", (done) => {
-  //   getItemsFromItemset("any")
-  //     .then((response) => {
-  //       expect(response).to.not.be.undefined;
-  //     })
-  //     .catch((e) => {
-  //       expect(e.name).to.equal("PDFDataImportError");
-  //       expect(e.message).to.equal("Invalid Response for Itemset ID :: any");
-  //       done();
-  //     });
-  // });
+  it("[Integration test] should throw PDFDataImportError from itemset for incorrect itemset ID", (done) => {
+    getItemsFromItemset("any")
+      .then((response) => {
+        expect(response).to.not.be.undefined;
+      })
+      .catch((e) => {
+        expect(e.name).to.equal("PDFDataImportError");
+        expect(e.message).to.equal("Invalid Response for Itemset ID :: any");
+        done();
+      });
+  });
 
-  // it("[Integration test] should throw PDFDataImportError for incorrect item ID", (done) => {
-  //   getQuestionFromItem("any")
-  //     .then((response) => {
-  //       done();
-  //     })
-  //     .catch((e) => {
-  //       expect(e.name).to.equal("PDFDataImportError");
-  //       expect(e.message).to.equal("Invalid Response for Question ID :: any");
-  //       done();
-  //     });
-  // });
+  it("[Integration test] should throw PDFDataImportError for incorrect item ID", (done) => {
+    getQuestionFromItem("any")
+      .then((response) => {
+        done();
+      })
+      .catch((e) => {
+        expect(e.name).to.equal("PDFDataImportError");
+        expect(e.message).to.equal("Invalid Response for Question ID :: any");
+        done();
+      });
+  });
 
-  // it("[Integration test] should return Question Object for correct item ID", (done) => {
-  //   getQuestionFromItem("do_1132132526040596481722")
-  //     .then((response) => {
-  //       expect(response).to.not.be.undefined;
-  //       done();
-  //     })
-  //     .catch((e) => {
-  //       done(e);
-  //     });
-  // });
+  it("[Integration test] should return Question Object for correct item ID", (done) => {
+    getQuestionFromItem("do_1132132526040596481722")
+      .then((response) => {
+        expect(response).to.not.be.undefined;
+        done();
+      })
+      .catch((e) => {
+        done(e);
+      });
+  });
 
-  // it("[Integration test] should getData for correct DO ID", (done) => {
-  //   dataImporter
-  //     .getData("do_113213251762339840191")
-  //     .then((response) => {
-  //       expect(response).to.not.be.undefined;
-  //       expect(response).to.have.property("paperData");
-  //       expect(response).to.have.property("sectionData");
-  //       expect(response.sectionData).to.be.an("Array");
-  //       expect(response.sectionData[0].questions).to.be.an("Array");
-  //       expect(response.sectionData[0].section).to.be.an("Object");
-  //       expect(response).to.have.property("error");
-  //       expect(response.error).to.be.false;
-  //       done();
-  //     })
-  //     .catch((e) => {
-  //       done(e);
-  //     });
-  // });
+  it("[Integration test] should getData for correct DO ID", (done) => {
+    dataImporter
+      .getData("do_113213251762339840191")
+      .then((response) => {
+        expect(response).to.not.be.undefined;
+        expect(response).to.have.property("paperData");
+        expect(response).to.have.property("sectionData");
+        expect(response.sectionData).to.be.an("Array");
+        expect(response.sectionData[0].questions).to.be.an("Array");
+        expect(response.sectionData[0].section).to.be.an("Object");
+        expect(response).to.have.property("error");
+        expect(response.error).to.be.false;
+        done();
+      })
+      .catch((e) => {
+        done(e);
+      });
+  });
 
-  // it("[Integration test] should return a PDF for correct Hierarchy ID", (done) => {
-  //   pdf.buildPDFWithCallback(
-  //     "do_113213251762339840191",
-  //     (base64PDF, error, errorMsg) => {
-  //       expect(error).to.be.false;
-  //       expect(errorMsg).to.equal("");
-  //       done();
-  //     }
-  //   );
-  // });
+  it("[Integration test] should return a PDF for correct Hierarchy ID", (done) => {
+    pdf.buildPDFWithCallback(
+      "do_113213251762339840191",
+      (base64PDF, error, errorMsg) => {
+        expect(error).to.be.false;
+        expect(errorMsg).to.equal("");
+        done();
+      }
+    );
+  });
 
-  // it("[Integration test] should return a an error for incorrect Hierarchy ID", (done) => {
-  //   pdf.buildPDFWithCallback("any", (base64PDF, error, errorMsg) => {
-  //     expect(error).to.be.true;
-  //     expect(errorMsg).to.equal("Invalid ID");
-  //     done();
-  //   });
-  // });
+  it("[Integration test] should return a an error for incorrect Hierarchy ID", (done) => {
+    pdf.buildPDFWithCallback("any", (base64PDF, error, errorMsg) => {
+      expect(error).to.be.true;
+      expect(errorMsg).to.equal("Invalid ID");
+      done();
+    });
+  });
 
-  // it("[Integration test] should return and error for incorrect Hierarchy ID", (done) => {
-  //   getQuestionFromItem("do_1132132526040596481722")
-  //     .then((response) => {
-  //       expect(response).to.not.be.undefined;
-  //       done();
-  //     })
-  //     .catch((e) => {
-  //       done(e);
-  //     });
-  // });
+  it("[Integration test] should return and error for incorrect Hierarchy ID", (done) => {
+    getQuestionFromItem("do_1132132526040596481722")
+      .then((response) => {
+        expect(response).to.not.be.undefined;
+        done();
+      })
+      .catch((e) => {
+        done(e);
+      });
+  });
 
   it("Should parse table", (done) => {
     const table = `<p>Match the following:</p><figure class="table"><table><tbody><tr><td><strong>Column 1</strong></td><td><strong>Column 2</strong></td></tr><tr><td>1</td><td>1</td></tr></tbody></table></figure>`;
