@@ -83,7 +83,6 @@ const getQuestionForSection = async (id) => {
       }
     })
     .catch((e) => {
-      console.log("Here", e.name, e.message);
       error = true;
       if (e.name === "PDFDataImportError") errorMsg = e.message;
       else e.message = "Uncaught Exception";
@@ -110,7 +109,11 @@ const getData = async (id) => {
 
       const questionIds = sections.map((section) => {
         if (section.children)
-          return section.children.map((child) => child.identifier);
+          return section.children
+            .filter(
+              (child) => data.acceptedContents.indexOf(child.identifier) > -1
+            )
+            .map((child) => child.identifier);
         else return [];
       }); // Hierarchy
 

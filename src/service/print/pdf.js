@@ -97,35 +97,31 @@ const buildPDFWithCallback = (id, callback) => {
           questionPaperContent.push(sectionTitle);
           const section = d.section;
 
-          d.questions
-            .filter((question) => {
-              return question.status === "Live";
-            })
-            .map((question, index) => {
-              // Check question type and proceed based on that.
-              questionCounter += 1;
-              const marks = section.children[index].marks;
-              let questionContent;
-              try {
-                if (question.category === "MCQ")
-                  questionContent = renderMCQ(question, questionCounter, marks);
-                else if (question.category === "FTB") {
-                  questionContent = renderFTB(question, questionCounter, marks);
-                } else if (question.category === "SA") {
-                  questionContent = renderSA(question, questionCounter, marks);
-                } else if (question.category === "LA") {
-                  questionContent = renderLA(question, questionCounter, marks);
-                } else if (question.category === "VSA") {
-                  questionContent = renderVSA(question, questionCounter, marks);
-                } else if (question.category === "TF") {
-                  questionContent = renderTF(question, questionCounter, marks);
-                }
-
-                questionPaperContent.push(questionContent);
-              } catch (e) {
-                console.log(e);
+          d.questions.map((question, index) => {
+            // Check question type and proceed based on that.
+            questionCounter += 1;
+            const marks = section.children[index].marks;
+            let questionContent;
+            try {
+              if (question.category === "MCQ")
+                questionContent = renderMCQ(question, questionCounter, marks);
+              else if (question.category === "FTB") {
+                questionContent = renderFTB(question, questionCounter, marks);
+              } else if (question.category === "SA") {
+                questionContent = renderSA(question, questionCounter, marks);
+              } else if (question.category === "LA") {
+                questionContent = renderLA(question, questionCounter, marks);
+              } else if (question.category === "VSA") {
+                questionContent = renderVSA(question, questionCounter, marks);
+              } else if (question.category === "TF") {
+                questionContent = renderTF(question, questionCounter, marks);
               }
-            });
+
+              questionPaperContent.push(questionContent);
+            } catch (e) {
+              console.log(e);
+            }
+          });
         });
 
         docDefinition.content = contentBase.concat(questionPaperContent);
@@ -229,7 +225,7 @@ function renderSA(question, questionCounter, marks) {
 function renderLA(question, questionCounter, marks) {
   const questionTitle =
     questionCounter + ". " + cleanHTML(question.editorState.question);
-  return getLA(questionTitle, detectLanguage(questionTitle[0]), mark);
+  return getLA(questionTitle, detectLanguage(questionTitle[0]), marks);
 }
 
 function renderVSA(question, questionCounter, marks) {
