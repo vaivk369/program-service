@@ -676,7 +676,7 @@ exports.PROGRAM = {
     FAILED_CODE: 'ERR_GET_PROGRAM_DATA_FAILED',
     FAILED_MESSAGE: 'Unable to get the program data',
     INFO: 'Get the program data'
-  }, 
+  },
   LIST: {
     EXCEPTION_CODE: 'PRLST',
     MISSING_CODE: 'ERR_LIST_PROGRAM_DATA',
@@ -793,15 +793,15 @@ exports.PROGRAM = {
   },
   PREFERENCES: {
     CREATE: {
-      EXCEPTION_CODE: 'PFCRT', 
+      EXCEPTION_CODE: 'PFCRT',
       MISSING_CODE: 'ERR_CREATE_USER_PREFERENCE',
       MISSING_MESSAGE: 'Required fields like user_id, program_id for adding user preferences are missing',
       FAILED_CODE: 'ERR_CREATE_USER_PREFERENCE_FAILED',
       FAILED_MESSAGE: 'Unable to add user preferences',
       INFO: 'Set user program preferences'
-    }, 
+    },
     SET: {
-      EXCEPTION_CODE: 'PFSET', 
+      EXCEPTION_CODE: 'PFSET',
       MISSING_CODE: 'ERR_SET_USER_PREFERENCE',
       MISSING_MESSAGE: 'Required fields like user_id, program_id for setting user preferences are missing',
       FAILED_CODE: 'ERR_SET_USER_PREFERENCE_FAILED',
@@ -863,6 +863,16 @@ exports.PROGRAM = {
       FAILED_CODE: 'ERR_GET_ORGS_FAILED',
       FAILED_MESSAGE: 'Unable to search Organisations'
     }
+  },
+  USER: {
+    LIST: {
+      EXCEPTION_CODE: 'URLST',
+      MISSING_CODE: 'ERR_LIST_USER_LIST_READ',
+      MISSING_MESSAGE: 'Required fields to get user list are missing',
+      FAILED_CODE: 'ERR_LIST_USER_DATA_FAILED',
+      FAILED_MESSAGE: 'Unable to get list of the users data',
+      INFO: 'List of the users data'
+    }
   }
 }
 
@@ -884,7 +894,7 @@ exports.CONFIGURATION = {
     FAILED_MESSAGE: 'Unable to create the configuration',
     INFO: 'Create the configuration'
   },
-  UPDATE: { 
+  UPDATE: {
     EXCEPTION_CODE: 'CNFUPD',
     MISSING_CODE: 'ERR_UPDATING_CONFIGURATION',
     MISSING_MESSAGE: 'Required fields like key to update configuration are missing',
