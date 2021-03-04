@@ -24,7 +24,7 @@ module.exports = function (app) {
   app.route(BASE_URL + '/unlist/publish')
   .post(requestMiddleware.gzipCompression(), requestMiddleware.createAndValidateRequestBody,
     programService.unlistPublishProgramAPI)
-    
+
   app.route(BASE_URL + '/delete')
     .post(requestMiddleware.gzipCompression(), requestMiddleware.createAndValidateRequestBody,
       programService.deleteProgramAPI)
@@ -80,6 +80,10 @@ module.exports = function (app) {
   app.route(BASE_URL + '/users/:user_id')
     .get(requestMiddleware.gzipCompression(), requestMiddleware.createAndValidateRequestBody,
       programService.getUserDetailsAPI)
+
+  app.route(BASE_URL + '/user/list')
+    .post(requestMiddleware.gzipCompression(), requestMiddleware.createAndValidateRequestBody,
+      programService.getUserListAPI)
 
   app.route(BASE_URL + '/collection/copy')
     .post(requestMiddleware.gzipCompression(), requestMiddleware.createAndValidateRequestBody,

@@ -41,6 +41,8 @@ const cacheManager = new SbCacheManager({ttl: envVariables.CACHE_TTL});
 const cacheManager_programReport = new SbCacheManager({ttl: 86400});
 const registryService = new RegistryService()
 const hierarchyService = new HierarchyService()
+const UserService = require('./userService');
+const userService = new UserService();
 
 function getProgram(req, response) {
  const logObject = {
@@ -72,8 +74,8 @@ function getProgram(req, response) {
         ver: '1.0',
         msgid: uuid(),
         responseCode: 'ERR_READ_PROGRAM',
-        result: err	
-      },errCode+errorCodes.CODE1));	
+        result: err
+      },errCode+errorCodes.CODE1));
     });
 }
 
@@ -137,7 +139,7 @@ function updateProgram(req, response) {
   }
  loggerService.entryLog(data, logObject);
   const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.UPDATE.EXCEPTION_CODE
-  
+
   if (!data.request || !data.request.program_id) {
     rspObj.errCode = programMessages.UPDATE.MISSING_CODE
     rspObj.errMsg = programMessages.UPDATE.MISSING_MESSAGE
@@ -202,7 +204,7 @@ function publishProgram(req, response) {
   }
  loggerService.entryLog(data, logObject);
   const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.PUBLISH.EXCEPTION_CODE
-  
+
   if (!data.request || !data.request.program_id || !data.request.channel) {
     rspObj.errCode = programMessages.PUBLISH.MISSING_CODE
     rspObj.errMsg = programMessages.PUBLISH.MISSING_MESSAGE
@@ -368,7 +370,7 @@ function unlistPublishProgram(req, response) {
             },errCode+errorCodes.CODE2));
           }
           onAfterPublishProgram(res,req, function(afterPublishResponse) {
-            loggerService.exitLog({responseCode: 'OK'}, logObject);            
+            loggerService.exitLog({responseCode: 'OK'}, logObject);
             return response.status(200).send(successResponse({
               apiId: 'api.program.publish',
               ver: '1.0',
@@ -389,7 +391,7 @@ function unlistPublishProgram(req, response) {
             ver: '1.0',
             msgid: uuid(),
             responseCode: 'ERR_PUBLISH_PROGRAM',
-            result: error	
+            result: error
           },errCode+errorCodes.CODE3));
         });
       }
@@ -411,7 +413,7 @@ function unlistPublishProgram(req, response) {
       ver: '1.0',
       msgid: uuid(),
       responseCode: 'ERR_READ_PROGRAM',
-      result: err	
+      result: err
     },errCode+errorCodes.CODE5));
   });
 }
@@ -1166,7 +1168,7 @@ function programList(req, response) {
           ver: '1.0',
           msgid: uuid(),
           responseCode: 'ERR_LIST_PROGRAM',
-          result: err	
+          result: err
         },errCode+errorCodes.CODE3));
       });
   } else if (data.request.filters && data.request.filters.role && data.request.filters.user_id) {
@@ -1367,11 +1369,11 @@ function updateNomination(req, response) {
       loggerService.exitLog({responseCode: 'ERR_UPDATE_NOMINATION'}, logObject);
       loggerError('',rspObj,errCode+errorCodes.CODE2);
       return response.status(400).send(errorResponse({
-        apiId: 'api.nomination.update',	     
-        ver: '1.0',	     
-        msgid: uuid(),	     
-        responseCode: 'ERR_UPDATE_NOMINATION',	
-        result: 'Nomination Not Found'	
+        apiId: 'api.nomination.update',
+        ver: '1.0',
+        msgid: uuid(),
+        responseCode: 'ERR_UPDATE_NOMINATION',
+        result: 'Nomination Not Found'
       },errCode+errorCodes.CODE2));
     }
     const successRes = {
@@ -1395,12 +1397,12 @@ function updateNomination(req, response) {
     loggerService.exitLog({responseCode: 'ERR_UPDATE_NOMINATION'}, logObject);
     console.log("Error updating nomination to db", err);
     loggerError('',rspObj,errCode+errorCodes.CODE3);
-    return response.status(400).send(errorResponse({   
-      apiId: 'api.nomination.update',	    
-      ver: '1.0',	    
-      msgid: uuid(),	    
+    return response.status(400).send(errorResponse({
+      apiId: 'api.nomination.update',
+      ver: '1.0',
+      msgid: uuid(),
       responseCode: 'ERR_UPDATE_NOMINATION',
-      result: err	
+      result: err
     },errCode+errorCodes.CODE3));
   });
 }
@@ -1947,6 +1949,81 @@ async function getUsersDetailsById(req, response) {
   });
 }
 
+async function getUserList(req, response) {
+  var data = req.body;
+  var rspObj = req.rspObj;
+  const logObject = {
+    traceId: req.headers['x-request-id'] || '',
+    message: programMessages.USER.LIST.INFO
+  }
+  loggerService.entryLog(data, logObject);
+  const errCode = programMessages.USER.LIST.EXCEPTION_CODE;
+  rspObj.errCode = programMessages.USER.LIST.MISSING_CODE;
+  rspObj.errMsg = programMessages.USER.LIST.MISSING_MESSAGE;
+  rspObj.responseCode = responseCode.CLIENT_ERROR;
+  if (!data || !data.request || !data.request.filters || !data.request.filters.User_Org || !data.request.filters.User_Org.orgId) {
+    loggerService.exitLog({ responseCode: rspObj.responseCode }, logObject);
+    loggerError('', rspObj, errCode + errorCodes.CODE1);
+    return response.status(400).send(errorResponse(rspObj, errCode + errorCodes.CODE1))
+  }
+
+  try {
+    // Get users associated to org
+    const userOrgFilters = _.get(data.request, 'filters.User_Org');
+    const roles = _.get(data.request, 'filters.User_Org.roles');
+
+    const orgUserListResp = await registryService.getOrgUserList(userOrgFilters);
+    const orgUserList = _.get(orgUserListResp, 'result');
+    const userOsIds = _.uniq(_.map(orgUserList, e => e.userId));
+
+    // Get users list
+    const userListApiResp = await registryService.getUserList(userOsIds);
+    const userList = _.get(userListApiResp.data, 'result.User');
+
+    // Get Diksha user profiles
+    const dikshaUserIdentifier = _.uniq(_.map(userList, e => e.userId));
+    const dikshaUserProfilesApiResp = await userService.getDikshaUserProfiles(req, dikshaUserIdentifier);
+    let orgUsersDetails = _.get(dikshaUserProfilesApiResp.data, 'result.response.content');
+
+    // Attach os user object details to diksha user profile
+    if (!_.isEmpty(orgUsersDetails)) {
+      orgUsersDetails = _.map(
+        _.filter(orgUsersDetails, obj => { if (obj.identifier) { return obj; } }),
+        (obj) => {
+          if (obj.identifier) {
+            const tempUserObj = _.find(userList, { 'userId': obj.identifier });
+            obj.name = `${ obj.firstName } ${ obj.lastName || '' }`;
+            obj.User = _.find(userList, { 'userId': obj.identifier });
+            obj.User_Org = _.find(orgUserList, { 'userId': _.get(tempUserObj, 'osid') });
+            obj.selectedRole = _.first(_.intersection(roles, obj.User_Org.roles));
+            return obj;
+          }
+        });
+    }
+
+    return response.status(200).send(successResponse({
+      apiId: 'api.user.list.read',
+      ver: '1.0',
+      msgid: uuid(),
+      responseCode: 'OK',
+      result: {
+        'content': orgUsersDetails,
+        'count': _.get(orgUserListResp, 'count')
+      }
+    }));
+  }
+  catch (err) {
+    logger.error("Error while parsing for user lists")
+    return response.status(400).send(errorResponse({
+      apiId: 'api.user.list.read',
+      ver: '1.0',
+      msgid: uuid(),
+      responseCode: 'ERR_READ_USER',
+      result: err.message || err
+    }));
+  }
+}
+
 function getUserDetailsFromRegistry(value, callback) {
   let userDetailReq = {
     body: {
@@ -2413,7 +2490,7 @@ async function programCopyCollections(req, response) {
                     rspObj.errMsg = _.get(error.response, 'data.params.errmsg') || programMessages.COPY_COLLECTION.CREATE_COLLECTION.FAILED_MESSAGE;
                     rspObj.responseCode = _.get(error.response, 'data.responseCode') || responseCode.SERVER_ERROR
                     console.log('Error creating collection', error)
-                    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject); 
+                    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
                     loggerError('',rspObj,errCode+errorCodes.CODE5);
                     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE5))
                   })
@@ -3192,6 +3269,7 @@ module.exports.nominationsListAPI = getNominationsList
 module.exports.downloadNominationListAPI = downloadNominationList
 module.exports.programGetContentTypesAPI = getProgramContentTypes
 module.exports.getUserDetailsAPI = getUsersDetailsById
+module.exports.getUserListAPI = getUserList
 module.exports.healthAPI = health
 module.exports.programCopyCollectionAPI = programCopyCollections;
 module.exports.getAllConfigurationsAPI = getAllConfigurations;
