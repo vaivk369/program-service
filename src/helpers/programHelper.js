@@ -1,6 +1,6 @@
 const { forkJoin } = require("rxjs");
-const { from  } = require("rxjs");
-const { of  } = require("rxjs");
+const { from } = require("rxjs");
+const { of } = require("rxjs");
 const _ = require("lodash");
 const envVariables = require("../envVariables");
 const axios = require("axios");
@@ -17,12 +17,12 @@ const RegistryService = require('../service/registryService');
 const hierarchyService = new HierarchyService();
 const registryService = new RegistryService();
 const SbCacheManager = require('sb_cache_manager');
-const cacheManager = new SbCacheManager({ttl: envVariables.CACHE_TTL});
+const cacheManager = new SbCacheManager({ ttl: envVariables.CACHE_TTL });
 const loggerService = require('../service/loggerService');
 
 class ProgramServiceHelper {
   searchContent(programId, sampleContentCheck, reqHeaders) {
-    const url = `${envVariables.baseURL}/api/composite/v1/search`
+    const url = `${ envVariables.baseURL }/api/composite/v1/search`
     const option = {
       url,
       method: 'post',
@@ -32,26 +32,26 @@ class ProgramServiceHelper {
           filters: {
             objectType: 'content',
             programId: programId,
-            mimeType: {'!=': 'application/vnd.ekstep.content-collection'},
-            contentType: {'!=': 'Asset'},
+            mimeType: { '!=': 'application/vnd.ekstep.content-collection' },
+            contentType: { '!=': 'Asset' },
             ...(sampleContentCheck && {
               'sampleContent': true,
               'status': ['Draft', 'Review']
             })
           },
           fields: [
-                  'name',
-                  'identifier',
-                  'programId',
-                  'mimeType',
-                  'status',
-                  'sampleContent',
-                  'createdBy',
-                  'organisationId',
-                  'collectionId',
-                  'prevStatus',
-                  'contentType',
-                  'primaryCategory'
+            'name',
+            'identifier',
+            'programId',
+            'mimeType',
+            'status',
+            'sampleContent',
+            'createdBy',
+            'organisationId',
+            'collectionId',
+            'prevStatus',
+            'contentType',
+            'primaryCategory'
           ],
           limit: 10000
         }
@@ -99,7 +99,7 @@ class ProgramServiceHelper {
       if (isOrg && !_.isEmpty(nomination.orgData)) {
         name = nomination.orgData.name;
       } else if (!_.isEmpty(nomination.userData)) {
-        name = `${nomination.userData.firstName} ${nomination.userData.lastName || ''}`;
+        name = `${ nomination.userData.firstName } ${ nomination.userData.lastName || '' }`;
       }
       nomination.createdon = dateFormat(nomination.createdon, 'mmmm d, yyyy');
       nomination.name = name;
@@ -121,12 +121,12 @@ class ProgramServiceHelper {
 
   searchWithProgramId(queryFilter, req) {
     const headers = {
-        'content-type': 'application/json',
-      };
+      'content-type': 'application/json',
+    };
     const option = {
-      url: `${envVariables.baseURL}/api/composite/v1/search`,
+      url: `${ envVariables.baseURL }/api/composite/v1/search`,
       method: 'post',
-      headers: {...req.headers, ...headers},
+      headers: { ...req.headers, ...headers },
       data: {
         request: queryFilter
       }
@@ -138,76 +138,76 @@ class ProgramServiceHelper {
   async getCollectionWithProgramId(program_id, req) {
     const program = await this.getProgramDetails(program_id);
     const queryFilter = {
-       filters: {
-         programId: program_id,
-         objectType: 'collection',
-         status: ['Draft'],
-         primaryCategory: program.dataValues.target_collection_category
-       },
-       fields: ['name', 'medium', 'gradeLevel', 'subject', 'primaryCategory', 'chapterCount', 'acceptedContents', 'rejectedContents', 'openForContribution', 'chapterCountForContribution', 'mvcContributions'],
-       limit: 1000
-     };
+      filters: {
+        programId: program_id,
+        objectType: 'collection',
+        status: ['Draft'],
+        primaryCategory: program.dataValues.target_collection_category
+      },
+      fields: ['name', 'medium', 'gradeLevel', 'subject', 'primaryCategory', 'chapterCount', 'acceptedContents', 'rejectedContents', 'openForContribution', 'chapterCountForContribution', 'mvcContributions'],
+      limit: 1000
+    };
     return this.searchWithProgramId(queryFilter, req);
   }
 
   getSampleContentWithOrgId(program_id, req) {
     const queryFilter = {
-          filters: {
-            programId: program_id,
-            objectType: 'content',
-            status: ['Review', 'Draft'],
-            sampleContent: true
-          },
-          aggregations: [
-            {
-                "l1": "collectionId",
-                "l2": "organisationId"
-            }
-        ],
-        limit: 0
-        };
-      return this.searchWithProgramId(queryFilter, req);
+      filters: {
+        programId: program_id,
+        objectType: 'content',
+        status: ['Review', 'Draft'],
+        sampleContent: true
+      },
+      aggregations: [
+        {
+          "l1": "collectionId",
+          "l2": "organisationId"
+        }
+      ],
+      limit: 0
+    };
+    return this.searchWithProgramId(queryFilter, req);
   }
 
   getSampleContentWithCreatedBy(program_id, req) {
     const queryFilter = {
-          filters: {
-            programId: program_id,
-            objectType: 'content',
-            status: ['Review', 'Draft'],
-            sampleContent: true
-          },
-          aggregations: [
-            {
-                "l1": "collectionId",
-                "l2": "createdBy"
-            }
-        ],
-        limit: 0
-        };
-      return this.searchWithProgramId(queryFilter, req);
+      filters: {
+        programId: program_id,
+        objectType: 'content',
+        status: ['Review', 'Draft'],
+        sampleContent: true
+      },
+      aggregations: [
+        {
+          "l1": "collectionId",
+          "l2": "createdBy"
+        }
+      ],
+      limit: 0
+    };
+    return this.searchWithProgramId(queryFilter, req);
   }
 
   getContributionWithProgramId(program_id, req) {
     const queryFilter = {
-          filters: {
-            programId: program_id,
-            objectType: 'content',
-            status: ['Review', 'Draft', 'Live'],
-            contentType: { '!=': 'Asset' },
-            mimeType: { '!=': 'application/vnd.ekstep.content-collection' }
-          },
-          not_exists: ['sampleContent'],
-          aggregations: [
-            {
-                "l1": "collectionId",
-                "l2": "status",
-                "l3": "prevStatus"
-            }
-        ],
-        limit: 0
-        };
-      return this.searchWithProgramId(queryFilter, req);
+      filters: {
+        programId: program_id,
+        objectType: 'content',
+        status: ['Review', 'Draft', 'Live'],
+        contentType: { '!=': 'Asset' },
+        mimeType: { '!=': 'application/vnd.ekstep.content-collection' }
+      },
+      not_exists: ['sampleContent'],
+      aggregations: [
+        {
+          "l1": "collectionId",
+          "l2": "status",
+          "l3": "prevStatus"
+        }
+      ],
+      limit: 0
+    };
+    return this.searchWithProgramId(queryFilter, req);
   }
 
   getNominationWithProgramId(programId) {
@@ -234,127 +234,127 @@ class ProgramServiceHelper {
   }
 
   handleMultiProgramDetails(resGroup) {
-      const multiProgramDetails = _.map(resGroup, (resData) => {
-        try {
-         return this.prepareTableData(resData);
-        } catch(err) {
-         throw err
-        }
-      });
-      return multiProgramDetails;
+    const multiProgramDetails = _.map(resGroup, (resData) => {
+      try {
+        return this.prepareTableData(resData);
+      } catch (err) {
+        throw err
+      }
+    });
+    return multiProgramDetails;
   }
 
-  prepareTableData (resData) {
+  prepareTableData(resData) {
     try {
       const collectionList = resData[0].data.result && resData[0].data.result.content || [],
-      sampleContentWithOrgId = resData[1].data.result && resData[1].data.result.aggregations || [],
-      sampleContentWithUserId = resData[2].data.result && resData[2].data.result.aggregations || [],
-      contributionResponse = resData[3].data.result && resData[3].data.result.aggregations || [],
-      nominationResponse = _.isArray(resData[4]) && resData[4].length? _.map(resData[4], obj => obj.dataValues) : [],
-      nominationDataResponse = _.isArray(resData[5]) && resData[5].length? _.map(resData[5], obj => obj.dataValues) : [];
+        sampleContentWithOrgId = resData[1].data.result && resData[1].data.result.aggregations || [],
+        sampleContentWithUserId = resData[2].data.result && resData[2].data.result.aggregations || [],
+        contributionResponse = resData[3].data.result && resData[3].data.result.aggregations || [],
+        nominationResponse = _.isArray(resData[4]) && resData[4].length ? _.map(resData[4], obj => obj.dataValues) : [],
+        nominationDataResponse = _.isArray(resData[5]) && resData[5].length ? _.map(resData[5], obj => obj.dataValues) : [];
 
       const overalIds = _.uniq(_.compact(_.flattenDeep(_.map(nominationDataResponse, data => [data.organisation_id || data.user_id]))));
       let tableData = [];
-    if (collectionList.length) {
-      let openForContributionCollections = [];
+      if (collectionList.length) {
+        let openForContributionCollections = [];
 
-      _.forEach(collectionList, collection => {
-        if (collection.openForContribution === true) {
-          openForContributionCollections.push(collection);
-        }
-      });
+        _.forEach(collectionList, collection => {
+          if (collection.openForContribution === true) {
+            openForContributionCollections.push(collection);
+          }
+        });
 
         tableData = _.map(openForContributionCollections, (collection) => {
-        const result = {};
-        // sequence of columns in tableData
-        result[`${collection.primaryCategory} Name`] = collection.name || '';
-        result['Medium'] = collection.medium || '';
-        result['Class'] = collection.gradeLevel && collection.gradeLevel.length ? collection.gradeLevel.join(', ') : '';
-        result['Subject'] = collection.subject || '';
-        result['Number of Chapters'] = collection.chapterCountForContribution || collection.chapterCount || 0;
-        result['Nominations Received'] = 0;
-        result['Samples Received'] = 0;
-        result['Nominations Accepted'] = 0;
-        result['Contributions Received'] = 0;
-        result['Contributions Accepted'] = collection.acceptedContents ? collection.acceptedContents.length : 0;
-        result['Contributions Rejected'] = collection.rejectedContents ? collection.rejectedContents.length : 0;
-        result['Contributions Pending'] = 0;
-        result['Contributions corrections pending'] = 0;
+          const result = {};
+          // sequence of columns in tableData
+          result[`${ collection.primaryCategory } Name`] = collection.name || '';
+          result['Medium'] = collection.medium || '';
+          result['Class'] = collection.gradeLevel && collection.gradeLevel.length ? collection.gradeLevel.join(', ') : '';
+          result['Subject'] = collection.subject || '';
+          result['Number of Chapters'] = collection.chapterCountForContribution || collection.chapterCount || 0;
+          result['Nominations Received'] = 0;
+          result['Samples Received'] = 0;
+          result['Nominations Accepted'] = 0;
+          result['Contributions Received'] = 0;
+          result['Contributions Accepted'] = collection.acceptedContents ? collection.acceptedContents.length : 0;
+          result['Contributions Rejected'] = collection.rejectedContents ? collection.rejectedContents.length : 0;
+          result['Contributions Pending'] = 0;
+          result['Contributions corrections pending'] = 0;
 
-        // count of sample contents
-        if (sampleContentWithOrgId.length && sampleContentWithOrgId[0].name === 'collectionId'
-             && sampleContentWithOrgId[0].values.length) {
-              const sampleCountObj = _.find(sampleContentWithOrgId[0].values, {name: collection.identifier});
-              result['Samples Received'] = (sampleCountObj) ? sampleCountObj.count : 0;
-              if (sampleCountObj && !_.isEmpty(sampleCountObj.aggregations) && !_.isEmpty(sampleCountObj.aggregations[0].values)) {
-                const ignoringCount = _.reduce(sampleCountObj.aggregations[0].values, (final, data) => {
-                  return _.includes(overalIds, data.name) ? (final + data.count) : final;
-                }, 0);
-                result['Samples Received'] = result['Samples Received'] - ignoringCount;
+          // count of sample contents
+          if (sampleContentWithOrgId.length && sampleContentWithOrgId[0].name === 'collectionId'
+            && sampleContentWithOrgId[0].values.length) {
+            const sampleCountObj = _.find(sampleContentWithOrgId[0].values, { name: collection.identifier });
+            result['Samples Received'] = (sampleCountObj) ? sampleCountObj.count : 0;
+            if (sampleCountObj && !_.isEmpty(sampleCountObj.aggregations) && !_.isEmpty(sampleCountObj.aggregations[0].values)) {
+              const ignoringCount = _.reduce(sampleCountObj.aggregations[0].values, (final, data) => {
+                return _.includes(overalIds, data.name) ? (final + data.count) : final;
+              }, 0);
+              result['Samples Received'] = result['Samples Received'] - ignoringCount;
+            }
+          }
+
+          if (sampleContentWithUserId.length && sampleContentWithUserId[0].name === 'collectionId'
+            && sampleContentWithUserId[0].values.length) {
+            const sampleCountObj = _.find(sampleContentWithUserId[0].values, { name: collection.identifier });
+            if (sampleCountObj && !_.isEmpty(sampleCountObj.aggregations) && !_.isEmpty(sampleCountObj.aggregations[0].values)) {
+              const ignoringCount = _.reduce(sampleCountObj.aggregations[0].values, (final, data) => {
+                return _.includes(overalIds, data.name) ? (final + data.count) : final;
+              }, 0);
+              result['Samples Received'] = result['Samples Received'] - ignoringCount;
+            }
+          }
+
+          // count of contribution
+          if (contributionResponse.length && contributionResponse[0].name === 'collectionId'
+            && contributionResponse[0].values.length) {
+            const statusCount = _.find(contributionResponse[0].values, { name: collection.identifier });
+            if (statusCount && statusCount.aggregations && statusCount.aggregations.length) {
+              _.forEach(statusCount.aggregations[0].values, (obj) => {
+                if (obj.name === 'live') {
+                  result['Contributions Received'] = result['Contributions Received'] + obj.count;
+                }
+                if (obj.name === 'draft' && obj.aggregations && obj.aggregations.length && _.find(obj.aggregations[0].values, { name: "live" })) {
+                  const correctionPendingNode = _.find(obj.aggregations[0].values, { name: "live" });
+                  result['Contributions corrections pending'] = correctionPendingNode.count;
+                  result['Contributions Received'] = result['Contributions Received'] + correctionPendingNode.count;
+                }
+              });
+            }
+          }
+
+          // count of MVC contribution (if any)
+          if (!_.isEmpty(collection.mvcContributions)) {
+            result['Contributions Received'] = result['Contributions Received'] + collection.mvcContributions.length;
+          }
+          // tslint:disable-next-line:max-line-length
+          result['Contributions Pending'] = result['Contributions Received'] - (result['Contributions Rejected'] + result['Contributions Accepted'] + result['Contributions corrections pending']);
+
+          // count of nomination
+          if (nominationResponse.length) {
+            _.forEach(nominationResponse, (obj) => {
+              if (obj.collection_ids && _.includes(obj.collection_ids, collection.identifier)) {
+                if (obj.status === 'Approved') {
+                  result['Nominations Accepted'] = result['Nominations Accepted'] + Number(obj.count);
+                } else if (obj.status !== 'Initiated') {
+                  result['Nominations Received'] = result['Nominations Received'] + Number(obj.count);
+                }
               }
-        }
-
-        if (sampleContentWithUserId.length && sampleContentWithUserId[0].name === 'collectionId'
-             && sampleContentWithUserId[0].values.length) {
-              const sampleCountObj = _.find(sampleContentWithUserId[0].values, {name: collection.identifier});
-              if (sampleCountObj && !_.isEmpty(sampleCountObj.aggregations) && !_.isEmpty(sampleCountObj.aggregations[0].values)) {
-                const ignoringCount = _.reduce(sampleCountObj.aggregations[0].values, (final, data) => {
-                  return _.includes(overalIds, data.name) ? (final + data.count) : final;
-                }, 0);
-                result['Samples Received'] = result['Samples Received'] - ignoringCount;
-              }
-        }
-
-        // count of contribution
-        if (contributionResponse.length && contributionResponse[0].name === 'collectionId'
-             && contributionResponse[0].values.length) {
-              const statusCount = _.find(contributionResponse[0].values, {name: collection.identifier});
-              if (statusCount && statusCount.aggregations && statusCount.aggregations.length) {
-                _.forEach(statusCount.aggregations[0].values, (obj) => {
-                  if (obj.name === 'live') {
-                    result['Contributions Received'] = result['Contributions Received'] + obj.count;
-                  }
-                  if (obj.name === 'draft' && obj.aggregations && obj.aggregations.length && _.find(obj.aggregations[0].values, {name: "live"})) {
-                      const correctionPendingNode =  _.find(obj.aggregations[0].values, {name: "live"});
-                      result['Contributions corrections pending'] = correctionPendingNode.count;
-                      result['Contributions Received'] = result['Contributions Received'] + correctionPendingNode.count;
-                  }
-                 });
-              }
-        }
-
-        // count of MVC contribution (if any)
-        if (!_.isEmpty(collection.mvcContributions)) {
-          result['Contributions Received'] = result['Contributions Received'] + collection.mvcContributions.length;
-        }
-        // tslint:disable-next-line:max-line-length
-        result['Contributions Pending'] = result['Contributions Received'] - (result['Contributions Rejected'] + result['Contributions Accepted'] + result['Contributions corrections pending']);
-
-        // count of nomination
-        if (nominationResponse.length) {
-         _.forEach(nominationResponse, (obj) => {
-           if (obj.collection_ids && _.includes(obj.collection_ids, collection.identifier) ) {
-               if (obj.status === 'Approved') {
-                result['Nominations Accepted'] = result['Nominations Accepted'] + Number(obj.count);
-              } else if (obj.status !== 'Initiated') {
-                result['Nominations Received'] = result['Nominations Received'] + Number(obj.count);
-              }
-           }
-         });
-         result['Nominations Received'] = result['Nominations Accepted'] + result['Nominations Received'];
-        }
-        return result;
-      });
+            });
+            result['Nominations Received'] = result['Nominations Accepted'] + result['Nominations Received'];
+          }
+          return result;
+        });
+      }
+      return tableData;
+    } catch (err) {
+      throw 'error in preparing CSV data'
     }
-    return tableData;
-  } catch (err) {
-    throw 'error in preparing CSV data'
-  }
   }
 
   getProgramDetails(program_id) {
     return new Promise((resolve, reject) => {
-      cacheManager.get(`program_obj_${program_id}`, (err, cacheData) => {
+      cacheManager.get(`program_obj_${ program_id }`, (err, cacheData) => {
         cacheData = null;
         if (err || !cacheData) {
           model.program.findOne({
@@ -362,11 +362,11 @@ class ProgramServiceHelper {
               program_id: program_id
             }
           }).then(res => {
-            cacheManager.set({ key: `program_obj_${program_id}`, value: res }, function (err, cacheCSVData) {
+            cacheManager.set({ key: `program_obj_${ program_id }`, value: res }, function (err, cacheCSVData) {
               if (err) {
-                logger.error({msg: 'Error - caching', err, additionalInfo: {programObj: res}}, {})
+                logger.error({ msg: 'Error - caching', err, additionalInfo: { programObj: res } }, {})
               } else {
-                logger.debug({msg: 'Caching program obj  - done', additionalInfo: {programObj: res}}, {})
+                logger.debug({ msg: 'Caching program obj  - done', additionalInfo: { programObj: res } }, {})
               }
             });
 
@@ -383,9 +383,9 @@ class ProgramServiceHelper {
 
   hierarchyRequest(req, collectionId) {
     const option = {
-      url: `${envVariables.baseURL}/action/content/v3/hierarchy/${collectionId}?mode=edit`,
+      url: `${ envVariables.baseURL }/action/content/v3/hierarchy/${ collectionId }?mode=edit`,
       method: 'get',
-      headers: {...req.headers}
+      headers: { ...req.headers }
     };
     return axios(option);
   }
@@ -396,25 +396,25 @@ class ProgramServiceHelper {
         const collectionArr = res_collection.data && res_collection.data.result && res_collection.data.result.content || [];
         const collectionReq = _.map(collectionArr, collection => this.hierarchyRequest(req, collection.identifier));
         forkJoin(...collectionReq).subscribe(data => {
-        try {
-          const hierarchyArr = _.compact(_.map(data, obj => obj.data.result && obj.data.result.content));
-          if (openForContribution == true) {
-            _.forEach(hierarchyArr, item => {
-              let children = [];
-              _.forEach(item.children, child=> {
-                if (child.openForContribution === true) {
-                  children.push(child);
-                }
+          try {
+            const hierarchyArr = _.compact(_.map(data, obj => obj.data.result && obj.data.result.content));
+            if (openForContribution == true) {
+              _.forEach(hierarchyArr, item => {
+                let children = [];
+                _.forEach(item.children, child => {
+                  if (child.openForContribution === true) {
+                    children.push(child);
+                  }
+                });
+                item.children = children;
               });
-              item.children = children;
-            });
-          }
+            }
 
-          const contentCount = this.approvedContentCount(hierarchyArr, program_id);
-          resolve(contentCount);
-        } catch (err) {
-          reject('programServiceException: error in counting the approved contents');
-        }
+            const contentCount = this.approvedContentCount(hierarchyArr, program_id);
+            resolve(contentCount);
+          } catch (err) {
+            reject('programServiceException: error in counting the approved contents');
+          }
         }, err => {
           reject('programServiceException: error in fetching collections-hierarchy');
         });
@@ -436,18 +436,18 @@ class ProgramServiceHelper {
       // Count of contribution
 
       this.collectionData['contributionsReceived'] = _.reduce(_.get(this.collectionData, 'chapter'), (finalCount, data) => {
-        finalCount =  finalCount + (data.contentsContributed || 0);
+        finalCount = finalCount + (data.contentsContributed || 0);
         return finalCount;
       }, 0);
 
       this.collectionData['totalContentsReviewed'] = _.reduce(_.get(this.collectionData, 'chapter'), (finalCount, data) => {
-        finalCount =  finalCount + (data.contentsReviewed || 0);
+        finalCount = finalCount + (data.contentsReviewed || 0);
         return finalCount;
       }, 0);
 
       return this.collectionData
     });
-    return {program_id: program_id, collection: collectionWithApprovedContent};
+    return { program_id: program_id, collection: collectionWithApprovedContent };
   }
 
   collectionLevelCount(data) {
@@ -477,7 +477,7 @@ class ProgramServiceHelper {
         this.chapterLevelCount(data);
         chapterObj['contentTypes'] = _.map(_.groupBy(this.contentData, 'name'), (val, key) => {
           chapterObj['count'] = chapterObj['count'] + val.length;
-          return {name: key, count: val.length}
+          return { name: key, count: val.length }
         });
 
         chapterObj.contentsContributed = this.contentsContributed.length;
@@ -496,17 +496,17 @@ class ProgramServiceHelper {
     if (object.mimeType !== 'application/vnd.ekstep.content-collection'
       && object.visibility !== 'Parent'
       && _.includes(this.acceptedContents, object.identifier)) {
-          this.contentData.push({name: object.primaryCategory});
+      this.contentData.push({ name: object.primaryCategory });
     }
 
     if (object.mimeType !== 'application/vnd.ekstep.content-collection'
-        && object.visibility !== 'Parent'
-        && (object.status === 'Live' || (object.status === 'Draft' && object.prevStatus === 'Live'))) {
-          this.contentsContributed.push(object.identifier);
-          if (_.includes(this.acceptedContents, object.identifier)
-          || _.includes(this.rejectedContents, object.identifier) || (object.status === 'Draft' && object.prevStatus === 'Live')) {
-              this.contentsReviewed.push(object.identifier);
-        }
+      && object.visibility !== 'Parent'
+      && (object.status === 'Live' || (object.status === 'Draft' && object.prevStatus === 'Live'))) {
+      this.contentsContributed.push(object.identifier);
+      if (_.includes(this.acceptedContents, object.identifier)
+        || _.includes(this.rejectedContents, object.identifier) || (object.status === 'Draft' && object.prevStatus === 'Live')) {
+        this.contentsReviewed.push(object.identifier);
+      }
     }
 
     if (object.children) {
@@ -517,34 +517,34 @@ class ProgramServiceHelper {
   textbookLevelContentMetrics(collectedData) {
     return new Promise((resolve, reject) => {
       forkJoin(..._.map(collectedData, data => this.getProgramDetails(data.program_id))).subscribe(details => {
-      try {
-        const contentTypes = details.length ? _.uniq(_.compact(..._.map(details, model => model && model.dataValues.content_types))) : [];
-        const overalData = _.map(collectedData, data => {
-          if (data.collection && data.collection.length) {
-          const tableObj = _.map(data.collection, (collection) => {
-            const final = {};
-              final['Medium'] = collection.medium;
-              final['Grade'] = collection.grade;
-              final['Subject'] = collection.subject;
-              final[`${collection.primaryCategory} Name`] = collection.name;
-              final['Total Number of Chapters'] = collection.chapter ? collection.chapter.length : 0;
-              final['Total Contents Contributed'] = collection.contributionsReceived ? collection.contributionsReceived : 0;
-              final['Total Contents Reviewed'] = collection.totalContentsReviewed ? collection.totalContentsReviewed : 0;
-              final['Chapters with atleast one approved in each contentType'] = contentTypes.length ? _.filter(collection.chapter, unit => unit.contentTypes.length === contentTypes.length).length : 0;
-              final['Chapters with atleast one approved'] = _.filter(collection.chapter, unit => unit.contentTypes.length).length;
-              final['Total number of Approved Contents'] = collection.count || 0;
-              _.forEach(contentTypes, type => final[type] = 0);
-              const contentTypeObj = _.groupBy(_.flattenDeep(_.map(collection.chapter, obj => obj.contentTypes)), 'name');
-              _.map(contentTypeObj, (val, key) => _.forEach(val, v => final[key] = (final[key] || 0) + v.count));
-              return final;
-            });
-            return tableObj;
-          } else {
-            return {}
-          }
-        });
-        return resolve(overalData);
-        }catch (err) {
+        try {
+          const contentTypes = details.length ? _.uniq(_.compact(..._.map(details, model => model && model.dataValues.content_types))) : [];
+          const overalData = _.map(collectedData, data => {
+            if (data.collection && data.collection.length) {
+              const tableObj = _.map(data.collection, (collection) => {
+                const final = {};
+                final['Medium'] = collection.medium;
+                final['Grade'] = collection.grade;
+                final['Subject'] = collection.subject;
+                final[`${ collection.primaryCategory } Name`] = collection.name;
+                final['Total Number of Chapters'] = collection.chapter ? collection.chapter.length : 0;
+                final['Total Contents Contributed'] = collection.contributionsReceived ? collection.contributionsReceived : 0;
+                final['Total Contents Reviewed'] = collection.totalContentsReviewed ? collection.totalContentsReviewed : 0;
+                final['Chapters with atleast one approved in each contentType'] = contentTypes.length ? _.filter(collection.chapter, unit => unit.contentTypes.length === contentTypes.length).length : 0;
+                final['Chapters with atleast one approved'] = _.filter(collection.chapter, unit => unit.contentTypes.length).length;
+                final['Total number of Approved Contents'] = collection.count || 0;
+                _.forEach(contentTypes, type => final[type] = 0);
+                const contentTypeObj = _.groupBy(_.flattenDeep(_.map(collection.chapter, obj => obj.contentTypes)), 'name');
+                _.map(contentTypeObj, (val, key) => _.forEach(val, v => final[key] = (final[key] || 0) + v.count));
+                return final;
+              });
+              return tableObj;
+            } else {
+              return {}
+            }
+          });
+          return resolve(overalData);
+        } catch (err) {
           reject('programServiceException: error in preparing textbookLevelContentMetrics');
         }
       }, err => {
@@ -566,7 +566,7 @@ class ProgramServiceHelper {
                   final['Medium'] = collection.medium;
                   final['Grade'] = collection.grade;
                   final['Subject'] = collection.subject;
-                  final[`${collection.primaryCategory} Name`] = collection.name;
+                  final[`${ collection.primaryCategory } Name`] = collection.name;
                   final['Chapter Name'] = unit.name;
                   final['Total Contents Contributed'] = unit.contentsContributed || 0;
                   final['Total Contents Reviewed'] = unit.contentsReviewed || 0;
@@ -583,21 +583,21 @@ class ProgramServiceHelper {
             }
           });
           resolve(overalData);
-        }catch (err) {
-         reject('programServiceException: error in preparing chapterLevelContentMetrics');
+        } catch (err) {
+          reject('programServiceException: error in preparing chapterLevelContentMetrics');
         }
-        }, err => {
-          reject('programServiceException: error in fetching contentTypes');
-        });
+      }, err => {
+        reject('programServiceException: error in fetching contentTypes');
       });
+    });
   }
 
   copyCollections(data, channel, reqHeaders, cb) { //
     const logObject = {
-      traceId : reqHeaders['x-request-id'] || '',
-      message : programMessages.PUBLISH.INFO
+      traceId: reqHeaders['x-request-id'] || '',
+      message: programMessages.PUBLISH.INFO
     }
-   loggerService.entryLog({programId: _.get(data, 'program_id') || ''}, logObject);
+    loggerService.entryLog({ programId: _.get(data, 'program_id') || '' }, logObject);
     const rspObj = {};
     const errObj = {
       'loggerMsg': null,
@@ -612,7 +612,7 @@ class ProgramServiceHelper {
       errObj.responseCode = responseCode.CLIENT_ERROR;
       errObj.loggerMsg = 'Error due to missing request or program_id or request collections or request allowed_content_types or channel'
       cb(errObj, null);
-      loggerService.exitLog({responseCode: errObj.responseCode}, logObject);
+      loggerService.exitLog({ responseCode: errObj.responseCode }, logObject);
       return false;
     }
 
@@ -664,7 +664,7 @@ class ProgramServiceHelper {
                       rspObj.result = updateResultData;
                       rspObj.responseCode = 'OK'
                       cb(null, rspObj);
-                      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+                      loggerService.exitLog({ responseCode: rspObj.responseCode }, logObject);
                       return true;
                     }, error => {
                       errObj.errCode = programMessages.COPY_COLLECTION.BULK_UPDATE_HIERARCHY.FAILED_CODE;
@@ -672,8 +672,8 @@ class ProgramServiceHelper {
                       errObj.responseCode = responseCode.SERVER_ERROR
                       console.log('Error updating hierarchy for collections', error)
                       errObj.loggerMsg = 'Error updating hierarchy for collections';
-                      cb (errObj, null);
-                      loggerService.exitLog({responseCode: errObj.responseCode}, logObject);
+                      cb(errObj, null);
+                      loggerService.exitLog({ responseCode: errObj.responseCode }, logObject);
                       return false;
                     })
                 }, error => {
@@ -682,8 +682,8 @@ class ProgramServiceHelper {
                   errObj.responseCode = responseCode.SERVER_ERROR
                   errObj.loggerMsg = 'Error fetching hierarchy for collections';
                   console.log('Error fetching hierarchy for collections', error);
-                  loggerService.exitLog({responseCode: errObj.responseCode}, logObject);
-                  cb (errObj, null);
+                  loggerService.exitLog({ responseCode: errObj.responseCode }, logObject);
+                  cb(errObj, null);
                   return false;
                 })
           }
@@ -735,7 +735,7 @@ class ProgramServiceHelper {
 
                           rspObj.result = updateResultData;
                           rspObj.responseCode = 'OK';
-                          loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+                          loggerService.exitLog({ responseCode: rspObj.responseCode }, logObject);
                           cb(null, rspObj);
                         }, error => {
                           console.log('Error updating hierarchy for collections')
@@ -745,7 +745,7 @@ class ProgramServiceHelper {
                           errObj.errMsg = _.get(error, 'response.data.result.messages') || _.get(error.response, 'data.params.errmsg') || programMessages.COPY_COLLECTION.BULK_UPDATE_HIERARCHY.FAILED_MESSAGE;
                           errObj.responseCode = _.get(error.response, 'data.responseCode') || responseCode.SERVER_ERROR
                           errObj.loggerMsg = 'Error updating hierarchy for collections';
-                          loggerService.exitLog({responseCode: errObj.responseCode}, logObject);
+                          loggerService.exitLog({ responseCode: errObj.responseCode }, logObject);
                           cb(errObj, null);
                         })
                     }, error => {
@@ -755,7 +755,7 @@ class ProgramServiceHelper {
                       errObj.errMsg = _.get(error.response, 'data.params.errmsg') || programMessages.COPY_COLLECTION.CREATE_COLLECTION.FAILED_MESSAGE;
                       errObj.responseCode = _.get(error.response, 'data.responseCode') || responseCode.SERVER_ERROR
                       errObj.loggerMsg = 'Error creating collection';
-                      loggerService.exitLog({responseCode: errObj.responseCode}, logObject);
+                      loggerService.exitLog({ responseCode: errObj.responseCode }, logObject);
                       cb(errObj, null);
                     })
                 }, (error) => {
@@ -764,8 +764,8 @@ class ProgramServiceHelper {
                   errObj.responseCode = responseCode.SERVER_ERROR;
                   errObj.loggerMsg = 'Error fetching hierarchy for collections';
                   console.log('Error fetching hierarchy for collections', error);
-                  loggerService.exitLog({responseCode: errObj.responseCode}, logObject);
-                  cb (errObj, null);
+                  loggerService.exitLog({ responseCode: errObj.responseCode }, logObject);
+                  cb(errObj, null);
                 })
           }
         },
@@ -776,8 +776,8 @@ class ProgramServiceHelper {
           errObj.responseCode = _.get(error, 'response.statusText') || responseCode.SERVER_ERROR
           errObj.loggerMsg = 'Error searching for collections';
           console.log('Error searching for collections', error)
-          loggerService.exitLog({responseCode: errObj.responseCode}, logObject);
-          cb (errObj, null);
+          loggerService.exitLog({ responseCode: errObj.responseCode }, logObject);
+          cb(errObj, null);
           return false;
         }
       );
@@ -785,7 +785,7 @@ class ProgramServiceHelper {
 
   getUserDetails(userId, reqHeaders) {
     const option = {
-      url: `${envVariables.baseURL}/learner/user/v1/search`,
+      url: `${ envVariables.baseURL }/learner/user/v1/search`,
       method: 'POST',
       headers: reqHeaders,
       data: {
@@ -799,13 +799,13 @@ class ProgramServiceHelper {
     return from(axios(option));
   }
 
-  getAllSourcingOrgUsers(orgUsers, filters, reqHeaders, limit = 500, offset= 0) {
+  getAllSourcingOrgUsers(orgUsers, filters, reqHeaders, limit = 500, offset = 0) {
     offset = (!_.isUndefined(offset)) ? offset : 0;
     limit = (!_.isUndefined(limit)) ? limit : 500;
     return new Promise((resolve, reject) => {
       this.getSourcingOrgUsers(reqHeaders, filters, offset, limit).subscribe(
         (res) => {
-          const sourcingOrgUsers =  _.get(res, 'data.result.response.content', []);
+          const sourcingOrgUsers = _.get(res, 'data.result.response.content', []);
           const totalCount = _.get(res, 'data.result.response.count');
 
           if (sourcingOrgUsers.length > 0) {
@@ -813,7 +813,7 @@ class ProgramServiceHelper {
             offset = offset + sourcingOrgUsers.length;
           }
 
-          if (totalCount > orgUsers.length){
+          if (totalCount > orgUsers.length) {
             return resolve(this.getAllSourcingOrgUsers(orgUsers, filters, reqHeaders, limit, offset));
           }
           return resolve(orgUsers);
@@ -827,7 +827,7 @@ class ProgramServiceHelper {
 
   getSourcingOrgUsers(reqHeaders, reqFilters, offset, limit) {
     const req = {
-      url: `${envVariables.baseURL}/learner/user/v1/search`,
+      url: `${ envVariables.baseURL }/learner/user/v1/search`,
       method: 'post',
       headers: reqHeaders,
       data: {
@@ -859,11 +859,11 @@ class ProgramServiceHelper {
     value['body'] = {
       "id": "open-saber.registry.search",
       "request": {
-          "entityType":["User"],
-          "filters": {
-            "userId": {
-                "contains": user_id
-            }
+        "entityType": ["User"],
+        "filters": {
+          "userId": {
+            "contains": user_id
+          }
         }
       }
     };
@@ -881,7 +881,7 @@ class ProgramServiceHelper {
               "medium": _.union(user.medium, program.config.medium),
               "gradeLevel": _.union(user.gradeLevel, program.config.gradeLevel),
               "subject": _.union(user.subject, program.config.subject)
-              }
+            }
           }
         };
         registryService.updateRecord(updateRequestBody, (error, response) => {
@@ -907,7 +907,7 @@ class ProgramServiceHelper {
       const gradeLevel = _.get(program, 'gradeLevel') || _.get(program, 'program.dataValues.gradeLevel') || null;
       const subject = _.get(program, 'subject') || _.get(program, 'program.dataValues.subject') || null;
 
-      program.matchCount =  _.intersection(JSON.parse(medium), sort.medium).length
+      program.matchCount = _.intersection(JSON.parse(medium), sort.medium).length
         + _.intersection(JSON.parse(gradeLevel), sort.gradeLevel).length
         + _.intersection(JSON.parse(subject), sort.subject).length;
       return program;
