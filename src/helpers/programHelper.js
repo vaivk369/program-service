@@ -964,7 +964,7 @@ class ProgramServiceHelper {
       } else if (_.get(value, 'ne')) {
         return {
           [key]:{
-            [Op.eq]: _.get(value, 'eq')
+            [Op.ne]: _.get(value, 'ne')
           }
         }
       } else if (_.isArray(value)) {
