@@ -24,9 +24,6 @@ module.exports = function(sequelize, DataTypes) {
       content_types: {
         type: DataTypes.ARRAY(DataTypes.TEXT)
       },
-      targetprimarycategories: {
-        type: DataTypes.ARRAY(DataTypes.JSON)
-      },
       collection_ids: {
         type: DataTypes.ARRAY(DataTypes.TEXT)
       },

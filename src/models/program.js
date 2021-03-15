@@ -25,9 +25,6 @@ module.exports = function(sequelize, DataTypes) {
     target_collection_category: {
       type: DataTypes.ARRAY(DataTypes.TEXT)
     },
-    targetprimarycategories: {
-      type: DataTypes.ARRAY(DataTypes.JSON)
-    },
     startdate: {
       type: DataTypes.DATE
     },

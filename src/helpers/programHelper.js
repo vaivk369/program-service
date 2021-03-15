@@ -944,7 +944,7 @@ class ProgramServiceHelper {
       const prg_list = await this.getPrograms(data, filters);
       let apiRes = _.map(prg_list, 'dataValues');
       if (data.request.sort){
-        apiRes = programServiceHelper.sortPrograms(apiRes, data.request.sort);
+        apiRes = this.sortPrograms(apiRes, data.request.sort);
       }
       return apiRes;
     }
