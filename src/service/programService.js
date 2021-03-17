@@ -1979,22 +1979,39 @@ async function contributorSearch(req, response) {
 
     // Get Diksha user profiles
     const dikshaUserIdentifier = _.uniq(_.map(userList, e => e.userId));
-    const dikshaUserProfilesApiResp = await userService.getDikshaUserProfiles(req, dikshaUserIdentifier);
+    const fields = _.get(data.request, 'fields') || [];
+    const dikshaUserProfilesApiResp = await userService.getDikshaUserProfiles(req, dikshaUserIdentifier, fields);
     let orgUsersDetails = _.get(dikshaUserProfilesApiResp.data, 'result.response.content');
-
     // Attach os user object details to diksha user profile
     if (!_.isEmpty(orgUsersDetails)) {
       const roles = _.get(data.request, 'filters.user_org.roles');
+
       orgUsersDetails = _.map(
         _.filter(orgUsersDetails, obj => { if (obj.identifier) { return obj; } }),
         (obj) => {
           if (obj.identifier) {
             const tempUserObj = _.find(userList, { 'userId': obj.identifier });
-            obj.name = `${ obj.firstName } ${ obj.lastName || '' }`;
-            obj.User = _.find(userList, { 'userId': obj.identifier });
-            obj.User_Org = _.find(orgUserList, { 'userId': _.get(tempUserObj, 'osid') });
-            obj.selectedRole = _.first(_.intersection(roles, obj.User_Org.roles));
-            return obj;
+            if (fields.length > 0) {
+              if (fields.includes('name')) {
+                obj.name = `${ obj.firstName } ${ obj.lastName || '' }`;
+              }
+              if (fields.includes('User')) {
+                obj.User = _.find(userList, { 'userId': obj.identifier });
+              }
+              if (fields.includes('User_Org')) {
+                obj.User_Org = _.find(orgUserList, { 'userId': _.get(tempUserObj, 'osid') });
+              }
+              if (fields.includes('selectedRole')) {
+                obj.selectedRole = _.first(_.intersection(roles, obj.User_Org.roles));
+              }
+              return obj;
+            } else {
+              obj.name = `${ obj.firstName } ${ obj.lastName || '' }`;
+              obj.User = _.find(userList, { 'userId': obj.identifier });
+              obj.User_Org = _.find(orgUserList, { 'userId': _.get(tempUserObj, 'osid') });
+              obj.selectedRole = _.first(_.intersection(roles, obj.User_Org.roles));
+              return obj;
+            }
           }
         });
     }
