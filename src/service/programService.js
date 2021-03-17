@@ -1108,77 +1108,51 @@ async function programList(req, response) {
     }
   }));
 
-  if(data.request.filters && data.request.filters.nomination) {
-    try {
-    const resp =  await programServiceHelper.getProgramsForContribution(data, filters);
-    return response.status(200).send(successResponse({
-      apiId: 'api.program.list',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'OK',
-      result: {
-        count: resp ? resp.length : 0,
-        programs: resp || []
-      }
-    }));
-  } catch (err){
-    console.log(err)
-    loggerService.exitLog({responseCode: 'ERR_LIST_PROGRAM'}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE4);
-    return response.status(400).send(errorResponse({
-      apiId: 'api.program.list',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'ERR_LIST_PROGRAM',
-      result: err
-    },errCode+errorCodes.CODE4));
-  }
+  try {
+    if(data.request.filters && data.request.filters.nomination) {
+      const resp =  await programServiceHelper.getProgramsForContribution(data, filters);
+      return response.status(200).send(successResponse({
+        apiId: 'api.program.list',
+        ver: '1.0',
+        msgid: uuid(),
+        responseCode: 'OK',
+        result: {
+          count: resp ? resp.length : 0,
+          programs: resp || []
+        }
+      }));
+    }
+    else {
+      if (data.request.filters && data.request.filters.role && data.request.filters.user_id) {
+        const promises = [];
+        const roles = data.request.filters.role;
+        const user_id = data.request.filters.user_id;
+        delete data.request.filters.role;
+        delete data.request.filters.user_id;
 
-     // await programServiceHelper.getContributionPrograms(data);
-    // 2. Contributor org admin my projects
-    // 3. Contributor org user - my projects
-    // 4. Individual contributor
-  }
-  else {
-    if (data.request.filters && data.request.filters.enrolled_id) {
-      if (!data.request.filters.enrolled_id.user_id) {
-        rspObj.errCode = programMessages.LIST.MISSING_CODE
-        rspObj.errMsg = programMessages.LIST.MISSING_MESSAGE
-        rspObj.responseCode = responseCode.CLIENT_ERROR
-        loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-        loggerError('',rspObj,errCode+errorCodes.CODE2);
-        return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2))
-      }
-
-      const user_id = data.request.filters.enrolled_id.user_id;
-      delete data.request.filters.enrolled_id;
-      model.nomination.findAll({
-          where: {
-            user_id: user_id
-          },
-          offset: res_offset,
-          limit: res_limit,
-          include: [{
-            model: model.program,
-            required: true,
-            attributes: {
-              include: [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium']],
-              exclude: ['config', 'description'],
-            },
-            where: {
-              ...filters,
-              ...data.request.filters
-            }
-          }],
-          order: [
-            ['updatedon', 'DESC']
-          ]
-        })
-        .then((prg_list) => {
-          let apiRes = _.map(prg_list, 'dataValues');
-          if (data.request.sort){
-            apiRes = programServiceHelper.sortPrograms(apiRes, data.request.sort);
-          }
+        _.forEach(roles, (role) => {
+            let whereCond = {
+              $contains: Sequelize.literal(`cast(rolemapping->>'${role}' as text) like ('%${user_id}%')`),
+            };
+            promises.push(
+              model.program.findAndCountAll({
+              where: {
+                ...whereCond,
+                ...data.request.filters,
+                ...filters
+              },
+              offset: res_offset,
+              limit: res_limit,
+              order: [
+                ['updatedon', 'DESC']
+              ]})
+          )});
+          const res = await Promise.all(promises);
+          let aggregatedRes = [];
+          _.forEach(res, (response) => {
+            _.forEach(response.rows, row => aggregatedRes.push(row));
+          })
+          aggregatedRes = _.uniqBy(aggregatedRes, 'dataValues.program_id');
           loggerService.exitLog({responseCode: 'OK'}, logObject);
           return response.status(200).send(successResponse({
             apiId: 'api.program.list',
@@ -1186,98 +1160,26 @@ async function programList(req, response) {
             msgid: uuid(),
             responseCode: 'OK',
             result: {
-              count: apiRes ? apiRes.length : 0,
-              programs: apiRes || []
+              count: aggregatedRes.length,
+              programs: aggregatedRes
             }
-          }))
-        })
-        .catch(function (err) {
-          console.log(err)
-          loggerService.exitLog({responseCode: 'ERR_LIST_PROGRAM'}, logObject);
-          loggerError('',rspObj,errCode+errorCodes.CODE3);
-          return response.status(400).send(errorResponse({
-            apiId: 'api.program.list',
-            ver: '1.0',
-            msgid: uuid(),
-            responseCode: 'ERR_LIST_PROGRAM',
-            result: err
-          },errCode+errorCodes.CODE3));
-        });
-    } else if (data.request.filters && data.request.filters.role && data.request.filters.user_id) {
-      const promises = [];
-      const roles = data.request.filters.role;
-      const user_id = data.request.filters.user_id;
-      delete data.request.filters.role;
-      delete data.request.filters.user_id;
-
-      _.forEach(roles, (role) => {
-          let whereCond = {
-            $contains: Sequelize.literal(`cast(rolemapping->>'${role}' as text) like ('%${user_id}%')`),
-          };
-
-          promises.push(
-            model.program.findAndCountAll({
+          }));
+        } else {
+          const res = await model.program.findAll({
             where: {
-              ...whereCond,
-              ...data.request.filters,
-              ...filters
+              ...filters,
+              ...data.request.filters
+            },
+            attributes: data.request.fields || {
+              include : [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium']],
+              exclude: ['config', 'description']
             },
             offset: res_offset,
             limit: res_limit,
             order: [
               ['updatedon', 'DESC']
             ]
-        })
-        )
-      })
-      Promise.all(promises)
-      .then(function (res) {
-        let aggregatedRes = [];
-        _.forEach(res, (response) => {
-          _.forEach(response.rows, row => aggregatedRes.push(row));
-        })
-        aggregatedRes = _.uniqBy(aggregatedRes, 'dataValues.program_id');
-        loggerService.exitLog({responseCode: 'OK'}, logObject);
-        return response.status(200).send(successResponse({
-          apiId: 'api.program.list',
-          ver: '1.0',
-          msgid: uuid(),
-          responseCode: 'OK',
-          result: {
-            count: aggregatedRes.length,
-            programs: aggregatedRes
-          }
-        }))
-      })
-      .catch(function (err) {
-        console.log(err)
-        loggerService.exitLog({responseCode: 'ERR_LIST_PROGRAM'}, logObject);
-        loggerError('',rspObj,errCode+errorCodes.CODE4);
-        return response.status(400).send(errorResponse({
-          apiId: 'api.program.list',
-          ver: '1.0',
-          msgid: uuid(),
-          responseCode: 'ERR_LIST_PROGRAM',
-          result: err
-        },errCode+errorCodes.CODE4));
-      });
-    } else {
-      model.program.findAll({
-          where: {
-            ...filters,
-            ...data.request.filters
-          },
-          attributes: data.request.fields || {
-            include : [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium']],
-            exclude: ['config', 'description']
-          },
-          offset: res_offset,
-          limit: res_limit,
-          order: [
-            ['updatedon', 'DESC']
-          ]
-        })
-        .then(function (res) {
+          });
           let apiRes = _.map(res, 'dataValues');
           if (data.request.sort){
             apiRes = programServiceHelper.sortPrograms(apiRes, data.request.sort);
@@ -1292,20 +1194,20 @@ async function programList(req, response) {
               count: apiRes ? apiRes.length : 0,
               programs: apiRes || []
             }
-          }))
-        })
-        .catch(function (err) {
-          loggerService.exitLog({responseCode: 'ERR_LIST_PROGRAM'}, logObject);
-          loggerError('',rspObj,errCode+errorCodes.CODE5);
-          return response.status(400).send(errorResponse({
-            apiId: 'api.program.list',
-            ver: '1.0',
-            msgid: uuid(),
-            responseCode: 'ERR_LIST_PROGRAM',
-            result: err
-          },errCode+errorCodes.CODE5));
-        });
+          }));
+        }
     }
+  }
+  catch (err){
+    loggerService.exitLog({responseCode: 'ERR_LIST_PROGRAM'}, logObject);
+    loggerError('',rspObj,errCode+errorCodes.CODE4);
+    return response.status(400).send(errorResponse({
+      apiId: 'api.program.list',
+      ver: '1.0',
+      msgid: uuid(),
+      responseCode: 'ERR_LIST_PROGRAM',
+      result: err
+    },errCode+errorCodes.CODE4));
   }
 }
 
