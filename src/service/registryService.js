@@ -26,7 +26,8 @@ class RegistryService {
       return axios(option);
     }
 
-    async getUserList(userIds) {
+    async getUserList(data, userIds) {
+      const filters = _.get(data.request, 'filters.user');
       const option = {
         url: registryUrl + '/search',
         method: 'post',
@@ -36,6 +37,7 @@ class RegistryService {
           "request": {
             "entityType": ["User"],
             "filters": {
+              ...filters,
               "osid": { "or": userIds }
             }
           }
@@ -44,7 +46,8 @@ class RegistryService {
       return axios(option);
     }
 
-    async getOrgUserList(filters) {
+    async getOrgUserList(data) {
+      const filters = _.get(data.request, 'filters.user_org');
       const option = {
         url: registryUrl + '/search',
         method: 'post',
@@ -56,8 +59,8 @@ class RegistryService {
             "filters": {
               ..._.pick(filters, 'orgId')
             },
-            "limit": _.get(filters, 'limit') || 250,
-            "offset": _.get(filters, 'offset') || 0
+            "limit": _.get(data.request, 'limit') || 250,
+            "offset": _.get(data.request, 'offset') || 0
           }
         }
       };

@@ -864,14 +864,14 @@ exports.PROGRAM = {
       FAILED_MESSAGE: 'Unable to search Organisations'
     }
   },
-  USER: {
-    LIST: {
-      EXCEPTION_CODE: 'URLST',
-      MISSING_CODE: 'ERR_LIST_USER_LIST_READ',
-      MISSING_MESSAGE: 'Required fields to get user list are missing',
-      FAILED_CODE: 'ERR_LIST_USER_DATA_FAILED',
-      FAILED_MESSAGE: 'Unable to get list of the users data',
-      INFO: 'List of the users data'
+  CONTRIBUTOR: {
+    SEARCH: {
+      EXCEPTION_CODE: 'CONTRIBUTOR_SEARCH',
+      MISSING_CODE: 'ERR_CONTRIBUTOR_SEARCH',
+      MISSING_MESSAGE: 'Required fields to search contributor are missing',
+      FAILED_CODE: 'ERR_CONTRIBUTOR_SEARCH_FAILED',
+      FAILED_MESSAGE: 'Unable to search contributor',
+      INFO: 'List of the contributors'
     }
   }
 }
