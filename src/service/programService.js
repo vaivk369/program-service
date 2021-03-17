@@ -1961,7 +1961,7 @@ async function contributorSearch(req, response) {
   rspObj.errCode = programMessages.CONTRIBUTOR.SEARCH.MISSING_CODE;
   rspObj.errMsg = programMessages.CONTRIBUTOR.SEARCH.MISSING_MESSAGE;
   rspObj.responseCode = responseCode.CLIENT_ERROR;
-  if (!data || !data.request || !data.request.filters || !data.request.filters.User_Org || !data.request.filters.User_Org.orgId) {
+  if (!data || !data.request || !data.request.filters || !data.request.filters.user_org || !data.request.filters.user_org.orgId) {
     loggerService.exitLog({ responseCode: rspObj.responseCode }, logObject);
     loggerError('', rspObj, errCode + errorCodes.CODE1);
     return response.status(400).send(errorResponse(rspObj, errCode + errorCodes.CODE1))
