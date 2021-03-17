@@ -811,7 +811,7 @@ function addOrUpdateNomination(programDetails, orgosid) {
         user_id: programDetails.createdby,
         organisation_id: orgosid,
         status: 'Approved',
-        content_types: programDetails.content_types,
+        targetprimarycategories: programDetails.targetprimarycategories,
         collection_ids: programDetails.copiedCollections,
       };
 
@@ -825,7 +825,7 @@ function addOrUpdateNomination(programDetails, orgosid) {
           if (res && res.dataValues.id) {
             const updateValue = {
               status: 'Approved',
-              content_types: programDetails.content_types,
+              targetprimarycategories: programDetails.targetprimarycategories,
               collection_ids: programDetails.copiedCollections,
               updatedon: new Date(),
             };
@@ -869,8 +869,6 @@ function addOrUpdateNomination(programDetails, orgosid) {
     }
   });
 }
-
-
 
 function getUserRegistryDetails(userId, reqHeaders) {
   const userRegData = {};

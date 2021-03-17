@@ -606,7 +606,7 @@ class ProgramServiceHelper {
       'responseCode': null
     };
 
-    if (!data.program_id || !data.config.collections || !data.content_types || !channel) {
+    if (!data.program_id || !data.config.collections || !data.targetprimarycategories || !channel) {
       errObj.errCode = programMessages.COPY_COLLECTION.COPY.MISSING_CODE;
       errObj.errMsg = programMessages.COPY_COLLECTION.COPY.MISSING_MESSAGE;
       errObj.responseCode = responseCode.CLIENT_ERROR;
@@ -620,7 +620,7 @@ class ProgramServiceHelper {
     const collectionIds = _.map(collections, 'id');
     const additionalMetaData = {
       programId: _.get(data, 'program_id'),
-      allowedContentTypes: _.get(data, 'content_types'),
+      allowedContentTypes: _.map(_.get(data, 'targetprimarycategories'), 'name'),
       channel: channel,
       openForContribution: false,
       projCollectionCategories: _.get(data, 'target_collection_category'),
