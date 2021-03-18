@@ -3,7 +3,6 @@ const uuid = require("uuid/v1");
 const logger = require('sb_logger_util_v2');
 const SbCacheManager = require('sb_cache_manager');
 const messageUtils = require('./messageUtil');
-const respUtil = require('response_util');
 const Sequelize = require('sequelize');
 const moment = require('moment');
 const loggerService = require('./loggerService');
@@ -2031,10 +2030,10 @@ async function contributorSearch(req, response) {
     logger.error("Error while parsing for contributor search")
     return response.status(400).send(errorResponse({
       apiId: 'api.contributor.search',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'ERR_READ_USER',
-      result: err.message || err
+      apiVersion: '1.0',
+      msgId: uuid(),
+      responseCode: responseCode.SERVER_ERROR,
+      errMsg: err.message || err
     }));
   }
 }
