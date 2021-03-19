@@ -3,7 +3,6 @@ const uuid = require("uuid/v1");
 const logger = require('sb_logger_util_v2');
 const SbCacheManager = require('sb_cache_manager');
 const messageUtils = require('./messageUtil');
-const respUtil = require('response_util');
 const Sequelize = require('sequelize');
 const moment = require('moment');
 const loggerService = require('./loggerService');
@@ -1884,19 +1883,19 @@ async function getUsersDetailsById(req, response) {
   });
 }
 
-async function getUserList(req, response) {
+async function contributorSearch(req, response) {
   var data = req.body;
   var rspObj = req.rspObj;
   const logObject = {
     traceId: req.headers['x-request-id'] || '',
-    message: programMessages.USER.LIST.INFO
+    message: programMessages.CONTRIBUTOR.SEARCH.INFO
   }
   loggerService.entryLog(data, logObject);
-  const errCode = programMessages.USER.LIST.EXCEPTION_CODE;
-  rspObj.errCode = programMessages.USER.LIST.MISSING_CODE;
-  rspObj.errMsg = programMessages.USER.LIST.MISSING_MESSAGE;
+  const errCode = programMessages.CONTRIBUTOR.SEARCH.EXCEPTION_CODE;
+  rspObj.errCode = programMessages.CONTRIBUTOR.SEARCH.MISSING_CODE;
+  rspObj.errMsg = programMessages.CONTRIBUTOR.SEARCH.MISSING_MESSAGE;
   rspObj.responseCode = responseCode.CLIENT_ERROR;
-  if (!data || !data.request || !data.request.filters || !data.request.filters.User_Org || !data.request.filters.User_Org.orgId) {
+  if (!data || !data.request || !data.request.filters || !data.request.filters.user_org || !data.request.filters.user_org.orgId) {
     loggerService.exitLog({ responseCode: rspObj.responseCode }, logObject);
     loggerError('', rspObj, errCode + errorCodes.CODE1);
     return response.status(400).send(errorResponse(rspObj, errCode + errorCodes.CODE1))
@@ -1904,24 +1903,23 @@ async function getUserList(req, response) {
 
   try {
     // Get users associated to org
-    const userOrgFilters = _.get(data.request, 'filters.User_Org');
-    const roles = _.get(data.request, 'filters.User_Org.roles');
-
-    const orgUserListResp = await registryService.getOrgUserList(userOrgFilters);
+    const orgUserListResp = await registryService.getOrgUserList(data);
     const orgUserList = _.get(orgUserListResp, 'result');
     const userOsIds = _.uniq(_.map(orgUserList, e => e.userId));
 
     // Get users list
-    const userListApiResp = await registryService.getUserList(userOsIds);
+    const userListApiResp = await registryService.getUserList(data, userOsIds);
     const userList = _.get(userListApiResp.data, 'result.User');
 
     // Get Diksha user profiles
     const dikshaUserIdentifier = _.uniq(_.map(userList, e => e.userId));
+
     const dikshaUserProfilesApiResp = await userService.getDikshaUserProfiles(req, dikshaUserIdentifier);
     let orgUsersDetails = _.get(dikshaUserProfilesApiResp.data, 'result.response.content');
 
     // Attach os user object details to diksha user profile
     if (!_.isEmpty(orgUsersDetails)) {
+      const roles = _.get(data.request, 'filters.user_org.roles');
       orgUsersDetails = _.map(
         _.filter(orgUsersDetails, obj => { if (obj.identifier) { return obj; } }),
         (obj) => {
@@ -1933,28 +1931,33 @@ async function getUserList(req, response) {
             obj.selectedRole = _.first(_.intersection(roles, obj.User_Org.roles));
             return obj;
           }
-        });
+      });
+
+      const defaultFields =["id","identifier","userId","rootOrgId","userName","status","roles","maskedEmail","maskedPhone","firstName","lastName","name","User","User_Org","stateValidated","selectedRole","channel"];
+      const fields = _.get(data.request, 'fields') || [];
+      const keys = fields.length > 0 ? fields : defaultFields;
+      orgUsersDetails = _.map(orgUsersDetails, e => _.pick(e, keys));
     }
 
     return response.status(200).send(successResponse({
-      apiId: 'api.user.list.read',
+      apiId: 'api.contributor.search',
       ver: '1.0',
       msgid: uuid(),
       responseCode: 'OK',
       result: {
-        'content': orgUsersDetails,
+        'contributor': orgUsersDetails,
         'count': _.get(orgUserListResp, 'count')
       }
     }));
   }
   catch (err) {
-    logger.error("Error while parsing for user lists")
+    logger.error("Error while parsing for contributor search")
     return response.status(400).send(errorResponse({
-      apiId: 'api.user.list.read',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'ERR_READ_USER',
-      result: err.message || err
+      apiId: 'api.contributor.search',
+      apiVersion: '1.0',
+      msgId: uuid(),
+      responseCode: responseCode.SERVER_ERROR,
+      errMsg: err.message || err
     }));
   }
 }
@@ -3171,7 +3174,7 @@ function errorResponse(data,errCode) {
   response.ver = data.apiVersion
   response.ts = new Date()
   response.params = getParams(data.msgId, 'failed', data.errCode, data.errMsg)
-  response.responseCode = errCode +'_'+ data.responseCode
+  response.responseCode = data.responseCode
   response.result = data.result
   return response
 }
@@ -3204,7 +3207,7 @@ module.exports.nominationsListAPI = getNominationsList
 module.exports.downloadNominationListAPI = downloadNominationList
 module.exports.programGetContentTypesAPI = getProgramContentTypes
 module.exports.getUserDetailsAPI = getUsersDetailsById
-module.exports.getUserListAPI = getUserList
+module.exports.contributorSearchAPI = contributorSearch
 module.exports.healthAPI = health
 module.exports.programCopyCollectionAPI = programCopyCollections;
 module.exports.getAllConfigurationsAPI = getAllConfigurations;
