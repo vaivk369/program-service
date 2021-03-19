@@ -1978,41 +1978,30 @@ async function contributorSearch(req, response) {
 
     // Get Diksha user profiles
     const dikshaUserIdentifier = _.uniq(_.map(userList, e => e.userId));
-    const fields = _.get(data.request, 'fields') || [];
-    const dikshaUserProfilesApiResp = await userService.getDikshaUserProfiles(req, dikshaUserIdentifier, fields);
+
+    const dikshaUserProfilesApiResp = await userService.getDikshaUserProfiles(req, dikshaUserIdentifier);
     let orgUsersDetails = _.get(dikshaUserProfilesApiResp.data, 'result.response.content');
+
     // Attach os user object details to diksha user profile
     if (!_.isEmpty(orgUsersDetails)) {
       const roles = _.get(data.request, 'filters.user_org.roles');
-
       orgUsersDetails = _.map(
         _.filter(orgUsersDetails, obj => { if (obj.identifier) { return obj; } }),
         (obj) => {
           if (obj.identifier) {
             const tempUserObj = _.find(userList, { 'userId': obj.identifier });
-            if (fields.length > 0) {
-              if (fields.includes('name')) {
-                obj.name = `${ obj.firstName } ${ obj.lastName || '' }`;
-              }
-              if (fields.includes('User')) {
-                obj.User = _.find(userList, { 'userId': obj.identifier });
-              }
-              if (fields.includes('User_Org')) {
-                obj.User_Org = _.find(orgUserList, { 'userId': _.get(tempUserObj, 'osid') });
-              }
-              if (fields.includes('selectedRole')) {
-                obj.selectedRole = _.first(_.intersection(roles, obj.User_Org.roles));
-              }
-              return obj;
-            } else {
-              obj.name = `${ obj.firstName } ${ obj.lastName || '' }`;
-              obj.User = _.find(userList, { 'userId': obj.identifier });
-              obj.User_Org = _.find(orgUserList, { 'userId': _.get(tempUserObj, 'osid') });
-              obj.selectedRole = _.first(_.intersection(roles, obj.User_Org.roles));
-              return obj;
-            }
+            obj.name = `${ obj.firstName } ${ obj.lastName || '' }`;
+            obj.User = _.find(userList, { 'userId': obj.identifier });
+            obj.User_Org = _.find(orgUserList, { 'userId': _.get(tempUserObj, 'osid') });
+            obj.selectedRole = _.first(_.intersection(roles, obj.User_Org.roles));
+            return obj;
           }
-        });
+      });
+
+      const defaultFields =["id","identifier","userId","rootOrgId","userName","status","roles","maskedEmail","maskedPhone","firstName","lastName","name","User","User_Org","stateValidated","selectedRole","channel"];
+      const fields = _.get(data.request, 'fields') || [];
+      const keys = fields.length > 0 ? fields : defaultFields;
+      orgUsersDetails = _.map(orgUsersDetails, e => _.pick(e, keys));
     }
 
     return response.status(200).send(successResponse({
@@ -3250,7 +3239,7 @@ function errorResponse(data,errCode) {
   response.ver = data.apiVersion
   response.ts = new Date()
   response.params = getParams(data.msgId, 'failed', data.errCode, data.errMsg)
-  response.responseCode = errCode +'_'+ data.responseCode
+  response.responseCode = data.responseCode
   response.result = data.result
   return response
 }
