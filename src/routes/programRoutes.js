@@ -81,9 +81,9 @@ module.exports = function (app) {
     .get(requestMiddleware.gzipCompression(), requestMiddleware.createAndValidateRequestBody,
       programService.getUserDetailsAPI)
 
-  app.route(BASE_URL + '/user/list')
+  app.route(BASE_URL + '/contributor/search')
     .post(requestMiddleware.gzipCompression(), requestMiddleware.createAndValidateRequestBody,
-      programService.getUserListAPI)
+      programService.contributorSearchAPI)
 
   app.route(BASE_URL + '/collection/copy')
     .post(requestMiddleware.gzipCompression(), requestMiddleware.createAndValidateRequestBody,
