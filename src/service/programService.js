@@ -2016,6 +2016,7 @@ async function contributorSearch(req, response) {
     }));
   }
   catch (err) {
+    console.log(err);
     logger.error("Error while parsing for contributor search")
     return response.status(400).send(errorResponse({
       apiId: 'api.contributor.search',
