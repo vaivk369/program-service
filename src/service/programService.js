@@ -2017,7 +2017,7 @@ async function contributorSearch(req, response) {
   }
   catch (err) {
     console.log(err);
-    logger.error("Error while parsing for contributor search")
+    logger.error({msg: 'Error - contributor search', err}, req)
     return response.status(400).send(errorResponse({
       apiId: 'api.contributor.search',
       apiVersion: '1.0',
