@@ -620,12 +620,12 @@ class ProgramServiceHelper {
     const collectionIds = _.map(collections, 'id');
     const additionalMetaData = {
       programId: _.get(data, 'program_id'),
-      allowedContentTypes: _.map(_.get(data, 'targetprimarycategories'), 'name'),
+      allowedContentTypes: [],
       channel: channel,
       openForContribution: false,
       projCollectionCategories: _.get(data, 'target_collection_category'),
     };
-
+    additionalMetaData['allowedContentTypes'] = (_.get(data, 'targetprimarycategories')) ? _.map(_.get(data, 'targetprimarycategories'), 'name') :  _.get(data, 'content_types'),
     hierarchyService.filterExistingTextbooks(collectionIds, additionalMetaData.programId, reqHeaders)
       .subscribe(
         (resData) => {
