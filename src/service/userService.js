@@ -1,5 +1,5 @@
 const envVariables = require('../envVariables')
-const learnerService = envVariables['baseURL'] + '/learner'
+const learnerService = envVariables['LEARNER_SERVICE_URL']
 const axios = require('axios');
 
 class UserService {
