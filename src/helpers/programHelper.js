@@ -7,6 +7,7 @@ const axios = require("axios");
 const dateFormat = require('dateformat');
 const model = require('../models');
 const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 const messageUtils = require('../service/messageUtil');
 const responseCode = messageUtils.RESPONSE_CODE;
 const programMessages = messageUtils.PROGRAM;
@@ -19,6 +20,8 @@ const registryService = new RegistryService();
 const SbCacheManager = require('sb_cache_manager');
 const cacheManager = new SbCacheManager({ttl: envVariables.CACHE_TTL});
 const loggerService = require('../service/loggerService');
+const { datastax } = require("cassandra-driver");
+const queryRes_Min = 300;
 
 class ProgramServiceHelper {
   searchContent(programId, sampleContentCheck, reqHeaders) {
@@ -919,6 +922,140 @@ class ProgramServiceHelper {
      * 2. program created date
      */
     return _(programs).chain().sortBy((prg) => prg.createdon).sortBy((prg) => prg.matchCount).values().reverse();
+  }
+
+  async getProgramsForContribution(data, filters){
+    const nomination = data.request.filters.nomination;
+    const user_id = _.get(nomination, 'user_id');
+    const organisation_id = _.get(nomination, 'organisation_id');
+    const status = _.get(nomination, 'status');
+    const roles = _.get(nomination, 'roles');
+
+    // Contributor org user (my projects)
+    if(user_id && organisation_id && status && roles) {
+      const res = await this.getContribUserPrograms(data, filters);
+      let aggregatedRes = [];
+      _.forEach(res, (response) => {
+        _.forEach(response.rows, row => aggregatedRes.push(row));
+      })
+      return _.uniqBy(aggregatedRes, 'dataValues.program_id');
+    }
+    else if(organisation_id || user_id) {
+      const prg_list = await this.getPrograms(data, filters);
+      let apiRes = _.map(prg_list, 'dataValues');
+      if (data.request.sort){
+        apiRes = this.sortPrograms(apiRes, data.request.sort);
+      }
+      return apiRes;
+    }
+  }
+
+  async getPrograms(data, filters) {
+    const nomination = data.request.filters.nomination;
+    var whereCond = {};
+    whereCond[Op.and] = _.compact(_.map(nomination, (value, key) => {
+      const res = {};
+      if (_.get(value, 'eq')) {
+        return {
+          [key]:{
+            [Op.eq]: _.get(value, 'eq')
+          }
+        }
+      } else if (_.get(value, 'ne')) {
+        return {
+          [key]:{
+            [Op.ne]: _.get(value, 'ne')
+          }
+        }
+      } else if (_.isArray(value)) {
+        res[Op.or] = _.map(value, (val) => {
+          return {
+            [key] : {
+              [Op.eq]: val
+            }
+          };
+        });
+        return res;
+      }
+  }));
+
+    // Remove nomination filter object
+    delete data.request.filters.nomination;
+    return await model.nomination.findAll({
+      where: {
+        ...whereCond
+      },
+      offset: data.request.offset || 0,
+      limit: queryRes_Min,
+      include: [{
+        model: model.program,
+        required: true,
+        attributes: {
+          include: [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium']],
+          exclude: ['config', 'description'],
+        },
+        where: {
+          ...filters,
+          ...data.request.filters
+        }
+      }],
+      order: [
+        ['updatedon', 'DESC']
+      ]
+    });
+  }
+
+  async getContribUserPrograms(data, filters) {
+    const nomination = data.request.filters.nomination;
+    const user_id = _.get(nomination, 'user_id.eq');
+    const organisation_id = _.get(nomination, 'organisation_id.eq');
+    const roles = _.get(nomination, 'roles.or');
+    const status = _.get(nomination, 'status');
+    const statusWhere = {};
+    if (_.isArray(status)) {
+      statusWhere[Op.or] = _.map(status, (val) => {
+        return {
+          'status' : {
+            [Op.eq]: val
+          }
+        };
+      });
+    }
+    const promises = [];
+    delete data.request.filters.nomination;
+
+    _.forEach(roles, (role) => {
+      let whereCond = {
+        $contains: Sequelize.literal(`cast(nomination.rolemapping->>'${role}' as text) like ('%${user_id}%')`),
+      };
+      promises.push(
+        model.nomination.findAndCountAll({
+          where: {
+            organisation_id: organisation_id,
+            ...whereCond,
+            ...statusWhere
+          },
+          offset: data.request.offset || 0,
+          limit: queryRes_Min,
+          include: [{
+            model: model.program,
+            required: true,
+            attributes: {
+              include: [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium']],
+              exclude: ['config', 'description'],
+            },
+            where: {
+            ...filters,
+            ...data.request.filters
+            }
+         }],
+          order: [
+            ['updatedon', 'DESC']
+          ]
+        }));
+    });
+
+   return await Promise.all(promises);
   }
 }
 
