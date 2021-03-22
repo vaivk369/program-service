@@ -811,7 +811,6 @@ function addOrUpdateNomination(programDetails, orgosid) {
         user_id: programDetails.createdby,
         organisation_id: orgosid,
         status: 'Approved',
-        targetprimarycategories: ,
         collection_ids: programDetails.copiedCollections,
       };
       if (!_.isEmpty(programDetails.targetprimarycategories)) {
@@ -829,7 +828,6 @@ function addOrUpdateNomination(programDetails, orgosid) {
           if (res && res.dataValues.id) {
             const updateValue = {
               status: 'Approved',
-              targetprimarycategories: programDetails.targetprimarycategories,
               collection_ids: programDetails.copiedCollections,
               updatedon: new Date(),
             };
