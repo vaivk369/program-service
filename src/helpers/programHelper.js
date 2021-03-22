@@ -136,13 +136,13 @@ class ProgramServiceHelper {
   }
 
   async getCollectionWithProgramId(program_id, req) {
-    const program = await this.getProgramDetails(program_id);
+    //const program = await this.getProgramDetails(program_id);
     const queryFilter = {
        filters: {
          programId: program_id,
          objectType: 'collection',
          status: ['Draft'],
-         primaryCategory: program.dataValues.target_collection_category
+         primaryCategory: ['Digital Textbook']
        },
        fields: ['name', 'medium', 'gradeLevel', 'subject', 'primaryCategory', 'chapterCount', 'acceptedContents', 'rejectedContents', 'openForContribution', 'chapterCountForContribution', 'mvcContributions'],
        limit: 1000
@@ -154,7 +154,7 @@ class ProgramServiceHelper {
     const queryFilter = {
           filters: {
             programId: program_id,
-            objectType: 'content',
+            objectType: ['content', 'questionset'],
             status: ['Review', 'Draft'],
             sampleContent: true
           },
@@ -173,7 +173,7 @@ class ProgramServiceHelper {
     const queryFilter = {
           filters: {
             programId: program_id,
-            objectType: 'content',
+            objectType: ['content', 'questionset'],
             status: ['Review', 'Draft'],
             sampleContent: true
           },
@@ -192,7 +192,7 @@ class ProgramServiceHelper {
     const queryFilter = {
           filters: {
             programId: program_id,
-            objectType: 'content',
+            objectType: ['content', 'questionset'],
             status: ['Review', 'Draft', 'Live'],
             contentType: { '!=': 'Asset' },
             mimeType: { '!=': 'application/vnd.ekstep.content-collection' }
