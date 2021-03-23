@@ -8,6 +8,7 @@ const envVariables = {
     CACHE_TTL: process.env.dock_cache_ttl || 900,
     level: process.env.sunbird_service_log_level || 'info',
     LEARNING_SERVICE_URL: process.env.learning_service_url || 'https://dock.sunbirded.org/action/',
+    LEARNER_SERVICE_URL: process.env.learner_service_url || 'https://dock.sunbirded.org/learner',
     CONTENT_SERVICE_URL: process.env.content_service_url || 'https://dock.sunbirded.org/action/',
     OPENSABER_SERVICE_URL: process.env.opensaber_service_url || 'https://dock.sunbirded.org/content/reg',
     SUNBIRD_KAFKA_HOST: process.env.sunbird_kafka_host,
