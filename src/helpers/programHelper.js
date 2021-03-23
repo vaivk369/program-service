@@ -20,7 +20,6 @@ const registryService = new RegistryService();
 const SbCacheManager = require('sb_cache_manager');
 const cacheManager = new SbCacheManager({ttl: envVariables.CACHE_TTL});
 const loggerService = require('../service/loggerService');
-const { datastax } = require("cassandra-driver");
 const queryRes_Min = 300;
 
 class ProgramServiceHelper {
