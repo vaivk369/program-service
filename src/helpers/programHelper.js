@@ -20,7 +20,6 @@ const registryService = new RegistryService();
 const SbCacheManager = require('sb_cache_manager');
 const cacheManager = new SbCacheManager({ttl: envVariables.CACHE_TTL});
 const loggerService = require('../service/loggerService');
-const { datastax } = require("cassandra-driver");
 const queryRes_Min = 300;
 
 class ProgramServiceHelper {
@@ -941,7 +940,16 @@ class ProgramServiceHelper {
       return _.uniqBy(aggregatedRes, 'dataValues.program_id');
     }
     else if(organisation_id || user_id) {
-      const prg_list = await this.getPrograms(data, filters);
+      let prg_list;
+      if (_.get(organisation_id, 'ne') || _.get(user_id, 'ne')) {
+        // Get all projects for Contrib admin and Individual contributor.
+        prg_list = await this.getAllPrograms(data, filters);
+      }
+      else {
+        // Get my projects for contributor org admi and Individual contributor
+        prg_list = await this.getMyPrograms(data, filters);
+      }
+
       let apiRes = _.map(prg_list, 'dataValues');
       if (data.request.sort){
         apiRes = this.sortPrograms(apiRes, data.request.sort);
@@ -950,7 +958,66 @@ class ProgramServiceHelper {
     }
   }
 
-  async getPrograms(data, filters) {
+  async getAllPrograms(data, filters) {
+    try {
+      const organisation_id = _.get(data.request.filters , 'nomination.organisation_id.ne');
+      const user_id = _.get(data.request.filters , 'nomination.user_id.ne');
+
+      let where = {};
+      if (organisation_id) {
+        where = {
+          'organisation_id':{
+            [Op.eq] : organisation_id
+          }
+        }
+      } else if (user_id) {
+        where = {
+          'user_id':{
+            [Op.eq] : user_id
+          }
+        }
+      }
+
+      // Remove nomination filter object
+      delete data.request.filters.nomination;
+      const nominatedPrograms =  await model.nomination.findAll({
+        attributes: [
+          'program_id'
+        ],
+        where: {
+          ...where
+        }
+      });
+
+      const programIds = _.uniq(_.map(nominatedPrograms, 'dataValues.program_id'));
+      // Get programs excuding nominated one
+      return await model.program.findAll({
+        offset: data.request.offset || 0,
+        limit: queryRes_Min,
+        required: true,
+        attributes: {
+          include: [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium']],
+          exclude: ['config', 'description'],
+        },
+        where: {
+          ...filters,
+          ...data.request.filters,
+          'program_id' : {
+            [Op.notIn]: programIds
+          }
+        },
+        order: [
+          ['updatedon', 'DESC']
+        ]
+      });
+    } catch(err) {
+      console.log(err);
+      logger.error({msg: 'Error - program list', err})
+      throw err;
+    }
+  }
+
+  async getMyPrograms(data, filters) {
     const nomination = data.request.filters.nomination;
     var whereCond = {};
     whereCond[Op.and] = _.compact(_.map(nomination, (value, key) => {
@@ -977,7 +1044,7 @@ class ProgramServiceHelper {
         });
         return res;
       }
-  }));
+    }));
 
     // Remove nomination filter object
     delete data.request.filters.nomination;
