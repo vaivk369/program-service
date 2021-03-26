@@ -812,10 +812,13 @@ function addOrUpdateNomination(programDetails, orgosid) {
         user_id: programDetails.createdby,
         organisation_id: orgosid,
         status: 'Approved',
-        content_types: programDetails.content_types,
         collection_ids: programDetails.copiedCollections,
       };
-
+      if (!_.isEmpty(programDetails.targetprimarycategories)) {
+        insertObj['targetprimarycategories'] = programDetails.targetprimarycategories;
+      } else if (!_.isEmpty(programDetails.content_types)) {
+        insertObj['content_types'] = programDetails.content_types;
+      }
       let findNomWhere =  {
         program_id: programDetails.program_id,
         organisation_id: orgosid
@@ -826,10 +829,15 @@ function addOrUpdateNomination(programDetails, orgosid) {
           if (res && res.dataValues.id) {
             const updateValue = {
               status: 'Approved',
-              content_types: programDetails.content_types,
               collection_ids: programDetails.copiedCollections,
               updatedon: new Date(),
             };
+
+            if (!_.isEmpty(programDetails.targetprimarycategories)) {
+              updateValue['targetprimarycategories'] = programDetails.targetprimarycategories;
+            } else if (!_.isEmpty(programDetails.content_types)) {
+              updateValue['content_types'] = programDetails.content_types;
+            }
 
             const updateQuery = {
               where: findNomWhere,
@@ -870,8 +878,6 @@ function addOrUpdateNomination(programDetails, orgosid) {
     }
   });
 }
-
-
 
 function getUserRegistryDetails(userId, reqHeaders) {
   const userRegData = {};

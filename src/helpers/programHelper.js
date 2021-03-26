@@ -156,7 +156,7 @@ class ProgramServiceHelper {
     const queryFilter = {
           filters: {
             programId: program_id,
-            objectType: 'content',
+            objectType: ['content', 'questionset'],
             status: ['Review', 'Draft'],
             sampleContent: true
           },
@@ -175,7 +175,7 @@ class ProgramServiceHelper {
     const queryFilter = {
           filters: {
             programId: program_id,
-            objectType: 'content',
+            objectType: ['content', 'questionset'],
             status: ['Review', 'Draft'],
             sampleContent: true
           },
@@ -194,7 +194,7 @@ class ProgramServiceHelper {
     const queryFilter = {
           filters: {
             programId: program_id,
-            objectType: 'content',
+            objectType: ['content', 'questionset'],
             status: ['Review', 'Draft', 'Live'],
             contentType: { '!=': 'Asset' },
             mimeType: { '!=': 'application/vnd.ekstep.content-collection' }
@@ -608,7 +608,7 @@ class ProgramServiceHelper {
       'responseCode': null
     };
 
-    if (!data.program_id || !data.config.collections || !data.content_types || !channel) {
+    if (!data.program_id || !data.config.collections || !data.targetprimarycategories || !channel) {
       errObj.errCode = programMessages.COPY_COLLECTION.COPY.MISSING_CODE;
       errObj.errMsg = programMessages.COPY_COLLECTION.COPY.MISSING_MESSAGE;
       errObj.responseCode = responseCode.CLIENT_ERROR;
@@ -622,12 +622,12 @@ class ProgramServiceHelper {
     const collectionIds = _.map(collections, 'id');
     const additionalMetaData = {
       programId: _.get(data, 'program_id'),
-      allowedContentTypes: _.get(data, 'content_types'),
+      allowedContentTypes: [],
       channel: channel,
       openForContribution: false,
       projCollectionCategories: _.get(data, 'target_collection_category'),
     };
-
+    additionalMetaData['allowedContentTypes'] = (_.get(data, 'targetprimarycategories')) ? _.map(_.get(data, 'targetprimarycategories'), 'name') :  _.get(data, 'content_types'),
     hierarchyService.filterExistingTextbooks(collectionIds, additionalMetaData.programId, reqHeaders)
       .subscribe(
         (resData) => {
