@@ -940,7 +940,16 @@ class ProgramServiceHelper {
       return _.uniqBy(aggregatedRes, 'dataValues.program_id');
     }
     else if(organisation_id || user_id) {
-      const prg_list = await this.getPrograms(data, filters);
+      let prg_list;
+      if (_.get(organisation_id, 'ne') || _.get(user_id, 'ne')) {
+        // Get all projects for Contributor org admin and Individual contributor.
+        prg_list = await this.getAllPrograms(data, filters);
+      }
+      else {
+        // Get my projects for contributor org admin and Individual contributor
+        prg_list = await this.getMyPrograms(data, filters);
+      }
+
       let apiRes = _.map(prg_list, 'dataValues');
       if (data.request.sort){
         apiRes = this.sortPrograms(apiRes, data.request.sort);
@@ -949,45 +958,42 @@ class ProgramServiceHelper {
     }
   }
 
-  async getPrograms(data, filters) {
-    const nomination = data.request.filters.nomination;
-    var whereCond = {};
-    whereCond[Op.and] = _.compact(_.map(nomination, (value, key) => {
-      const res = {};
-      if (_.get(value, 'eq')) {
-        return {
-          [key]:{
-            [Op.eq]: _.get(value, 'eq')
-          }
-        }
-      } else if (_.get(value, 'ne')) {
-        return {
-          [key]:{
-            [Op.ne]: _.get(value, 'ne')
-          }
-        }
-      } else if (_.isArray(value)) {
-        res[Op.or] = _.map(value, (val) => {
-          return {
-            [key] : {
-              [Op.eq]: val
-            }
-          };
-        });
-        return res;
-      }
-  }));
+  async getAllPrograms(data, filters) {
+    try {
+      const organisation_id = _.get(data.request.filters , 'nomination.organisation_id.ne');
+      const user_id = _.get(data.request.filters , 'nomination.user_id.ne');
 
-    // Remove nomination filter object
-    delete data.request.filters.nomination;
-    return await model.nomination.findAll({
-      where: {
-        ...whereCond
-      },
-      offset: data.request.offset || 0,
-      limit: queryRes_Min,
-      include: [{
-        model: model.program,
+      let where = {};
+      if (organisation_id) {
+        where = {
+          'organisation_id':{
+            [Op.eq] : organisation_id
+          }
+        }
+      } else if (user_id) {
+        where = {
+          'user_id':{
+            [Op.eq] : user_id
+          }
+        }
+      }
+
+      // Remove nomination filter object
+      delete data.request.filters.nomination;
+      const nominatedPrograms =  await model.nomination.findAll({
+        attributes: [
+          'program_id'
+        ],
+        where: {
+          ...where
+        }
+      });
+
+      const programIds = _.uniq(_.map(nominatedPrograms, 'dataValues.program_id'));
+      // Get programs excuding nominated one
+      return await model.program.findAll({
+        offset: data.request.offset || 0,
+        limit: queryRes_Min,
         required: true,
         attributes: {
           include: [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium']],
@@ -995,13 +1001,82 @@ class ProgramServiceHelper {
         },
         where: {
           ...filters,
-          ...data.request.filters
+          ...data.request.filters,
+          'program_id' : {
+            [Op.notIn]: programIds
+          }
+        },
+        order: [
+          ['updatedon', 'DESC']
+        ]
+      });
+    } catch(err) {
+      console.log(err);
+      logger.error({msg: 'Error - program list', err})
+      throw err;
+    }
+  }
+
+  async getMyPrograms(data, filters) {
+    try {
+      const nomination = data.request.filters.nomination;
+      var whereCond = {};
+      whereCond[Op.and] = _.compact(_.map(nomination, (value, key) => {
+        const res = {};
+        if (_.get(value, 'eq')) {
+          return {
+            [key]:{
+              [Op.eq]: _.get(value, 'eq')
+            }
+          }
+        } else if (_.get(value, 'ne')) {
+          return {
+            [key]:{
+              [Op.ne]: _.get(value, 'ne')
+            }
+          }
+        } else if (_.isArray(value)) {
+          res[Op.or] = _.map(value, (val) => {
+            return {
+              [key] : {
+                [Op.eq]: val
+              }
+            };
+          });
+          return res;
         }
-      }],
-      order: [
-        ['updatedon', 'DESC']
-      ]
-    });
+      }));
+
+      // Remove nomination filter object
+      delete data.request.filters.nomination;
+      return await model.nomination.findAll({
+        where: {
+          ...whereCond
+        },
+        offset: data.request.offset || 0,
+        limit: queryRes_Min,
+        include: [{
+          model: model.program,
+          required: true,
+          attributes: {
+            include: [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium']],
+            exclude: ['config', 'description'],
+          },
+          where: {
+            ...filters,
+            ...data.request.filters
+          }
+        }],
+        order: [
+          ['updatedon', 'DESC']
+        ]
+      });
+    }
+    catch(err) {
+      console.log(err);
+      logger.error({msg: 'Error - my program list', err})
+      throw err;
+    }
   }
 
   async getContribUserPrograms(data, filters) {
