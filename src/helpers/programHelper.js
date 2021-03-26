@@ -942,11 +942,11 @@ class ProgramServiceHelper {
     else if(organisation_id || user_id) {
       let prg_list;
       if (_.get(organisation_id, 'ne') || _.get(user_id, 'ne')) {
-        // Get all projects for Contrib admin and Individual contributor.
+        // Get all projects for Contributor org admin and Individual contributor.
         prg_list = await this.getAllPrograms(data, filters);
       }
       else {
-        // Get my projects for contributor org admi and Individual contributor
+        // Get my projects for contributor org admin and Individual contributor
         prg_list = await this.getMyPrograms(data, filters);
       }
 
@@ -1018,58 +1018,65 @@ class ProgramServiceHelper {
   }
 
   async getMyPrograms(data, filters) {
-    const nomination = data.request.filters.nomination;
-    var whereCond = {};
-    whereCond[Op.and] = _.compact(_.map(nomination, (value, key) => {
-      const res = {};
-      if (_.get(value, 'eq')) {
-        return {
-          [key]:{
-            [Op.eq]: _.get(value, 'eq')
-          }
-        }
-      } else if (_.get(value, 'ne')) {
-        return {
-          [key]:{
-            [Op.ne]: _.get(value, 'ne')
-          }
-        }
-      } else if (_.isArray(value)) {
-        res[Op.or] = _.map(value, (val) => {
+    try {
+      const nomination = data.request.filters.nomination;
+      var whereCond = {};
+      whereCond[Op.and] = _.compact(_.map(nomination, (value, key) => {
+        const res = {};
+        if (_.get(value, 'eq')) {
           return {
-            [key] : {
-              [Op.eq]: val
+            [key]:{
+              [Op.eq]: _.get(value, 'eq')
             }
-          };
-        });
-        return res;
-      }
-    }));
-
-    // Remove nomination filter object
-    delete data.request.filters.nomination;
-    return await model.nomination.findAll({
-      where: {
-        ...whereCond
-      },
-      offset: data.request.offset || 0,
-      limit: queryRes_Min,
-      include: [{
-        model: model.program,
-        required: true,
-        attributes: {
-          include: [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium']],
-          exclude: ['config', 'description'],
-        },
-        where: {
-          ...filters,
-          ...data.request.filters
+          }
+        } else if (_.get(value, 'ne')) {
+          return {
+            [key]:{
+              [Op.ne]: _.get(value, 'ne')
+            }
+          }
+        } else if (_.isArray(value)) {
+          res[Op.or] = _.map(value, (val) => {
+            return {
+              [key] : {
+                [Op.eq]: val
+              }
+            };
+          });
+          return res;
         }
-      }],
-      order: [
-        ['updatedon', 'DESC']
-      ]
-    });
+      }));
+
+      // Remove nomination filter object
+      delete data.request.filters.nomination;
+      return await model.nomination.findAll({
+        where: {
+          ...whereCond
+        },
+        offset: data.request.offset || 0,
+        limit: queryRes_Min,
+        include: [{
+          model: model.program,
+          required: true,
+          attributes: {
+            include: [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium']],
+            exclude: ['config', 'description'],
+          },
+          where: {
+            ...filters,
+            ...data.request.filters
+          }
+        }],
+        order: [
+          ['updatedon', 'DESC']
+        ]
+      });
+    }
+    catch(err) {
+      console.log(err);
+      logger.error({msg: 'Error - my program list', err})
+      throw err;
+    }
   }
 
   async getContribUserPrograms(data, filters) {
