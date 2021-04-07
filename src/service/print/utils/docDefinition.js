@@ -47,7 +47,30 @@ const docDefinition = {
   styles: styles,
 };
 
-function getLA(questionTitle, language, marks) {
+function getComprehension(questionTitle, language, marks) {
+  return {
+    table: {
+      widths: ['100%', 'auto'],
+      body: [
+        [
+          {
+            border: [false, false, false, false],
+            text: questionTitle,
+            style: "question_COMPREHENSION",
+            font: language
+          },
+          {
+            border: [false, false, false, false],
+            text: marks,
+            style: "header_right"
+          }
+        ]
+      ]
+    }
+  }
+}
+
+function getLA(questionTitle, language, marks) {  
   return {
     // Time + Marks
     table: {
@@ -411,6 +434,7 @@ module.exports = {
   getSA,
   getVSA,
   getLA,
+  getComprehension,
   getMTFHeader,
   getMTFChoice,
 };

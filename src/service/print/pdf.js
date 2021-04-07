@@ -15,6 +15,7 @@ var {
   getSA,
   getVSA,
   getLA,
+  getComprehension,
   getMTFHeader,
   getMTFChoice,
 } = require("./utils/docDefinition");
@@ -113,7 +114,7 @@ const buildPDFWithCallback = (id, callback) => {
             questionCounter += 1;
             const marks = section.children[index].marks;
             let questionContent;
-            try {
+            try {                          
               if (question.category === "MCQ")
                 questionContent = [renderMCQ(question, questionCounter, marks)];
               else if (question.category === "FTB") {
@@ -128,7 +129,9 @@ const buildPDFWithCallback = (id, callback) => {
                 questionContent = [renderTF(question, questionCounter, marks)];
               } else if (question.category === "MTF") {
                 questionContent = renderMTF(question, questionCounter, marks);
-              }
+              } else if(question.category === 'COMPREHENSION') {
+                questionContent = [renderComprehension(question, questionCounter, marks)]
+              }  
 
               questionPaperContent.push(...questionContent);
             } catch (e) {
@@ -160,9 +163,9 @@ const buildPDFWithCallback = (id, callback) => {
     });
 };
 
-const cleanHTML = (str) => {
+const cleanHTML = (str, nbspAsLineBreak = false) => {
   // Remove HTML characters since we are not converting HTML to PDF.
-  return str.replace(/<[^>]+>/g, "").replace("&nbsp;", "");
+  return str.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, nbspAsLineBreak ? "\n" : "");
 };
 
 const detectLanguage = (str) => {
@@ -239,6 +242,12 @@ function renderLA(question, questionCounter, marks) {
   const questionTitle =
     questionCounter + ". " + cleanHTML(question.editorState.question);
   return getLA(questionTitle, detectLanguage(questionTitle[0]), marks);
+}
+
+function renderComprehension(question, questionCounter, marks) {
+  const questionTitle = 
+  questionCounter + "." + cleanHTML(question.editorState.question, true);
+  return getComprehension(questionTitle, detectLanguage(questionTitle[0], marks));
 }
 
 function renderVSA(question, questionCounter, marks) {
