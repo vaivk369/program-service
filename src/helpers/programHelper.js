@@ -608,7 +608,7 @@ class ProgramServiceHelper {
       'responseCode': null
     };
 
-    if (!data.program_id || !data.config.collections || !data.targetprimarycategories || !channel) {
+    if (!data.program_id || !data.config.collections || !channel || (!data.content_types && !data.targetprimarycategories)) {
       errObj.errCode = programMessages.COPY_COLLECTION.COPY.MISSING_CODE;
       errObj.errMsg = programMessages.COPY_COLLECTION.COPY.MISSING_MESSAGE;
       errObj.responseCode = responseCode.CLIENT_ERROR;
