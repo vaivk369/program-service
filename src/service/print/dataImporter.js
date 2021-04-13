@@ -111,7 +111,9 @@ const getData = async (id) => {
         if (section.children)
           return section.children
             .filter(
-              (child) => data.acceptedContents.indexOf(child.identifier) > -1
+              (child) =>
+                data.acceptedContents &&
+                data.acceptedContents.indexOf(child.identifier) > -1
             )
             .map((child) => child.identifier);
         else return [];
