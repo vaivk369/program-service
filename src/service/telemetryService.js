@@ -2,6 +2,7 @@ const TelemetryServiceInstance = require('sb_telemetry_util');
 const envVariables = require('../envVariables');
 const _ = require("lodash");
 const telemetryEventConfig = require('../config/telemetryEventConfig.json');
+const logger = require('sb_logger_util_v2');
 
 const telemetryInstance = new TelemetryServiceInstance();
 
@@ -31,6 +32,7 @@ function generateAuditEvent(DBinstance, model, action) {
            id: DBinstance[model.primaryKeyAttributes[0]] || '',
            type: model.name
         }
+        logger.info({ msg: 'Audit Event', event})
     telemetryInstance.audit(event);
 }
 
