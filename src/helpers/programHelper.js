@@ -1131,6 +1131,43 @@ class ProgramServiceHelper {
 
    return await Promise.all(promises);
   }
+
+  questionMediaRequest(url) {
+    const option = {
+      url,
+      method: 'get',
+      responseType: 'arraybuffer' 
+    };
+    return from(axios(option));
+  }
+
+  getQuestionMedia(url) {    
+    return new Promise((resolve, reject) => {          
+      cacheManager.get(`base64Img_${url}`, (err, cacheData) => {
+        if(err || !cacheData) {          
+          this.questionMediaRequest(url).subscribe(
+            (res) => {            
+            let raw = Buffer.from(res.data).toString('base64');
+            let base64Img = `data:${res.headers['content-type']};base64,${raw}`;                                               
+            cacheManager.set({ key: `base64Img_${url}`, value: base64Img }, function (err, cachedImage) {
+              if (err) {
+                logger.error({msg: 'Error - caching', err}, {})
+              } else {
+                logger.debug({msg: 'Caching image as base64 string  - done'}, {})
+              }
+            });
+            return resolve(base64Img);
+          },
+          (err) => {
+            return reject(err.message);
+          })
+        }
+        else {                    
+          return resolve(cacheData);
+        }
+      })
+    })
+  }
 }
 
 module.exports = ProgramServiceHelper;
