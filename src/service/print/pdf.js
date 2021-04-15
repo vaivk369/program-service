@@ -345,9 +345,6 @@ async function getStack(htmlString, questionCounter) {
         if (!nextLine)
           nextLine = "<An image of an unsupported format was scrubbed>";
         break;
-      case "ol":
-        console.log(ol.children());
-      case "ul":
     }
     if (index === 0 && questionCounter) {
       if (elem.name === "p") {
