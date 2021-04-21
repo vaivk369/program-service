@@ -47,52 +47,45 @@ const docDefinition = {
   styles: styles,
 };
 
-function getComprehension(questionTitle, language, marks) {
+function getComprehension(data, language, marks) {
   return {
     table: {
-      widths: ['100%', 'auto'],
+      widths: ["100%", "auto"],
       body: [
         [
           {
             border: [false, false, false, false],
-            text: questionTitle,
+            stack: data,
             style: "question_COMPREHENSION",
-            font: language
+            font: language,
           },
           {
             border: [false, false, false, false],
             text: marks,
-            style: "header_right"
-          }
-        ]
-      ]
-    }
-  }
+            style: "header_right",
+          },
+        ],
+      ],
+    },
+  };
 }
 
-function getLA(questionTitle, language, marks) {  
+function getLA(data, language, marks) {
   return {
-    // Time + Marks
     table: {
-      widths: ["*", "auto"],
+      widths: ["95%", "*"],
       body: [
         [
           {
             border: [false, false, false, false],
-            // Question LA
-            text: questionTitle,
-            style: "question_LA",
-            font: language,
-
             table: {
               widths: ["*"],
               body: [
                 [
                   {
                     border: [false, false, false, false],
-                    text: questionTitle,
+                    stack: data,
                     style: "question_LA",
-                    font: language,
                   },
                 ],
                 [
@@ -100,7 +93,7 @@ function getLA(questionTitle, language, marks) {
                     border: [false, false, false, false],
                     text:
                       "_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________\n\n_______________________________________________________________________________________",
-                    style: "question_VSA",
+                    style: "question_LA",
                   },
                 ],
               ],
@@ -117,24 +110,22 @@ function getLA(questionTitle, language, marks) {
   };
 }
 
-function getVSA(questionTitle, language, marks) {
+function getVSA(data, language, marks) {
   return {
     table: {
-      widths: ["*", "auto"],
+      widths: ["95%", "*"],
       body: [
         [
           {
             border: [false, false, false, false],
-            // Question VSA
             table: {
               widths: ["*"],
               body: [
                 [
                   {
                     border: [false, false, false, false],
-                    text: questionTitle,
+                    stack: data,
                     style: "question_VSA",
-                    font: language,
                   },
                 ],
                 [
@@ -159,25 +150,22 @@ function getVSA(questionTitle, language, marks) {
   };
 }
 
-function getSA(questionTitle, language, marks) {
+function getSA(data, language, marks) {
   return {
-    // Time + Marks
     table: {
-      widths: ["*", "auto"],
+      widths: ["95%", "*"],
       body: [
         [
           {
             border: [false, false, false, false],
-            // Question SA
             table: {
               widths: ["*"],
               body: [
                 [
                   {
                     border: [false, false, false, false],
-                    text: questionTitle,
+                    stack: data,
                     style: "question_SA",
-                    font: language,
                   },
                 ],
                 [
@@ -261,14 +249,14 @@ function getMTFChoice(left, right, language) {
         [
           {
             border: [false, false, true, true],
-            text: left,
+            stack: left,
             margin: [40, 0],
             style: "question_MTF",
             font: language,
           },
           {
             border: [false, false, false, true],
-            text: right,
+            stack: right,
             margin: [40, 0],
             style: "question_MTF",
             font: language,
@@ -279,7 +267,7 @@ function getMTFChoice(left, right, language) {
   };
 }
 
-function getFTB(questionTitle, language, marks) {
+function getFTB(data, language, marks) {
   return {
     // Time + Marks
     table: {
@@ -288,7 +276,7 @@ function getFTB(questionTitle, language, marks) {
         [
           {
             border: [false, false, false, false],
-            text: questionTitle,
+            stack: data,
             style: "question_FTB",
             font: language,
           },
@@ -304,7 +292,6 @@ function getFTB(questionTitle, language, marks) {
 }
 
 function getMCQ(questionTitle, questionOptions, language, marks) {
-  console.log({ marks });
   return {
     table: {
       widths: ["*", "auto"],
@@ -318,11 +305,9 @@ function getMCQ(questionTitle, questionOptions, language, marks) {
                 [
                   {
                     border: [false, false, false, false],
-                    text: {
-                      text: questionTitle,
-                      style: "question_MCQ",
-                      font: language,
-                    },
+                    stack: questionTitle,
+                    style: "question_MCQ",
+                    font: language,
                     colSpan: 4,
                   },
                   {},
@@ -332,25 +317,25 @@ function getMCQ(questionTitle, questionOptions, language, marks) {
                 [
                   {
                     border: [false, false, false, false],
-                    text: "1. " + questionOptions[0],
+                    stack: [questionOptions[0]],
                     style: "question_MCQ",
                     font: language,
                   },
                   {
                     border: [false, false, false, false],
-                    text: "2. " + questionOptions[1],
+                    stack: [questionOptions[1]],
                     style: "question_MCQ",
                     font: language,
                   },
                   {
                     border: [false, false, false, false],
-                    text: "3. " + questionOptions[2],
+                    stack: [questionOptions[2]],
                     style: "question_MCQ",
                     font: language,
                   },
                   {
                     border: [false, false, false, false],
-                    text: "4. " + questionOptions[3],
+                    stack: [questionOptions[3]],
                     style: "question_MCQ",
                     font: language,
                   },
