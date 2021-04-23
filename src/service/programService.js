@@ -3181,8 +3181,8 @@ function errorResponse(data,errCode) {
   response.ver = data.apiVersion
   response.ts = new Date()
   response.params = getParams(data.msgId, 'failed', data.errCode, data.errMsg)
-  response.responseCode = data.responseCode
-  response.result = errCode ? errCode +'_'+ data.responseCode : data.responseCode
+  response.responseCode = errCode ? errCode +'_'+ data.responseCode : data.responseCode
+  response.result = data.result
   return response
 }
 
