@@ -3182,7 +3182,7 @@ function errorResponse(data,errCode) {
   response.ts = new Date()
   response.params = getParams(data.msgId, 'failed', data.errCode, data.errMsg)
   response.responseCode = data.responseCode
-  response.result = data.result
+  response.result = errCode ? errCode +'_'+ data.responseCode : data.responseCode
   return response
 }
 
