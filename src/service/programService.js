@@ -1934,7 +1934,7 @@ async function contributorSearch(req, response) {
             obj.name = `${ obj.firstName } ${ obj.lastName || '' }`;
             obj.User = _.find(userList, { 'userId': obj.identifier });
             obj.User_Org = _.find(orgUserList, { 'userId': _.get(tempUserObj, 'osid') });
-            obj.selectedRole = _.first(_.intersection(roles, obj.User_Org.roles));
+            obj.selectedRole = obj.User_Org && _.first(_.intersection(roles, obj.User_Org.roles));
             return obj;
           }
       });
