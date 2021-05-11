@@ -1132,7 +1132,14 @@ class ProgramServiceHelper {
    return await Promise.all(promises);
   }
 
+
+  addBaseUrlIfAbsent(url) {
+    if(url.search("http://") >= 0) return url;
+    else return `${envVariables.baseURL}${url}`; 
+  }
+
   questionMediaRequest(url) {
+   url = this.addBaseUrlIfAbsent(url);   
     const option = {
       url,
       method: 'get',
