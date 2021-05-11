@@ -98,9 +98,9 @@ describe("Print Service", () => {
       });
   });
 
-  it("[Integration test] should getData for correct DO ID", (done) => {
+  it("[Integration test] should getData for correct Hierarchy ID", (done) => {
     dataImporter
-      .getData("do_113213251762339840191")
+      .getData("do_11326731857693900818")
       .then((response) => {
         expect(response).to.not.be.undefined;
         expect(response).to.have.property("paperData");
@@ -119,7 +119,7 @@ describe("Print Service", () => {
 
   it("[Integration test] should return a PDF for correct Hierarchy ID", (done) => {
     pdf.buildPDFWithCallback(
-      "do_113213251762339840191",
+      "do_11326731857693900818",
       (base64PDF, error, errorMsg) => {
         expect(error).to.be.false;
         expect(errorMsg).to.equal("");
