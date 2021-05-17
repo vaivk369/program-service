@@ -277,8 +277,7 @@ function getFTB(data, language, marks) {
           {
             border: [false, false, false, false],
             stack: data,
-            style: "question_FTB",
-            font: language,
+            style: "question_FTB"            
           },
           {
             border: [false, false, false, false],

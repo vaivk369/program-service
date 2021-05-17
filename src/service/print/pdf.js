@@ -273,7 +273,7 @@ function createImageElement(src, width) {
 
 function extractTextFromElement(elem) {
   let rollUp = "";
-  if (cheerio.text(elem)) return cheerio.text(elem);
+  if (cheerio.text(elem)) return cheerio.text(elem); 
   else if (elem.name === "sup")
     return { text: elem.children[0].data, sup: true };
   else if (elem.name === "sub")
@@ -294,7 +294,7 @@ function extractTextFromElement(elem) {
         }
       }
     }
-  }
+  }  
   return rollUp;
 }
 
@@ -313,12 +313,12 @@ async function getStack(htmlString, questionCounter) {
         break;
       case "ol":
         nextLine = {
-          ol: elem.children.map((el) => el.children[0] && el.children[0].data),
+          ol: elem.children.map((el) => el.children[0] && (el.children[0].data || (el.children[0].children[0] && el.children[0].children[0].data))),
         };
         break;
       case "ul":
         nextLine = {
-          ul: elem.children.map((el) => el.children[0] && el.children[0].data),
+          ul: elem.children.map((el) => el.children[0] && (el.children[0].data || (el.children[0].children[0] && el.children[0].children[0].data))),
         };
         break;
       case "figure":
@@ -330,15 +330,14 @@ async function getStack(htmlString, questionCounter) {
         }
         if (elem.children && elem.children.length) {
           let { src } = elem.children[0].attribs;
-          if (src) {
+          if (src) {        
             switch (src.slice(0, 4)) {
               case "data":
                 nextLine = createImageElement(src, width);
                 break;
-              case "http":
+              default:
                 let res = await programServiceHelper.getQuestionMedia(src);
-                nextLine = createImageElement(res, width);
-                break;
+                nextLine = createImageElement(res, width);                          
             }
           }
         }
@@ -365,14 +364,14 @@ async function renderMCQ(question, questionCounter, marks) {
   for (const [index, qo] of question.editorState.options.entries()) {
     let qoBody = qo.value.body;
     let qoData =
-      qoBody.search("img") >= 0
+      (qoBody.search("img") >= 0 || qoBody.search("sup") >= 0 || qoBody.search("sub") >= 0 || qoBody.match(/<p>/g).length > 1)
         ? await getStack(qoBody, answerOptions[index])
         : [`${answerOptions[index]}. ${cleanHTML(qoBody)}`];
     questionOptions.push(qoData);
   }
   let q = question.editorState.question;
   questionTitle =
-    q.search("img") >= 0
+    (q.search("img") >= 0 || q.search("sub") >= 0 || q.search("sup") >= 0 || q.match(/<p>/g).length > 1)
       ? await getStack(q, questionCounter)
       : [`${questionCounter}. ${cleanHTML(q)}`];
   return getMCQ(
@@ -387,8 +386,13 @@ async function renderQuestion(question, questionCounter, marks, callback) {
   let data;
   if (
     (question.media && question.media.length) ||
-    question.editorState.question.search("img") >= 0
-  ) {
+    question.editorState.question.search("img") >= 0 ||
+    question.editorState.question.search("sub") >= 0 ||
+    question.editorState.question.search("sup") >= 0 ||
+    question.editorState.question.search("ol") >= 0 ||
+    question.editorState.question.search("ul") >= 0 ||
+    question.editorState.question.match(/<p>/g).length > 1
+  ) {    
     data = await getStack(question.editorState.question, questionCounter);
   } else {
     data = [`${questionCounter}. ${cleanHTML(question.editorState.question)}`];
@@ -400,7 +404,11 @@ async function renderComprehension(question, questionCounter, marks) {
   let data;
   if (
     (question.media && question.media.length) ||
-    question.editorState.question.search("img") >= 0
+    question.editorState.question.search("img") >= 0 ||
+    question.editorState.question.search("sub") >= 0 ||
+    question.editorState.question.search("sup") >= 0 ||
+    question.editorState.question.search("ol") >= 0 ||
+    question.editorState.question.search("ul") >= 0    
   ) {
     data = await getStack(question.editorState.question, questionCounter);
   } else {
