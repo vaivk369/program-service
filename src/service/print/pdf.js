@@ -408,12 +408,13 @@ async function renderComprehension(question, questionCounter, marks) {
     question.editorState.question.search("sub") >= 0 ||
     question.editorState.question.search("sup") >= 0 ||
     question.editorState.question.search("ol") >= 0 ||
-    question.editorState.question.search("ul") >= 0    
+    question.editorState.question.search("ul") >= 0 ||
+    question.editorState.question.match(/<p>/g).length > 1
   ) {
     data = await getStack(question.editorState.question, questionCounter);
   } else {
     data = [
-      `${questionCounter}. ${cleanHTML(question.editorState.question, true)}`,
+      `${questionCounter}. ${cleanHTML(question.editorState.question)}`,
     ];
   }
   return getComprehension(data, detectLanguage(data[0]), marks);
