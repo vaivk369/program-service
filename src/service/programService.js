@@ -100,7 +100,7 @@ async function createProgram(req, response) {
   insertObj.program_id = uuid();
   insertObj.config = insertObj.config || {};
   if (!_.isEmpty(insertObj.targetprimarycategories)) {
-    insertObj['targetPrimaryCategoryNames'] = _.map(insertObj.targetprimarycategories, 'name');
+    insertObj['targetprimarycategorynames'] = _.map(insertObj.targetprimarycategories, 'name');
   }
   if (req.body.request.enddate) {
     insertObj.enddate = req.body.request.enddate
@@ -162,7 +162,7 @@ function updateProgram(req, response) {
     updateValue.updatedon = new Date();
   }
   if (!_.isEmpty(updateValue.targetprimarycategories)) {
-    updateValue['targetPrimaryCategoryNames'] = _.map(updateValue.targetprimarycategories, 'name');
+    updateValue['targetprimarycategorynames'] = _.map(updateValue.targetprimarycategories, 'name');
   }
   model.program.update(updateValue, updateQuery).then(resData => {
     if (_.isArray(resData) && !resData[0]) {
@@ -822,7 +822,7 @@ function addOrUpdateNomination(programDetails, orgosid) {
       };
       if (!_.isEmpty(programDetails.targetprimarycategories)) {
         insertObj['targetprimarycategories'] = programDetails.targetprimarycategories;
-        insertObj['targetPrimaryCategoryNames'] = _.map(programDetails.targetprimarycategories, 'name');
+        insertObj['targetprimarycategorynames'] = _.map(programDetails.targetprimarycategories, 'name');
       } else if (!_.isEmpty(programDetails.content_types)) {
         insertObj['content_types'] = programDetails.content_types;
       }
@@ -842,7 +842,7 @@ function addOrUpdateNomination(programDetails, orgosid) {
 
             if (!_.isEmpty(programDetails.targetprimarycategories)) {
               updateValue['targetprimarycategories'] = programDetails.targetprimarycategories;
-              insertObj['targetPrimaryCategoryNames'] = _.map(programDetails.targetprimarycategories, 'name');
+              insertObj['targetprimarycategorynames'] = _.map(programDetails.targetprimarycategories, 'name');
             } else if (!_.isEmpty(programDetails.content_types)) {
               updateValue['content_types'] = programDetails.content_types;
             }
@@ -1097,7 +1097,7 @@ async function programList(req, response) {
         return Sequelize.literal(`'${val}' = ANY (\"program\".\"content_types\")`);
       });
       res[Op.or] = _.map(data.request.filters[key], (val) => {
-        return Sequelize.literal(`'${val}' = ANY (\"program\".\"targetPrimaryCategoryNames\")`);
+        return Sequelize.literal(`'${val}' = ANY (\"program\".\"targetprimarycategorynames\")`);
       });
       delete data.request.filters[key];
       return {
@@ -1247,7 +1247,7 @@ function addNomination(req, response) {
   }
   const insertObj = req.body.request;
   if (!_.isEmpty(insertObj.targetprimarycategories)) {
-    insertObj['targetPrimaryCategoryNames'] = _.map(insertObj.targetprimarycategories, 'name');
+    insertObj['targetprimarycategorynames'] = _.map(insertObj.targetprimarycategories, 'name');
   }
 
   model.nomination.create(insertObj).then(res => {
@@ -1320,7 +1320,7 @@ function updateNomination(req, response) {
   ]);
   updateValue.updatedon = new Date();
   if (!_.isEmpty(updateValue.targetprimarycategories)) {
-    updateValue['targetPrimaryCategoryNames'] = _.map(updateValue.targetprimarycategories, 'name');
+    updateValue['targetprimarycategorynames'] = _.map(updateValue.targetprimarycategories, 'name');
   }
   model.nomination.update(updateValue, updateQuery).then(res => {
     if (_.isArray(res) && !res[0]) {
