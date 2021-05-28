@@ -25,7 +25,10 @@ module.exports = function(sequelize, DataTypes) {
         type: DataTypes.ARRAY(DataTypes.TEXT)
       },
       targetprimarycategories: {
-        type: DataTypes.JSON
+        type: DataTypes.JSONB
+      },
+      targetPrimaryCategoryNames: {
+        type: DataTypes.ARRAY(DataTypes.TEXT)
       },
       collection_ids: {
         type: DataTypes.ARRAY(DataTypes.TEXT)
