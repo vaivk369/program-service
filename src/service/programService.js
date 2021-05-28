@@ -99,6 +99,9 @@ async function createProgram(req, response) {
   const insertObj = req.body.request;
   insertObj.program_id = uuid();
   insertObj.config = insertObj.config || {};
+  if (!_.isEmpty(insertObj.targetprimarycategories)) {
+    insertObj['targetPrimaryCategoryNames'] = _.map(insertObj.targetprimarycategories, 'name');
+  }
   if (req.body.request.enddate) {
     insertObj.enddate = req.body.request.enddate
   }
@@ -157,6 +160,9 @@ function updateProgram(req, response) {
   const updateValue = _.cloneDeep(req.body.request);
   if (!updateValue.updatedon) {
     updateValue.updatedon = new Date();
+  }
+  if (!_.isEmpty(updateValue.targetprimarycategories)) {
+    updateValue['targetPrimaryCategoryNames'] = _.map(updateValue.targetprimarycategories, 'name');
   }
   model.program.update(updateValue, updateQuery).then(resData => {
     if (_.isArray(resData) && !resData[0]) {
@@ -816,6 +822,7 @@ function addOrUpdateNomination(programDetails, orgosid) {
       };
       if (!_.isEmpty(programDetails.targetprimarycategories)) {
         insertObj['targetprimarycategories'] = programDetails.targetprimarycategories;
+        insertObj['targetPrimaryCategoryNames'] = _.map(programDetails.targetprimarycategories, 'name');
       } else if (!_.isEmpty(programDetails.content_types)) {
         insertObj['content_types'] = programDetails.content_types;
       }
@@ -835,10 +842,10 @@ function addOrUpdateNomination(programDetails, orgosid) {
 
             if (!_.isEmpty(programDetails.targetprimarycategories)) {
               updateValue['targetprimarycategories'] = programDetails.targetprimarycategories;
+              insertObj['targetPrimaryCategoryNames'] = _.map(programDetails.targetprimarycategories, 'name');
             } else if (!_.isEmpty(programDetails.content_types)) {
               updateValue['content_types'] = programDetails.content_types;
             }
-
             const updateQuery = {
               where: findNomWhere,
               returning: true,
@@ -1089,9 +1096,12 @@ async function programList(req, response) {
       res[Op.or] = _.map(data.request.filters[key], (val) => {
         return Sequelize.literal(`'${val}' = ANY (\"program\".\"content_types\")`);
       });
+      res[Op.or] = _.map(data.request.filters[key], (val) => {
+        return Sequelize.literal(`'${val}' = ANY (\"program\".\"targetPrimaryCategoryNames\")`);
+      });
       delete data.request.filters[key];
       return {
-        $and : res
+         $and : res
       }
     }
     else if ((key === 'nomination_enddate' || key === 'content_submission_enddate') && value) {
@@ -1170,11 +1180,13 @@ async function programList(req, response) {
             }
           }));
         } else {
+          
           const res = await model.program.findAll({
             where: {
               ...filters,
               ...data.request.filters
             },
+             
             attributes: data.request.fields || {
               include : [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium']],
               exclude: ['config', 'description']
@@ -1234,6 +1246,9 @@ function addNomination(req, response) {
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
   const insertObj = req.body.request;
+  if (!_.isEmpty(insertObj.targetprimarycategories)) {
+    insertObj['targetPrimaryCategoryNames'] = _.map(insertObj.targetprimarycategories, 'name');
+  }
 
   model.nomination.create(insertObj).then(res => {
     programServiceHelper.onAfterAddNomination(insertObj.program_id, insertObj.user_id);
@@ -1304,6 +1319,9 @@ function updateNomination(req, response) {
     "organisation_id"
   ]);
   updateValue.updatedon = new Date();
+  if (!_.isEmpty(updateValue.targetprimarycategories)) {
+    updateValue['targetPrimaryCategoryNames'] = _.map(updateValue.targetprimarycategories, 'name');
+  }
   model.nomination.update(updateValue, updateQuery).then(res => {
     if (_.isArray(res) && !res[0]) {
       loggerService.exitLog({responseCode: 'ERR_UPDATE_NOMINATION'}, logObject);
