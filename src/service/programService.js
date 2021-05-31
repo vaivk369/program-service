@@ -1093,12 +1093,15 @@ async function programList(req, response) {
       return res;
     }
     else if (key === 'content_types' && value) {
-      res[Op.or] = _.map(data.request.filters[key], (val) => {
+      let contentTypes = _.map(data.request.filters[key], (val) => {
         return Sequelize.literal(`'${val}' = ANY (\"program\".\"content_types\")`);
       });
-      res[Op.or] = _.map(data.request.filters[key], (val) => {
+
+      let targetprimarycategorynames = _.map(data.request.filters[key], (val) => {
         return Sequelize.literal(`'${val}' = ANY (\"program\".\"targetprimarycategorynames\")`);
       });
+
+      res[Op.or] = contentTypes.concat(targetprimarycategorynames);
       delete data.request.filters[key];
       return {
          $and : res
@@ -1180,13 +1183,13 @@ async function programList(req, response) {
             }
           }));
         } else {
-          
+
           const res = await model.program.findAll({
             where: {
               ...filters,
               ...data.request.filters
             },
-             
+
             attributes: data.request.fields || {
               include : [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium']],
               exclude: ['config', 'description']
