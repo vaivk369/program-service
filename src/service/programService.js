@@ -1700,7 +1700,6 @@ function aggregatedNominationCount(data, result) {
                     const contents = _.compact(_.concat(_.get(contentResult.data.result, 'QuestionSet'), _.get(contentResult.data.result, 'content')));
                     relatedContents = contents;                      
                 }
-
                 nominationSampleCounts = programServiceHelper.setNominationSampleCounts(relatedContents);
                   const userAndOrgResult = _.tail(promiseData, 2);
                 _.forEach(userAndOrgResult, function (data) {
