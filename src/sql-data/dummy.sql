@@ -51,6 +51,7 @@ CREATE TABLE nomination
     updatedby character varying COLLATE pg_catalog."default",
     updatedon timestamp with time zone,
     targetprimarycategories text[],
+    targetprimarycategorynames text[],
     CONSTRAINT pk_id PRIMARY KEY (id)
 );
 
