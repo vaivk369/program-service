@@ -337,8 +337,10 @@ describe("Program Service", () => {
       .send({
         request: {
           filters: {
-            enrolled_id: {
-              user_id: dummyData.nominationAdd.user_id,
+            nomination: {
+              user_id: {
+                eq: dummyData.nominationAdd.user_id
+              },
             },
           },
         },
@@ -629,8 +631,10 @@ describe("Program Service", () => {
       .send({
         request: {
           filters: {
-            enrolled_id: {
-              user_id: "cca53828-8111-4d71-9c45-40e569f13bad",
+            nomination:{
+              user_id: {
+                eq: "cca53828-8111-4d71-9c45-40e569f13bad"
+              }
             },
             status: ["Live"],
             medium: ["English"],
