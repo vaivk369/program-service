@@ -50,9 +50,9 @@ CREATE TABLE nomination
     createdon timestamp with time zone DEFAULT timezone('utc'::text, now()),
     updatedby character varying COLLATE pg_catalog."default",
     updatedon timestamp with time zone,
+    targetprimarycategories text[],
     CONSTRAINT pk_id PRIMARY KEY (id)
 );
-
 
 CREATE SEQUENCE IF NOT EXISTS contentid_seq;
 CREATE TYPE contenttypesenum AS ENUM ('TeachingMethod', 'PedagogyFlow', 'FocusSpot', 'LearningOutcomeDefinition', 'PracticeQuestionSet', 'CuriosityQuestionSet', 'MarkingSchemeRubric', 'ExplanationResource', 'ExperientialResource', 'ConceptMap', 'SelfAssess');
