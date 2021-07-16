@@ -14,6 +14,7 @@ const buildCSVWithCallback = async (id, callback) => {
         const subject = data.paperData.subject[0]
         const grade = data.paperData.gradeLevel[0]
         const examName = data.paperData.name
+        // console.log("paperdata:",data.paperData);
   
         data.sectionData.forEach(d => {
           d.questions.forEach((element, index) => {
@@ -32,16 +33,31 @@ const buildCSVWithCallback = async (id, callback) => {
             let learningOutcome
            
             if (question.category === 'MCQ') {
-               if(question.learningOutcome === undefined) {
+               if(question.learningOutcome[0] === undefined) {
                  learningOutcome = ""
                } else {
                  learningOutcome = question.learningOutcome[0]
                }
-               if(question.bloomsLevel === undefined) {
+               if(question.bloomsLevel[0] === undefined) {
                 blooms = ""
               } else {
                 blooms = question.bloomsLevel[0]
               }
+              
+          if(blooms === "Remember"){
+            blooms = "Knowledge"
+          }  
+          else if(blooms === "Understand"){
+            blooms = "Understanding"
+          } 
+          else if(blooms === "Apply") {
+           
+            blooms = "Application"
+          }
+          console.log("Changed value:",blooms);
+             
+​
+              let chaperName = question.topic[0]
                questionContent = await renderMCQ(
                 question,
                 questionCounter,
@@ -49,7 +65,8 @@ const buildCSVWithCallback = async (id, callback) => {
                 subject, 
                 examName,
                 learningOutcome,
-                blooms
+                blooms,
+                chaperName
               )
                 questionPaperContent.push(questionContent)
             }
@@ -68,7 +85,9 @@ const buildCSVWithCallback = async (id, callback) => {
         'CorrectAnswer(1/2/3/4)',
         'Competencies',
         'Skills',
-        'QuestionImageUrl']
+        'QuestionImageUrl',
+        'ChapterName'
+      ]
 ​
         let csv = JSON2CSV( questionPaperContent, {fields : fields, withBOM: true})
         let filename = grade+'_'+subject+'_'+examName
@@ -204,7 +223,7 @@ async function getStack (htmlString, questionCounter) {
   return stack
 }
 ​
-async function renderMCQ (question, questionCounter, grade,subject,examName,learningOutcome,blooms) {
+async function renderMCQ (question, questionCounter, grade,subject,examName,learningOutcome,blooms,topic) {
     // console.log("Question :",question);
   const questionOptions = [],
     answerOptions = ['A', 'B', 'C', 'D']
@@ -268,7 +287,8 @@ async function renderMCQ (question, questionCounter, grade,subject,examName,lear
     'CorrectAnswer(1/2/3/4)': answer,
     'Competencies': learningOutcome,
     'Skills': blooms,
-    'QuestionImageUrl':queurl
+    'QuestionImageUrl':queurl,
+    'ChapterName':topic
   }
   return data
 }

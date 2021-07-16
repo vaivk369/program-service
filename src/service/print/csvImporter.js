@@ -8,7 +8,7 @@ class PDFDataImportError {
   }
 }
 ​
-function getItemsFromItemset(itemsetID , bloomslevel,learningOutcome ) {
+function getItemsFromItemset(itemsetID , bloomslevel,learningOutcome, topic ) {
 // console.log("Item id",itemsetID);
   let status;
   const urlItemset = `${envVariables.baseURL}/action/itemset/v3/read/${itemsetID}`;
@@ -21,7 +21,7 @@ function getItemsFromItemset(itemsetID , bloomslevel,learningOutcome ) {
       if (status === 200) {
         if (r.result.itemset.items.length > 0) {
           const item = r.result.itemset.items[0];
-          return getQuestionFromItem(item.identifier,bloomslevel,learningOutcome);
+          return getQuestionFromItem(item.identifier,bloomslevel,learningOutcome,topic);
         } else {
           throw new PDFDataImportError("Empty Itemset");
         }
@@ -37,7 +37,7 @@ function getItemsFromItemset(itemsetID , bloomslevel,learningOutcome ) {
     });
 }
 ​
-function getQuestionFromItem(itemID, bloomslevel,learningOutcome) {
+function getQuestionFromItem(itemID, bloomslevel,learningOutcome, topic) {
   let status;
   const urlItem = `${envVariables.baseURL}/action/assessment/v3/items/read/${itemID}`;
   return fetch(urlItem)
@@ -51,6 +51,7 @@ function getQuestionFromItem(itemID, bloomslevel,learningOutcome) {
         if (r.result.assessment_item){
           r.result.assessment_item.bloomsLevel = bloomslevel
           r.result.assessment_item.learningOutcome = learningOutcome
+          r.result.assessment_item.topic = topic
           return r.result.assessment_item
         } 
         
@@ -83,7 +84,9 @@ let error = false;
       if (status === 200) {
         if (r.result.content.itemSets.length > 0) {
           const itemset = r.result.content.itemSets[0];
-          return getItemsFromItemset(itemset.identifier, r.result.content.bloomsLevel, r.result.content.learningOutcome);
+          console.log("topic:",r.result.content.bloomsLevel);
+          
+          return getItemsFromItemset(itemset.identifier, r.result.content.bloomsLevel, r.result.content.learningOutcome, r.result.content.topic);
         } else {
           throw new PDFDataImportError("Empty Section");
         }
