@@ -50,8 +50,9 @@ async function printPDF(req, res) {
 async function printCSV(req, res) {
   const id = req.query.id;
   const format = req.query.format;
+  console.log(format);
 ​
-  buildCSVWithCallback(id, function (binary, error, errorMsg) {
+  buildCSVWithCallback(id, function (binary, error, errorMsg,filename) {
     var date = new Date();
     if (!error) {
       if (format === "json") {
@@ -73,12 +74,10 @@ async function printCSV(req, res) {
           },
         };
         res.send(resJSON);
-        // let decodedBase64 = binary.base64Decode('base64Str', 'response.pdf');
-​
       } else {
     
-        res.setHeader('Content-disposition', `attachment; filename=${id}.csv`);
-        res.setHeader('Content-type', 'text/csv');
+        res.setHeader('Content-disposition', `attachment; filename=${filename}.csv`);
+        res.setHeader('Content-type', 'text/csv; charset=utf-8');
         res.send(binary);
       }
     } else {

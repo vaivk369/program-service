@@ -1,20 +1,16 @@
 const { getData } = require('./csvImporter')
-const converter = require('json-2-csv')
+const JSON2CSV = require('json2csv').parse
 var cheerio = require('cheerio')
-const sizeOf = require('image-size')
 ​
 const buildCSVWithCallback = async (id, callback) => {
-  console.log('Entered bild pdf callback')
   let error = false
   let errorMsg = ''
   let totalMarks = 0
   getData(id)
     .then(async data => {
       if (data.error) {
-        callback(null, data.error, data.errorMsg)
+        callback(null, data.error, data.errorMsg,null)
       } else {
-        // console.log("result:",data);
-        // console.log("result data",JSON.stringify(data.paperData));
         const subject = data.paperData.subject[0]
         const grade = data.paperData.gradeLevel[0]
         const examName = data.paperData.name
@@ -29,8 +25,6 @@ const buildCSVWithCallback = async (id, callback) => {
         const questionPaperContent = []
         let questionCounter = 0
         for (const d of data.sectionData) {
-          const section = d.section
-        
           for (const [index, question] of d.questions.entries()) {
             questionCounter += 1
             let questionContent
@@ -43,41 +37,50 @@ const buildCSVWithCallback = async (id, callback) => {
                } else {
                  learningOutcome = question.learningOutcome[0]
                }
-​
-               if(question.bloomslevel === undefined) {
+               if(question.bloomsLevel === undefined) {
                 blooms = ""
               } else {
-                blooms = question.bloomslevel[0]
+                blooms = question.bloomsLevel[0]
               }
                questionContent = await renderMCQ(
                 question,
                 questionCounter,
                 grade,
-                subject,
+                subject, 
                 examName,
                 learningOutcome,
                 blooms
               )
-              
                 questionPaperContent.push(questionContent)
             }
           }
         }
-        console.log("Final Json:", questionPaperContent);
-        // convert JSON array to CSV string
-        converter
-          .json2csvAsync(questionPaperContent)
-          .then(csv => {
-            callback(csv, error, errorMsg)
-          })
-          .catch(err => console.log(err))
+     
+        let fields = [
+        "Class",
+        "Subject",
+        "TopicName" ,
+        "Questions",
+        'Option1',
+        'Option2',
+        'Option3',
+        'Option4',
+        'CorrectAnswer(1/2/3/4)',
+        'Competencies',
+        'Skills',
+        'QuestionImageUrl']
+​
+        let csv = JSON2CSV( questionPaperContent, {fields : fields, withBOM: true})
+        let filename = grade+'_'+subject+'_'+examName
+        filename = filename.replace(/\s/g,'')
+        callback(csv, error, errorMsg,filename)
       }
     })
     .catch(e => {
       console.log(e)
       error = true
       errorMsg = ''
-      callback(null, error, errorMsg)
+      callback(null, error, errorMsg,null)
     })
 }
 ​
@@ -86,53 +89,6 @@ const cleanHTML = (str, nbspAsLineBreak = false) => {
   return str
     .replace(/<[^>]+>/g, '')
     .replace(/&nbsp;/g, nbspAsLineBreak ? '\n' : '')
-}
-​
-const detectLanguage = str => {
-  const unicodeBlocks = [
-    {
-      name: 'Tamil',
-      regex: /[\u0B80-\u0BFF]+/g
-    },
-    {
-      name: 'Hindi',
-      regex: /[\u0900-\u097F]+/g
-    }
-  ]
-​
-  let language = 'English'
-​
-  const langSplit = {
-    Hindi: 0,
-    Tamil: 0,
-    English: 0,
-    Undefined: 0
-  }
-  if (typeof str === 'string') {
-    str.split('').forEach(letter => {
-      let found = false
-      unicodeBlocks.forEach(block => {
-        if (letter.match(block.regex)) {
-          langSplit[block.name]++
-          found = true
-        }
-      })
-      if (!found) {
-        langSplit.English++
-      }
-    })
-​
-    let max = 0
-    for (var key of Object.keys(langSplit)) {
-      if (langSplit[key] > max) {
-        max = langSplit[key]
-        language = key
-      }
-    }
-​
-    return language
-  }
-  return 'English'
 }
 ​
 function extractTextFromElement (elem) {
@@ -165,6 +121,8 @@ function extractTextFromElement (elem) {
 async function getStack (htmlString, questionCounter) {
   const stack = []
   let count =  0;
+  // console.log("Html:",htmlString);
+  let p = 0
   $ = cheerio.load(htmlString)
   const elems = $('body')
     .children()
@@ -174,6 +132,7 @@ async function getStack (htmlString, questionCounter) {
     let nextLine = ''
     switch (elem.name) {
       case 'p':
+       
         let extractedText = extractTextFromElement(elem)
         // Returns array if superscript/subscript inside
         if (Array.isArray(extractedText)){
@@ -181,8 +140,8 @@ async function getStack (htmlString, questionCounter) {
         } 
         else {
           nextLine += extractedText
-          nextLine = {text: nextLine}
         }
+        nextLine = {text: nextLine}
         // console.log("para:",nextLine);
         break
       case 'ol':
@@ -233,11 +192,12 @@ async function getStack (htmlString, questionCounter) {
     }
     if (index === 0 && questionCounter) {
       if (elem.name === 'p') {
+​
         if (typeof nextLine === 'object')
-          nextLine = { text: `${questionCounter}. ${nextLine.text}`,  }
+          nextLine = { text: `${nextLine.text}`,  }
         else
-         nextLine = `${questionCounter}. ${nextLine}`
-      } else stack.push(`${questionCounter}. ${nextLine}`)
+         nextLine = `${nextLine}`
+      } else stack.push(`${nextLine}`)
     }
     stack.push(nextLine)
   }
@@ -259,18 +219,22 @@ async function renderMCQ (question, questionCounter, grade,subject,examName,lear
       qoBody.search('sub') >= 0 ||
       qoBody.match(/<p>/g).length > 1
         ? await getStack(qoBody, answerOptions[index])
-        : [`${answerOptions[index]}. ${cleanHTML(qoBody)}`]
+        : [`${cleanHTML(qoBody)}`]
     questionOptions.push(qoData)
   }
+​
   let q = question.editorState.question
-  count = 0
+   
+  
   questionTitle =
     q.search('img') >= 0 ||
     q.search('sub') >= 0 ||
     q.search('sup') >= 0 ||
     q.match(/<p>/g).length > 1
       ? await getStack(q, questionCounter)
-      : [`${questionCounter}. ${cleanHTML(q)}`]
+      : [`${cleanHTML(q)}`] 
+​
+  // console.log("question title:",questionTitle);
 ​
   let answer = ''
   for (const option of question.options) {
@@ -278,13 +242,20 @@ async function renderMCQ (question, questionCounter, grade,subject,examName,lear
       answer = option.value.resindex + 1
     }
   }
-  
+  // console.log(envVariables.baseURL);
+  let imageurl = envVariables.baseURL
+  let queurl = ''
     for (let que of questionTitle){
       if(typeof que === "object"){
         finalQuestion += que.text
+      } else {
+        if(que.includes(imageurl)){
+          queurl = que
+        }else{
+          finalQuestion = que
+        }
       }
     }
-​
   let data = {
     "Class" : grade,
     "Subject" : subject,
@@ -295,9 +266,9 @@ async function renderMCQ (question, questionCounter, grade,subject,examName,lear
     'Option3': questionOptions[2][0],
     'Option4': questionOptions[3][0],
     'CorrectAnswer(1/2/3/4)': answer,
-    'Competense': learningOutcome,
+    'Competencies': learningOutcome,
     'Skills': blooms,
-    'Question attachment url':questionTitle[questionTitle.length -1]
+    'QuestionImageUrl':queurl
   }
   return data
 }

@@ -70,6 +70,8 @@ function getQuestionFromItem(itemID, bloomslevel,learningOutcome) {
 ​
 const getQuestionForSection = async (id) => {
 //   console.log("ID:",id);
+let error = false;
+  let errorMsg = "";
   const url = `${envVariables.baseURL}/action/content/v3/hierarchy/${id}?mode=edit`;
   let status;
   return fetch(url)
@@ -81,7 +83,6 @@ const getQuestionForSection = async (id) => {
       if (status === 200) {
         if (r.result.content.itemSets.length > 0) {
           const itemset = r.result.content.itemSets[0];
-        //   console.log("Get question sec",id,r.result.content.bloomsLevel);
           return getItemsFromItemset(itemset.identifier, r.result.content.bloomsLevel, r.result.content.learningOutcome);
         } else {
           throw new PDFDataImportError("Empty Section");
