@@ -9,13 +9,17 @@ const buildCSVWithCallback = async (id, callback) => {
   getData(id)
     .then(async data => {
       if (data.error) {
-        callback(null, data.error, data.errorMsg,null)
+        callback(null, data.error, data.errorMsg, null)
       } else {
-        const subject = data.paperData.subject[0]
-        const grade = data.paperData.gradeLevel[0]
+        let subject
+        let grade
+        if(data.paperData.subject && data.paperData.gradeLevel){
+          subject = data.paperData.subject[0]
+          grade = data.paperData.gradeLevel[0]
+        }
         const examName = data.paperData.name
         // console.log("paperdata:",data.paperData);
-  
+​
         data.sectionData.forEach(d => {
           d.questions.forEach((element, index) => {
             const marks = parseInt(d.section.children[index].marks)
@@ -29,77 +33,79 @@ const buildCSVWithCallback = async (id, callback) => {
           for (const [index, question] of d.questions.entries()) {
             questionCounter += 1
             let questionContent
-            let blooms  
+            let blooms
             let learningOutcome
-           
-            if (question.category === 'MCQ') {
-               if(question.learningOutcome[0] === undefined) {
-                 learningOutcome = ""
-               } else {
-                 learningOutcome = question.learningOutcome[0]
-               }
-               if(question.bloomsLevel[0] === undefined) {
-                blooms = ""
-              } else {
-                blooms = question.bloomsLevel[0]
-              }
-              
-          if(blooms === "Remember"){
-            blooms = "Knowledge"
-          }  
-          else if(blooms === "Understand"){
-            blooms = "Understanding"
-          } 
-          else if(blooms === "Apply") {
-           
-            blooms = "Application"
-          }
-          console.log("Changed value:",blooms);
-             
+            let chaperName 
 ​
-              let chaperName = question.topic[0]
-               questionContent = await renderMCQ(
+            if (question.category === 'MCQ') {
+              if (question.learningOutcome && question.learningOutcome[0]) {
+                learningOutcome = question.learningOutcome[0]
+              } else {
+                learningOutcome = ''
+              }
+​
+              if (question.bloomsLevel && question.bloomsLevel[0]) {
+                blooms = question.bloomsLevel[0]
+              } else {
+                blooms = ''
+              }
+              if (blooms === 'Remember') {
+                blooms = 'Knowledge'
+              } else if (blooms === 'Understand') {
+                blooms = 'Understanding'
+              } else if (blooms === 'Apply') {
+                blooms = 'Application'
+              }
+              if (question.topic && question.topic[0]) {
+                chaperName = question.topic[0]
+              } else {
+                chaperName = ''
+              }
+              questionContent = await renderMCQ(
                 question,
                 questionCounter,
                 grade,
-                subject, 
+                subject,
                 examName,
                 learningOutcome,
                 blooms,
                 chaperName
               )
-                questionPaperContent.push(questionContent)
+              questionPaperContent.push(questionContent)
             }
           }
         }
-     
-        let fields = [
-        "Class",
-        "Subject",
-        "TopicName" ,
-        "Questions",
-        'Option1',
-        'Option2',
-        'Option3',
-        'Option4',
-        'CorrectAnswer(1/2/3/4)',
-        'Competencies',
-        'Skills',
-        'QuestionImageUrl',
-        'ChapterName'
-      ]
 ​
-        let csv = JSON2CSV( questionPaperContent, {fields : fields, withBOM: true})
-        let filename = grade+'_'+subject+'_'+examName
-        filename = filename.replace(/\s/g,'')
-        callback(csv, error, errorMsg,filename)
+        let fields = [
+          'Class',
+          'Subject',
+          'TopicName',
+          'Questions',
+          'Option1',
+          'Option2',
+          'Option3',
+          'Option4',
+          'CorrectAnswer(1/2/3/4)',
+          'Competencies',
+          'Skills',
+          'QuestionImageUrl',
+          'ChapterName'
+        ]
+​
+        let csv = JSON2CSV(questionPaperContent, {
+          fields: fields,
+          withBOM: true
+        })
+        let filename = grade + '_' + subject + '_' + examName
+        filename = filename.replace(/\s/g, '')
+        callback(csv, error, errorMsg, filename)
       }
     })
     .catch(e => {
       console.log(e)
       error = true
       errorMsg = ''
-      callback(null, error, errorMsg,null)
+      callback(null, error, errorMsg, null)
     })
 }
 ​
@@ -139,28 +145,26 @@ function extractTextFromElement (elem) {
 ​
 async function getStack (htmlString, questionCounter) {
   const stack = []
-  let count =  0;
+  let count = 0
   // console.log("Html:",htmlString);
   let p = 0
   $ = cheerio.load(htmlString)
   const elems = $('body')
     .children()
     .toArray()
-    // console.log("ele:",elems);
+  // console.log("ele:",elems);
   for (const [index, elem] of elems.entries()) {
     let nextLine = ''
     switch (elem.name) {
       case 'p':
-       
         let extractedText = extractTextFromElement(elem)
         // Returns array if superscript/subscript inside
-        if (Array.isArray(extractedText)){
+        if (Array.isArray(extractedText)) {
           nextLine = { text: extractedText }
-        } 
-        else {
+        } else {
           nextLine += extractedText
         }
-        nextLine = {text: nextLine}
+        nextLine = { text: nextLine }
         // console.log("para:",nextLine);
         break
       case 'ol':
@@ -184,38 +188,36 @@ async function getStack (htmlString, questionCounter) {
         }
         break
       case 'figure':
-        if(count === 0){
-        let { style } = elem.attribs
-        let width = 1
-        if (style) {
-          width = parseFloat(
-            style
-              .split(':')
-              .pop()
-              .slice(0, -2)
-          )
-          width = width / 100
-        }
-        
-        if (elem.children && elem.children.length) {
-          let { src } = elem.children[0].attribs
-          if(!src.startsWith("data:image/png")){
-            count++
-            nextLine =  `${envVariables.baseURL}`+src
+        if (count === 0) {
+          let { style } = elem.attribs
+          let width = 1
+          if (style) {
+            width = parseFloat(
+              style
+                .split(':')
+                .pop()
+                .slice(0, -2)
+            )
+            width = width / 100
           }
+​
+          if (elem.children && elem.children.length) {
+            let { src } = elem.children[0].attribs
+            if (!src.startsWith('data:image/png')) {
+              count++
+              nextLine = `${envVariables.baseURL}` + src
+            }
+          }
+          if (!nextLine)
+            nextLine = '<An image of an unsupported format was scrubbed>'
         }
-        if (!nextLine)
-          nextLine = '<An image of an unsupported format was scrubbed>'
-      }
         break
     }
     if (index === 0 && questionCounter) {
       if (elem.name === 'p') {
-​
         if (typeof nextLine === 'object')
-          nextLine = { text: `${nextLine.text}`,  }
-        else
-         nextLine = `${nextLine}`
+          nextLine = { text: `${nextLine.text}` }
+        else nextLine = `${nextLine}`
       } else stack.push(`${nextLine}`)
     }
     stack.push(nextLine)
@@ -223,8 +225,17 @@ async function getStack (htmlString, questionCounter) {
   return stack
 }
 ​
-async function renderMCQ (question, questionCounter, grade,subject,examName,learningOutcome,blooms,topic) {
-    // console.log("Question :",question);
+async function renderMCQ (
+  question,
+  questionCounter,
+  grade,
+  subject,
+  examName,
+  learningOutcome,
+  blooms,
+  topic
+) {
+  // console.log("Question :",question);
   const questionOptions = [],
     answerOptions = ['A', 'B', 'C', 'D']
   let questionTitle
@@ -243,15 +254,14 @@ async function renderMCQ (question, questionCounter, grade,subject,examName,lear
   }
 ​
   let q = question.editorState.question
-   
-  
+​
   questionTitle =
     q.search('img') >= 0 ||
     q.search('sub') >= 0 ||
     q.search('sup') >= 0 ||
     q.match(/<p>/g).length > 1
       ? await getStack(q, questionCounter)
-      : [`${cleanHTML(q)}`] 
+      : [`${cleanHTML(q)}`]
 ​
   // console.log("question title:",questionTitle);
 ​
@@ -264,31 +274,31 @@ async function renderMCQ (question, questionCounter, grade,subject,examName,lear
   // console.log(envVariables.baseURL);
   let imageurl = envVariables.baseURL
   let queurl = ''
-    for (let que of questionTitle){
-      if(typeof que === "object"){
-        finalQuestion += que.text
+  for (let que of questionTitle) {
+    if (typeof que === 'object') {
+      finalQuestion += que.text
+    } else {
+      if (que.includes(imageurl)) {
+        queurl = que
       } else {
-        if(que.includes(imageurl)){
-          queurl = que
-        }else{
-          finalQuestion = que
-        }
+        finalQuestion = que
       }
     }
+  }
   let data = {
-    "Class" : grade,
-    "Subject" : subject,
-    "TopicName" : examName,
-    "Questions": finalQuestion,
-    'Option1': questionOptions[0][0],
-    'Option2': questionOptions[1][0],
-    'Option3': questionOptions[2][0],
-    'Option4': questionOptions[3][0],
+    Class: grade,
+    Subject: subject,
+    TopicName: examName,
+    Questions: finalQuestion,
+    Option1: questionOptions[0][0],
+    Option2: questionOptions[1][0],
+    Option3: questionOptions[2][0],
+    Option4: questionOptions[3][0],
     'CorrectAnswer(1/2/3/4)': answer,
-    'Competencies': learningOutcome,
-    'Skills': blooms,
-    'QuestionImageUrl':queurl,
-    'ChapterName':topic
+    Competencies: learningOutcome,
+    Skills: blooms,
+    QuestionImageUrl: queurl,
+    ChapterName: topic
   }
   return data
 }
