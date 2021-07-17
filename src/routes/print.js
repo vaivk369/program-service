@@ -3,15 +3,15 @@ const { buildPDFWithCallback } = require("../service/print/pdf");
 const { buildCSVWithCallback } = require("../service/print/csv");
 const requestMiddleware = require("../middlewares/request.middleware");
 // const base64 = require('base64topdf');
-​
-​
+
+
 const BASE_URL = "/program/v1";
-​
+
 // Refactor this to move to service
 async function printPDF(req, res) {
   const id = req.query.id;
   const format = req.query.format;
-​
+
   buildPDFWithCallback(id, function (binary, error, errorMsg) {
     var date = new Date();
     if (!error) {
@@ -46,12 +46,10 @@ async function printPDF(req, res) {
     }
   });
 }
-​
 async function printCSV(req, res) {
   const id = req.query.id;
   const format = req.query.format;
   console.log(format);
-​
   buildCSVWithCallback(id, function (binary, error, errorMsg,filename) {
     var date = new Date();
     if (!error) {
@@ -87,7 +85,6 @@ async function printCSV(req, res) {
     }
   });
 }
-​
 module.exports = function (app) {
   app
     .route(BASE_URL + "/print/pdf")
