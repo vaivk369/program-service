@@ -1,13 +1,13 @@
 const fetch = require("node-fetch");
 const envVariables = require("../../envVariables");
-​
+
 class PDFDataImportError {
   constructor(message) {
     this.message = message;
     this.name = "PDFDataImportError";
   }
 }
-​
+
 function getItemsFromItemset(itemsetID , bloomslevel,learningOutcome, topic ) {
 // console.log("Item id",itemsetID);
   let status;
@@ -36,7 +36,7 @@ function getItemsFromItemset(itemsetID , bloomslevel,learningOutcome, topic ) {
       else throw new PDFDataImportError("Invalid Response for Itemset API");
     });
 }
-​
+
 function getQuestionFromItem(itemID, bloomslevel,learningOutcome, topic) {
   let status;
   const urlItem = `${envVariables.baseURL}/action/assessment/v3/items/read/${itemID}`;
@@ -68,7 +68,7 @@ function getQuestionFromItem(itemID, bloomslevel,learningOutcome, topic) {
       else throw new PDFDataImportError("Invalid Response for Question API");
     });
 }
-​
+
 const getQuestionForSection = async (id) => {
 //   console.log("ID:",id);
 let error = false;
@@ -83,9 +83,7 @@ let error = false;
     .then((r) => {
       if (status === 200) {
         if (r.result.content.itemSets.length > 0) {
-          const itemset = r.result.content.itemSets[0];
-          console.log("topic:",r.result.content.bloomsLevel);
-          
+          const itemset = r.result.content.itemSets[0];          
           return getItemsFromItemset(itemset.identifier, r.result.content.bloomsLevel, r.result.content.learningOutcome, r.result.content.topic);
         } else {
           throw new PDFDataImportError("Empty Section");
@@ -106,7 +104,7 @@ let error = false;
       };
     });
 };
-​
+
 const getData = async (id) => {
   let error = false;
   let errorMsg = "";
@@ -120,7 +118,7 @@ const getData = async (id) => {
       else {
         throw new PDFDataImportError("Invalid ID");
       }
-​
+
       const questionIds = sections.map((section) => {
         if (section.children)
           return section.children
@@ -133,7 +131,7 @@ const getData = async (id) => {
         else return [];
       }); // Hierarchy
     //   console.log("Sections:",questionIds);
-​
+
       const promiseMap = questionIds.map((sec) =>
         sec.map((question) =>
           getQuestionForSection(question).then((resp) => {
@@ -143,7 +141,7 @@ const getData = async (id) => {
           })
         )
       );
-​
+
       const questionPromises = promiseMap.map((sectionPromise, index) =>
         Promise.all(sectionPromise)
           .then((result) => result)
@@ -177,7 +175,7 @@ const getData = async (id) => {
       };
     });
 };
-​
+
 module.exports = {
   getData,
 };

@@ -1,7 +1,7 @@
 const { getData } = require('./csvImporter')
 const JSON2CSV = require('json2csv').parse
 var cheerio = require('cheerio')
-​
+
 const buildCSVWithCallback = async (id, callback) => {
   let error = false
   let errorMsg = ''
@@ -19,14 +19,14 @@ const buildCSVWithCallback = async (id, callback) => {
         }
         const examName = data.paperData.name
         // console.log("paperdata:",data.paperData);
-​
+
         data.sectionData.forEach(d => {
           d.questions.forEach((element, index) => {
             const marks = parseInt(d.section.children[index].marks)
             if (!isNaN(marks)) totalMarks += marks
           })
         })
-​
+
         const questionPaperContent = []
         let questionCounter = 0
         for (const d of data.sectionData) {
@@ -36,14 +36,14 @@ const buildCSVWithCallback = async (id, callback) => {
             let blooms
             let learningOutcome
             let chaperName 
-​
+
             if (question.category === 'MCQ') {
               if (question.learningOutcome && question.learningOutcome[0]) {
                 learningOutcome = question.learningOutcome[0]
               } else {
                 learningOutcome = ''
               }
-​
+
               if (question.bloomsLevel && question.bloomsLevel[0]) {
                 blooms = question.bloomsLevel[0]
               } else {
@@ -75,7 +75,7 @@ const buildCSVWithCallback = async (id, callback) => {
             }
           }
         }
-​
+
         let fields = [
           'Class',
           'Subject',
@@ -91,7 +91,7 @@ const buildCSVWithCallback = async (id, callback) => {
           'QuestionImageUrl',
           'ChapterName'
         ]
-​
+
         let csv = JSON2CSV(questionPaperContent, {
           fields: fields,
           withBOM: true
@@ -108,14 +108,14 @@ const buildCSVWithCallback = async (id, callback) => {
       callback(null, error, errorMsg, null)
     })
 }
-​
+
 const cleanHTML = (str, nbspAsLineBreak = false) => {
   // Remove HTML characters since we are not converting HTML to PDF.
   return str
     .replace(/<[^>]+>/g, '')
     .replace(/&nbsp;/g, nbspAsLineBreak ? '\n' : '')
 }
-​
+
 function extractTextFromElement (elem) {
   let rollUp = ''
   if (cheerio.text(elem)) return cheerio.text(elem)
@@ -142,7 +142,7 @@ function extractTextFromElement (elem) {
   }
   return rollUp
 }
-​
+
 async function getStack (htmlString, questionCounter) {
   const stack = []
   let count = 0
@@ -200,7 +200,7 @@ async function getStack (htmlString, questionCounter) {
             )
             width = width / 100
           }
-​
+
           if (elem.children && elem.children.length) {
             let { src } = elem.children[0].attribs
             if (!src.startsWith('data:image/png')) {
@@ -224,7 +224,7 @@ async function getStack (htmlString, questionCounter) {
   }
   return stack
 }
-​
+
 async function renderMCQ (
   question,
   questionCounter,
@@ -240,7 +240,7 @@ async function renderMCQ (
     answerOptions = ['A', 'B', 'C', 'D']
   let questionTitle
   let finalQuestion = ''
-​
+
   for (const [index, qo] of question.editorState.options.entries()) {
     let qoBody = qo.value.body
     let qoData =
@@ -252,9 +252,9 @@ async function renderMCQ (
         : [`${cleanHTML(qoBody)}`]
     questionOptions.push(qoData)
   }
-​
+
   let q = question.editorState.question
-​
+
   questionTitle =
     q.search('img') >= 0 ||
     q.search('sub') >= 0 ||
@@ -262,9 +262,9 @@ async function renderMCQ (
     q.match(/<p>/g).length > 1
       ? await getStack(q, questionCounter)
       : [`${cleanHTML(q)}`]
-​
+
   // console.log("question title:",questionTitle);
-​
+
   let answer = ''
   for (const option of question.options) {
     if (option.answer === true) {
@@ -301,8 +301,9 @@ async function renderMCQ (
     ChapterName: topic
   }
   return data
+  
 }
-​
+
 module.exports = {
   buildCSVWithCallback
 }
