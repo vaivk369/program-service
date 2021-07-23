@@ -18,7 +18,6 @@ const buildCSVWithCallback = async (id, callback) => {
           grade = data.paperData.gradeLevel[0]
         }
         const examName = data.paperData.name
-        // console.log("paperdata:",data.paperData);
 
         data.sectionData.forEach(d => {
           d.questions.forEach((element, index) => {
@@ -165,7 +164,6 @@ async function getStack (htmlString, questionCounter) {
           nextLine += extractedText
         }
         nextLine = { text: nextLine }
-        // console.log("para:",nextLine);
         break
       case 'ol':
         nextLine = {
@@ -203,34 +201,16 @@ async function getStack (htmlString, questionCounter) {
 
           if (elem.children && elem.children.length) {
             let { src } = elem.children[0].attribs
-            let srcContent = ''
+         
             if (src.startsWith('data:image/png')) {
-              srcContent = 'png'
+              nextLine = ''
             } else if (src.startsWith('data:image/jpeg')){
-              srcContent = 'jpeg'
+              nextLine = ''
             }else{
               src = src.replace('/assets/public','')
               count++
               nextLine = `${envVariables.QUE_IMG_URL}` + src
-              console.log("imgae link:", nextLine)
             }
-
-
-            // switch () {
-            // }
-            // if (!src.startsWith('data:image/png')) {
-            //   src = src.replace('/assets/public','')
-            //   count++
-            //   nextLine = `${envVariables.QUE_IMG_URL}` + src
-            //   console.log("imgae link:", nextLine)
-            // } 
-            
-            // if(!src.startsWith('data:image/jpeg')){
-            //   src = src.replace('/assets/public','')
-            //   count++
-            //   nextLine = `${envVariables.QUE_IMG_URL}` + src
-            //   console.log("imgae link1:", nextLine)
-            // }
           }
           if (!nextLine)
             nextLine = '<An image of an unsupported format was scrubbed>'
@@ -259,16 +239,15 @@ async function renderMCQ (
   blooms,
   topic
 ) {
-  // console.log("Question :",question);
+  
   const questionOptions = [],
     answerOptions = ['A', 'B', 'C', 'D']
   let questionTitle
   let finalQuestion = ''
 
   for (const [index, qo] of question.editorState.options.entries()) {
-    // console.log("body:",qo)
+   
     let qoBody = qo.value.body
-    // console.log("body:",qoBody)
     let qoData =
       qoBody.search('img') >= 0 ||
       qoBody.search('sup') >= 0 ||
@@ -290,15 +269,13 @@ async function renderMCQ (
       ? await getStack(q, questionCounter)
       : [`${cleanHTML(q)}`]
 
-  console.log("question title:",questionTitle);
-
   let answer = ''
   for (const option of question.options) {
     if (option.answer === true) {
       answer = option.value.resindex + 1
     }
   }
-  // console.log(envVariables.baseURL);
+
   let imageurl = envVariables.QUE_IMG_URL
   let queurl = ''
   for (let que of questionTitle) {
