@@ -117,6 +117,7 @@ const cleanHTML = (str, nbspAsLineBreak = false) => {
 }
 
 function extractTextFromElement (elem) {
+  elem ='<p><strong>A</strong></p>'
   let rollUp = ''
   if (cheerio.text(elem)) return cheerio.text(elem)
   else if (elem.name === 'sup')
@@ -145,20 +146,19 @@ function extractTextFromElement (elem) {
 
 async function getStack (htmlString, questionCounter) {
   const stack = []
-  let count = 0
-  // console.log("Html:",htmlString);
+  let count = 0;
   let p = 0
   $ = cheerio.load(htmlString)
   const elems = $('body')
     .children()
     .toArray()
-  // console.log("ele:",elems);
   for (const [index, elem] of elems.entries()) {
     let nextLine = ''
     switch (elem.name) {
       case 'p':
         let extractedText = extractTextFromElement(elem)
         // Returns array if superscript/subscript inside
+        
         if (Array.isArray(extractedText)) {
           nextLine = { text: extractedText }
         } else {
@@ -203,10 +203,34 @@ async function getStack (htmlString, questionCounter) {
 
           if (elem.children && elem.children.length) {
             let { src } = elem.children[0].attribs
-            if (!src.startsWith('data:image/png')) {
+            let srcContent = ''
+            if (src.startsWith('data:image/png')) {
+              srcContent = 'png'
+            } else if (src.startsWith('data:image/jpeg')){
+              srcContent = 'jpeg'
+            }else{
+              src = src.replace('/assets/public','')
               count++
-              nextLine = `${envVariables.baseURL}` + src
+              nextLine = `${envVariables.QUE_IMG_URL}` + src
+              console.log("imgae link:", nextLine)
             }
+
+
+            // switch () {
+            // }
+            // if (!src.startsWith('data:image/png')) {
+            //   src = src.replace('/assets/public','')
+            //   count++
+            //   nextLine = `${envVariables.QUE_IMG_URL}` + src
+            //   console.log("imgae link:", nextLine)
+            // } 
+            
+            // if(!src.startsWith('data:image/jpeg')){
+            //   src = src.replace('/assets/public','')
+            //   count++
+            //   nextLine = `${envVariables.QUE_IMG_URL}` + src
+            //   console.log("imgae link1:", nextLine)
+            // }
           }
           if (!nextLine)
             nextLine = '<An image of an unsupported format was scrubbed>'
@@ -242,12 +266,15 @@ async function renderMCQ (
   let finalQuestion = ''
 
   for (const [index, qo] of question.editorState.options.entries()) {
+    // console.log("body:",qo)
     let qoBody = qo.value.body
+    // console.log("body:",qoBody)
     let qoData =
       qoBody.search('img') >= 0 ||
       qoBody.search('sup') >= 0 ||
       qoBody.search('sub') >= 0 ||
-      qoBody.match(/<p>/g).length > 1
+      qoBody.match(/<p>/g).length > 1 
+      // qoBody.match(/<ol>/g).length >= 1
         ? await getStack(qoBody, answerOptions[index])
         : [`${cleanHTML(qoBody)}`]
     questionOptions.push(qoData)
@@ -263,7 +290,7 @@ async function renderMCQ (
       ? await getStack(q, questionCounter)
       : [`${cleanHTML(q)}`]
 
-  // console.log("question title:",questionTitle);
+  console.log("question title:",questionTitle);
 
   let answer = ''
   for (const option of question.options) {
@@ -272,7 +299,7 @@ async function renderMCQ (
     }
   }
   // console.log(envVariables.baseURL);
-  let imageurl = envVariables.baseURL
+  let imageurl = envVariables.QUE_IMG_URL
   let queurl = ''
   for (let que of questionTitle) {
     if (typeof que === 'object') {
