@@ -116,7 +116,6 @@ const cleanHTML = (str, nbspAsLineBreak = false) => {
 }
 
 function extractTextFromElement (elem) {
-  elem ='<p><strong>A</strong></p>'
   let rollUp = ''
   if (cheerio.text(elem)) return cheerio.text(elem)
   else if (elem.name === 'sup')
@@ -157,7 +156,7 @@ async function getStack (htmlString, questionCounter) {
       case 'p':
         let extractedText = extractTextFromElement(elem)
         // Returns array if superscript/subscript inside
-        
+        // console.log("para:",extractedText)
         if (Array.isArray(extractedText)) {
           nextLine = { text: extractedText }
         } else {
@@ -278,17 +277,21 @@ async function renderMCQ (
 
   let imageurl = envVariables.QUE_IMG_URL
   let queurl = ''
+
   for (let que of questionTitle) {
     if (typeof que === 'object') {
       finalQuestion += que.text
-    } else {
+        } else {
       if (que.includes(imageurl)) {
         queurl = que
-      } else {
+    } else if(que.match('<An image of an unsupported format was scrubbed>')){
+        queurl = que
+     }else{
         finalQuestion = que
       }
     }
   }
+
   let data = {
     Class: grade,
     Subject: subject,
