@@ -1,17 +1,14 @@
 var express = require("express");
 const { buildPDFWithCallback } = require("../service/print/pdf");
 const { buildCSVWithCallback } = require("../service/print/csv");
+const { buildCSVReportWithCallback } = require('../service/print/csvreport');
 const requestMiddleware = require("../middlewares/request.middleware");
 // const base64 = require('base64topdf');
-
-
 const BASE_URL = "/program/v1";
-
 // Refactor this to move to service
 async function printPDF(req, res) {
   const id = req.query.id;
   const format = req.query.format;
-
   buildPDFWithCallback(id, function (binary, error, errorMsg) {
     var date = new Date();
     if (!error) {
@@ -49,41 +46,76 @@ async function printPDF(req, res) {
 async function printCSV(req, res) {
   const id = req.query.id;
   const format = req.query.format;
-  console.log(format);
-  buildCSVWithCallback(id, function (binary, error, errorMsg,filename) {
-    var date = new Date();
-    if (!error) {
-      if (format === "json") {
-        const resJSON = {
-          id: "api.collection.print",
-          ver: "1.0",
-          ts: date.toISOString(),
-          params: {
-            id,
-            format,
-            status: "successful",
-            err: null,
-            errmsg: null,
-          },
-          responseCode: "OK",
-          result: {
-            content_id: id,
-            base64string: binary,
-          },
-        };
-        res.send(resJSON);
+  if((req.body.path).includes('print/csv')){
+    console.log("CSV",req.body.path);
+     buildCSVWithCallback(id, function (binary, error, errorMsg,filename) {
+      var date = new Date();
+      if (!error) {
+        if (format === "json") {
+          const resJSON = {
+            id: "api.collection.print",
+            ver: "1.0",
+            ts: date.toISOString(),
+            params: {
+              id,
+              format,
+              status: "successful",
+              err: null,
+              errmsg: null,
+            },
+            responseCode: "OK",
+            result: {
+              content_id: id,
+              base64string: binary,
+            },
+          };
+          res.send(resJSON);
+        } else {
+          res.setHeader('Content-disposition', `attachment; filename=${filename}.csv`);
+          res.setHeader('Content-type', 'text/csv; charset=utf-8');
+          res.send(binary);
+        }
       } else {
-    
-        res.setHeader('Content-disposition', `attachment; filename=${filename}.csv`);
-        res.setHeader('Content-type', 'text/csv; charset=utf-8');
-        res.send(binary);
+        res.status(404).send({
+          error: errorMsg,
+        });
       }
-    } else {
-      res.status(404).send({
-        error: errorMsg,
-      });
-    }
-  });
+    });
+  } else {
+   buildCSVReportWithCallback(id, function (binary, error, errorMsg,filename) {
+      var date = new Date();
+      if (!error) {
+        if (format === "json") {
+          const resJSON = {
+            id: "api.collection.print",
+            ver: "1.0",
+            ts: date.toISOString(),
+            params: {
+              id,
+              format,
+              status: "successful",
+              err: null,
+              errmsg: null,
+            },
+            responseCode: "OK",
+            result: {
+              content_id: id,
+              base64string: binary,
+            },
+          };
+          res.send(resJSON);
+        } else {
+          res.setHeader('Content-disposition', `attachment; filename=${filename}.csv`);
+          res.setHeader('Content-type', 'text/csv; charset=utf-8');
+          res.send(binary);
+        }
+      } else {
+        res.status(404).send({
+          error: errorMsg,
+        });
+      }
+    });
+  }
 }
 module.exports = function (app) {
   app
@@ -95,6 +127,13 @@ module.exports = function (app) {
     );
   app
     .route(BASE_URL + "/print/csv")
+    .get(
+      requestMiddleware.gzipCompression(),
+      requestMiddleware.createAndValidateRequestBody,
+      printCSV
+    );
+  app
+    .route(BASE_URL + "/print/report/aggregate")
     .get(
       requestMiddleware.gzipCompression(),
       requestMiddleware.createAndValidateRequestBody,

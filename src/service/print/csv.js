@@ -1,6 +1,7 @@
 const { getData } = require('./csvImporter')
 const JSON2CSV = require('json2csv').parse
 var cheerio = require('cheerio')
+
 const buildCSVWithCallback = async (id, callback) => {
   let error = false
   let errorMsg = ''
@@ -16,14 +17,14 @@ const buildCSVWithCallback = async (id, callback) => {
           subject = data.paperData.subject[0]
           grade = data.paperData.gradeLevel[0]
         }
-        const examName = data.paperData.name
-        // console.log("paperdata:",data.paperData);
+
         data.sectionData.forEach(d => {
           d.questions.forEach((element, index) => {
             const marks = parseInt(d.section.children[index].marks)
             if (!isNaN(marks)) totalMarks += marks
           })
         })
+
         const questionPaperContent = []
         let questionCounter = 0
         for (const d of data.sectionData) {
@@ -33,12 +34,14 @@ const buildCSVWithCallback = async (id, callback) => {
             let blooms
             let learningOutcome
             let chaperName 
+
             if (question.category === 'MCQ') {
               if (question.learningOutcome && question.learningOutcome[0]) {
                 learningOutcome = question.learningOutcome[0]
               } else {
                 learningOutcome = ''
               }
+
               if (question.bloomsLevel && question.bloomsLevel[0]) {
                 blooms = question.bloomsLevel[0]
               } else {
@@ -70,6 +73,7 @@ const buildCSVWithCallback = async (id, callback) => {
             }
           }
         }
+
         let fields = [
           'Class',
           'Subject',
@@ -85,6 +89,7 @@ const buildCSVWithCallback = async (id, callback) => {
           'QuestionImageUrl',
           'ChapterName'
         ]
+
         let csv = JSON2CSV(questionPaperContent, {
           fields: fields,
           withBOM: true
@@ -101,12 +106,14 @@ const buildCSVWithCallback = async (id, callback) => {
       callback(null, error, errorMsg, null)
     })
 }
+
 const cleanHTML = (str, nbspAsLineBreak = false) => {
   // Remove HTML characters since we are not converting HTML to PDF.
   return str
     .replace(/<[^>]+>/g, '')
     .replace(/&nbsp;/g, nbspAsLineBreak ? '\n' : '')
 }
+
 function extractTextFromElement (elem) {
   let rollUp = ''
   if (cheerio.text(elem)) return cheerio.text(elem)
@@ -133,29 +140,28 @@ function extractTextFromElement (elem) {
   }
   return rollUp
 }
+
 async function getStack (htmlString, questionCounter) {
   const stack = []
-  let count = 0
-  // console.log("Html:",htmlString);
+  let count = 0;
   let p = 0
   $ = cheerio.load(htmlString)
   const elems = $('body')
     .children()
     .toArray()
-  // console.log("ele:",elems);
   for (const [index, elem] of elems.entries()) {
     let nextLine = ''
     switch (elem.name) {
       case 'p':
         let extractedText = extractTextFromElement(elem)
         // Returns array if superscript/subscript inside
+        // console.log("para:",extractedText)
         if (Array.isArray(extractedText)) {
           nextLine = { text: extractedText }
         } else {
           nextLine += extractedText
         }
         nextLine = { text: nextLine }
-        // console.log("para:",nextLine);
         break
       case 'ol':
         nextLine = {
@@ -190,11 +196,18 @@ async function getStack (htmlString, questionCounter) {
             )
             width = width / 100
           }
+
           if (elem.children && elem.children.length) {
             let { src } = elem.children[0].attribs
-            if (!src.startsWith('data:image/png')) {
+         
+            if (src.startsWith('data:image/png')) {
+              nextLine = ''
+            } else if (src.startsWith('data:image/jpeg')){
+              nextLine = ''
+            }else{
+              src = src.replace('/assets/public','')
               count++
-              nextLine = `${envVariables.baseURL}` + src
+              nextLine = `${envVariables.QUE_IMG_URL}` + src
             }
           }
           if (!nextLine)
@@ -213,6 +226,7 @@ async function getStack (htmlString, questionCounter) {
   }
   return stack
 }
+
 async function renderMCQ (
   question,
   questionCounter,
@@ -223,23 +237,26 @@ async function renderMCQ (
   blooms,
   topic
 ) {
-  // console.log("Question :",question);
+  
   const questionOptions = [],
     answerOptions = ['A', 'B', 'C', 'D']
   let questionTitle
   let finalQuestion = ''
+
   for (const [index, qo] of question.editorState.options.entries()) {
+   
     let qoBody = qo.value.body
     let qoData =
       qoBody.search('img') >= 0 ||
       qoBody.search('sup') >= 0 ||
       qoBody.search('sub') >= 0 ||
-      qoBody.match(/<p>/g).length > 1
+      qoBody.match(/<p>/g).length > 1 
+      // qoBody.match(/<ol>/g).length >= 1
         ? await getStack(qoBody, answerOptions[index])
         : [`${cleanHTML(qoBody)}`]
     questionOptions.push(qoData)
   }
-  let q = question.editorState.question
+
   questionTitle =
     q.search('img') >= 0 ||
     q.search('sub') >= 0 ||
@@ -247,27 +264,31 @@ async function renderMCQ (
     q.match(/<p>/g).length > 1
       ? await getStack(q, questionCounter)
       : [`${cleanHTML(q)}`]
-  // console.log("question title:",questionTitle);
+
   let answer = ''
   for (const option of question.options) {
     if (option.answer === true) {
       answer = option.value.resindex + 1
     }
   }
-  // console.log(envVariables.baseURL);
-  let imageurl = envVariables.baseURL
+
+  let imageurl = envVariables.QUE_IMG_URL
   let queurl = ''
+
   for (let que of questionTitle) {
     if (typeof que === 'object') {
       finalQuestion += que.text
-    } else {
+        } else {
       if (que.includes(imageurl)) {
         queurl = que
-      } else {
+    } else if(que.match('<An image of an unsupported format was scrubbed>')){
+        queurl = que
+     }else{
         finalQuestion = que
       }
     }
   }
+
   let data = {
     Class: grade,
     Subject: subject,
@@ -284,7 +305,9 @@ async function renderMCQ (
     ChapterName: topic
   }
   return data
+  
 }
+
 module.exports = {
   buildCSVWithCallback
 }
