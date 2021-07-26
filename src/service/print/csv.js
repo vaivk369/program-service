@@ -17,7 +17,6 @@ const buildCSVWithCallback = async (id, callback) => {
           subject = data.paperData.subject[0]
           grade = data.paperData.gradeLevel[0]
         }
-        const examName = data.paperData.name
 
         data.sectionData.forEach(d => {
           d.questions.forEach((element, index) => {
@@ -257,8 +256,6 @@ async function renderMCQ (
         : [`${cleanHTML(qoBody)}`]
     questionOptions.push(qoData)
   }
-
-  let q = question.editorState.question
 
   questionTitle =
     q.search('img') >= 0 ||
