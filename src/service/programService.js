@@ -1108,8 +1108,7 @@ async function programList(req, response) {
       }
     }
     else if (key === 'target_collection_category' && value) {
-      let targetCollectionCategories = [];
-      targetCollectionCategories = _.map(data.request.filters[key], (val) => {
+      let targetCollectionCategories = _.map(data.request.filters[key], (val) => {
         return Sequelize.literal(`'${val}' = ANY (\"program\".\"target_collection_category\")`);
       });
 
