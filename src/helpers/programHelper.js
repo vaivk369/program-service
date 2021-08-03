@@ -521,8 +521,8 @@ class ProgramServiceHelper {
       forkJoin(..._.map(collectedData, data => this.getProgramDetails(data.program_id))).subscribe(details => {
       try {
         const contentTypes = details.length ? _.uniq(_.compact(..._.map(details, (model) => {
-          if (model && (!_.isEmpty(model.dataValues.content_types))) 
-              return  model.content_types 
+          if (model && (!_.isEmpty(model.dataValues.content_types)))
+              return  model.content_types
           else (model && (!_.isEmpty(model.dataValues.targetprimarycategorynames)))
               return model.dataValues.targetprimarycategorynames
         }))) : [];
@@ -565,8 +565,8 @@ class ProgramServiceHelper {
       forkJoin(..._.map(collectedData, data => this.getProgramDetails(data.program_id))).subscribe(details => {
         try {
           const contentTypes = details.length ? _.uniq(_.compact(..._.map(details, (model) => {
-            if (model && (!_.isEmpty(model.dataValues.content_types))) 
-                return  model.content_types 
+            if (model && (!_.isEmpty(model.dataValues.content_types)))
+                return  model.content_types
             else (model && (!_.isEmpty(model.dataValues.targetprimarycategorynames)))
                 return model.dataValues.targetprimarycategorynames
           }))) : [];
@@ -860,6 +860,113 @@ class ProgramServiceHelper {
   }
 
   /**
+   * Nominate restricted contributors
+   *
+   * @param  program  program data object
+   */
+  async nominateRestrictedContributors(program) {
+    try {
+      if (!_.isEmpty(_.get(program, 'config.contributors')) ) {
+        const orgOsids = _.get(program, 'config.contributors.Org') || [];
+        if (!_.isEmpty(orgOsids)) {
+          // Get org creator diksha ids
+          const filters = {
+            "osid": {
+              "or": orgOsids
+            }
+          }
+          let orgList = await registryService.getOrgDetails(filters);
+          const orgsCreators = _.map(_.get(orgList, 'data.result.Org'), org => org.createdBy);
+          const users = await registryService.getUserList({}, orgsCreators);
+          orgList = _.compact(_.map(_.get(orgList, 'data.result.Org'),
+            (org) => {
+              org.User = _.find(_.get(users, 'data.result.User'), (user) => {
+                if (user.osid == org.createdBy) {
+                  return user;
+                }
+              });
+
+              if (!_.isUndefined(org.User)) {
+                return org;
+              }
+            }
+          ));
+
+          _.forEach(orgList, async(org) => {
+            const isNominated = await this.isAlreadyNominated(program.program_id, org.osid)
+            if (!isNominated) {
+              this.nominateRestrictedContributor(program, org.User.userId, org.osid);
+            }
+          })
+          console.log(orgList);
+          debugger;
+        }
+      }
+    }catch (err) {
+      debugger;
+    }
+  }
+
+  async isAlreadyNominated(program_id, orgosid) {
+    let findNomWhere =  {
+      program_id: program_id,
+      organisation_id: orgosid
+    }
+
+    const res = await model.nomination.findOne({
+      where: findNomWhere
+    });
+
+    return !!_.get(res, 'dataValues.id');
+  }
+  /**
+   * insert restricted contributor data to nomination table
+   *
+   * @param  Object  program  program data object
+   * @param  string  user_id  User diksha id
+   * @param  string  orgosid  User open saber org id
+   *
+   */
+  async nominateRestrictedContributor(program, user_id, orgosid) {
+    try {
+      const insertObj = {
+        program_id: program.program_id,
+        user_id: user_id,
+        organisation_id: orgosid,
+        status: 'Approved',
+        collection_ids: program.copiedCollections,
+      };
+
+      if (!_.isEmpty(program.targetprimarycategories)) {
+        insertObj['targetprimarycategories'] = program.targetprimarycategories;
+        insertObj['targetprimarycategorynames'] = _.map(program.targetprimarycategories, 'name');
+      } else if (!_.isEmpty(program.content_types)) {
+        insertObj['content_types'] = program.content_types;
+      }
+
+      model.nomination.create(insertObj).then(response => {
+        const logFormate = {
+          msg: programMessages.LOG_MESSAGES.NOMINATION,
+          channel: 'programService',
+          level: 'INFO',
+          env: 'addOrUpdateNomination',
+          actorId: program.createdby,
+          params: {}
+        }
+        console.log("nomination successfully written to DB", loggerService.logFormate(logFormate));
+      }).catch(err => {
+        logger.error({ msg: 'Nomination creation failed', error, additionalInfo: { nomDetails: insertObj } }, {});
+      });
+    }
+    catch (err) {
+      debugger;
+    }
+  }
+
+  async notifyRestrictedContributors() {
+  }
+
+  /**
    * Update the user profile with medium, subject and gradeLevel
    *
    * @param integer program_id  Program id
@@ -1145,27 +1252,27 @@ class ProgramServiceHelper {
 
   addBaseUrlIfAbsent(url) {
     if(url.search("http://") >= 0) return url;
-    else return `${envVariables.baseURL}${url}`; 
+    else return `${envVariables.baseURL}${url}`;
   }
 
   questionMediaRequest(url) {
-   url = this.addBaseUrlIfAbsent(url);   
+   url = this.addBaseUrlIfAbsent(url);
     const option = {
       url,
       method: 'get',
-      responseType: 'arraybuffer' 
+      responseType: 'arraybuffer'
     };
     return from(axios(option));
   }
 
-  getQuestionMedia(url) {    
-    return new Promise((resolve, reject) => {          
+  getQuestionMedia(url) {
+    return new Promise((resolve, reject) => {
       cacheManager.get(`base64Img_${url}`, (err, cacheData) => {
-        if(err || !cacheData) {          
+        if(err || !cacheData) {
           this.questionMediaRequest(url).subscribe(
-            (res) => {            
+            (res) => {
             let raw = Buffer.from(res.data).toString('base64');
-            let base64Img = `data:${res.headers['content-type']};base64,${raw}`;                                               
+            let base64Img = `data:${res.headers['content-type']};base64,${raw}`;
             cacheManager.set({ key: `base64Img_${url}`, value: base64Img }, function (err, cachedImage) {
               if (err) {
                 logger.error({msg: 'Error - caching', err}, {})
@@ -1179,7 +1286,7 @@ class ProgramServiceHelper {
             return reject(err.message);
           })
         }
-        else {                    
+        else {
           return resolve(cacheData);
         }
       })

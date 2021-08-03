@@ -150,6 +150,7 @@ function updateProgram(req, response) {
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
+  asyncOnAfterPublish(data.request.program_id);
   const updateQuery = {
     where: {
       program_id: data.request.program_id
@@ -264,6 +265,8 @@ function publishProgram(req, response) {
           }
           onAfterPublishProgram(res,req, function(afterPublishResponse) {
               loggerService.exitLog({responseCode: 'OK'}, logObject);
+              // Async function to perform on after publish if any
+              asyncOnAfterPublish(data.request.program_id);
               return response.status(200).send(successResponse({
                 apiId: 'api.program.publish',
                 ver: '1.0',
@@ -311,6 +314,23 @@ function publishProgram(req, response) {
       result: err
     },errCode+errorCodes.CODE5));
   });
+}
+
+async function asyncOnAfterPublish (program_id) {
+  try {
+    const res = await model.program.findByPk(program_id);
+    const program = _.get(res, 'dataValues');
+
+    if (_.get(program, 'type') === 'restricted') {
+      await programServiceHelper.nominateRestrictedContributors(program);
+    }
+  }
+  catch(err) {
+    console.log(err);
+    debugger;
+  }
+
+  // setTimeout(()=> {debugger;}, 30000);
 }
 
 function unlistPublishProgram(req, response) {
@@ -475,6 +495,7 @@ function onAfterPublishProgram(programDetails, req, afterPublishCallback) {
   onPublishResult['nomination']= {};
   onPublishResult['userMapping']= {};
   getUserRegistryDetails(programDetails.createdby).then((userRegData) => {
+    debugger;
     getOsOrgForRootOrgId(programDetails.rootorg_id, userRegData, reqHeaders).then((osOrgforRootOrgRes) => {
       const iforgFoundInRegData = osOrgforRootOrgRes.orgFoundInRegData;
       const osOrgforRootOrg = osOrgforRootOrgRes.osOrgforRootOrg;
@@ -1698,7 +1719,7 @@ function aggregatedNominationCount(data, result) {
                 const contentResult = _.first(promiseData);
                 if (contentResult && contentResult.data && contentResult.data.result) {
                     const contents = _.compact(_.concat(_.get(contentResult.data.result, 'QuestionSet'), _.get(contentResult.data.result, 'content')));
-                    relatedContents = contents;       
+                    relatedContents = contents;
                 }
                 nominationSampleCounts = programServiceHelper.setNominationSampleCounts(relatedContents);
                   const userAndOrgResult = _.tail(promiseData, 2);

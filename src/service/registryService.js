@@ -27,7 +27,7 @@ class RegistryService {
     }
 
     async getUserList(data, userIds) {
-      const filters = _.get(data.request, 'filters.user');
+      const filters = _.get(data, 'request.filters.user');
       const option = {
         url: registryUrl + '/search',
         method: 'post',
@@ -144,7 +144,8 @@ class RegistryService {
     getDefaultHeaders() {
         let headers = {
             'content-type': 'application/json',
-            'accept': 'application/json'
+            'accept': 'application/json',
+            'Cookie': 'connect.sid=s%3AJ-bJJI_q3-b-WKFnoKocNUUL-fvtrt79.o5%2Fm0lACbMx2cx%2FHv6U%2BremRtU%2BE7uE4dWJ51SOXalc'
         }
         return headers;
     }
