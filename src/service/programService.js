@@ -2335,12 +2335,10 @@ async function programCopyCollections(req, response) {
     programId: _.get(data, 'request.program_id'),
     allowedContentTypes: _.get(data, 'request.allowed_content_types'),
     channel: _.get(data, 'request.channel'),
-    openForContribution: false,
-    projCollectionCategories: _.get(data, 'target_collection_category'),
-
+    openForContribution: false
   }
 
-  hierarchyService.filterExistingTextbooks(collectionIds, additionalMetaData, reqHeaders)
+  hierarchyService.filterExistingTextbooks(collectionIds, additionalMetaData.programId, reqHeaders)
     .subscribe(
       (resData) => {
         const consolidatedResult = _.map(resData, r => {
