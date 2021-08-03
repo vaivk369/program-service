@@ -18,7 +18,6 @@ class HierarchyService {
             filters: {
               objectType: "collection",
               status: ["Draft", "Live"],
-              //identifier: id,
               primaryCategory: additionalMetaData.projCollectionCategories,
               origin: id,
               programId: additionalMetaData.programId,
