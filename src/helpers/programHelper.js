@@ -638,7 +638,7 @@ class ProgramServiceHelper {
       projCollectionCategories: _.get(data, 'target_collection_category'),
     };
     additionalMetaData['allowedContentTypes'] = (_.get(data, 'targetprimarycategories')) ? _.map(_.get(data, 'targetprimarycategories'), 'name') :  _.get(data, 'content_types'),
-    hierarchyService.filterExistingTextbooks(collectionIds, additionalMetaData.programId, reqHeaders)
+    hierarchyService.filterExistingTextbooks(collectionIds, additionalMetaData, reqHeaders)
       .subscribe(
         (resData) => {
           const consolidatedResult = _.map(resData, r => {

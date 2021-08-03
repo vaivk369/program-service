@@ -6,7 +6,7 @@ const loggerService = require('../service/loggerService');
 const messageUtils = require('../service/messageUtil');
 const updateHierarchyMessages = messageUtils.BULK_JOB_REQUEST;
 class HierarchyService {
-  filterExistingTextbooks(collectionIds, programId, reqHeaders) {
+  filterExistingTextbooks(collectionIds, additionalMetaData, reqHeaders) {
     const url = `${envVariables.baseURL}/api/composite/v1/search`;
     const filterRequest = _.map(collectionIds, id => {
       const option = {
@@ -18,10 +18,10 @@ class HierarchyService {
             filters: {
               objectType: "collection",
               status: ["Draft", "Live"],
-              identifier: id,
-              primaryCategory: "Digital Textbook",
+              //identifier: id,
+              primaryCategory: additionalMetaData.projCollectionCategories,
               origin: id,
-              programId,
+              programId: additionalMetaData.programId,
             }
           }
         }
