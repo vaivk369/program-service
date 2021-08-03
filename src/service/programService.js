@@ -2336,7 +2336,8 @@ async function programCopyCollections(req, response) {
     allowedContentTypes: _.get(data, 'request.allowed_content_types'),
     channel: _.get(data, 'request.channel'),
     openForContribution: false,
-    projCollectionCategories: ["Digital Textbook"],
+    projCollectionCategories: _.get(data, 'target_collection_category'),
+
   }
 
   hierarchyService.filterExistingTextbooks(collectionIds, additionalMetaData, reqHeaders)
@@ -2382,7 +2383,10 @@ async function programCopyCollections(req, response) {
                     rspObj.errCode = programMessages.COPY_COLLECTION.BULK_UPDATE_HIERARCHY.FAILED_CODE;
                       rspObj.errMsg = programMessages.COPY_COLLECTION.BULK_UPDATE_HIERARCHY.FAILED_MESSAGE;
                       rspObj.responseCode = responseCode.SERVER_ERROR
-                      console.log('Error updating hierarchy for collections', error)
+                      console.log('Error updating hierarchy for collections', JSON.stringify(error));
+                      if(error.response && error.response.data) {
+                        console.log(`Error updating hierarchy for collections ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
+                      }
                       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
                       loggerError('',rspObj,errCode+errorCodes.CODE2);
                     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2))
@@ -2391,7 +2395,10 @@ async function programCopyCollections(req, response) {
                 rspObj.errCode = programMessages.COPY_COLLECTION.GET_HIERARCHY.FAILED_CODE;
                   rspObj.errMsg = programMessages.COPY_COLLECTION.GET_HIERARCHY.FAILED_MESSAGE;
                   rspObj.responseCode = responseCode.SERVER_ERROR
-                  console.log('Error fetching hierarchy for collections', error)
+                  console.log('Error fetching hierarchy for collections', JSON.stringify(error))
+                  if(error.response && error.response.data) {
+                    console.log(`Error fetching hierarchy for collections ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
+                  }
                   loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
                   loggerError('',rspObj,errCode+errorCodes.CODE3);
                 return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE3))
@@ -2476,8 +2483,10 @@ async function programCopyCollections(req, response) {
         rspObj.errCode = programMessages.COPY_COLLECTION.SEARCH_DOCK_COLLECTION.FAILED_CODE;
         rspObj.errMsg = error.message || programMessages.COPY_COLLECTION.SEARCH_DOCK_COLLECTION.FAILED_MESSAGE;
         rspObj.responseCode = error.response.statusText || responseCode.SERVER_ERROR
-        console.log('Error searching for collections', error)
-
+        console.log('Error searching for collections', JSON.stringify(error));
+        if(error.response && error.response.data) {
+          console.log(`Error searching for collections ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
+        }
         loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
         loggerError('',rspObj,errCode+errorCodes.CODE7);
         return response.status(error.response.status || 400).send(errorResponse(rspObj,errCode+errorCodes.CODE7))
