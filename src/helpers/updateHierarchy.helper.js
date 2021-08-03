@@ -17,9 +17,9 @@ class HierarchyService {
           request: {
             filters: {
               objectType: "collection",
-              id: id,
               status: ["Draft", "Live"],
-              primaryCategory: ["Digital Textbook"],
+              identifier: id,
+              primaryCategory: "Digital Textbook",
               origin: id,
               programId
             }
