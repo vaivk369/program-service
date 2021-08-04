@@ -107,7 +107,9 @@ class HierarchyService {
                 "lastUpdatedOn",
                 "lastStatusChangedOn",
                 "lockKey",
-                "variants"
+                "variants",
+                "mimeTypesCount",
+                "contentTypesCount"
               ])
             }
           }
@@ -294,7 +296,9 @@ class HierarchyService {
             "lastUpdatedOn",
             "lastStatusChangedOn",
             "lockKey",
-            "variants"
+            "variants",
+            "mimeTypesCount",
+            "contentTypesCount"
           ]),
           ...(_.includes(additionalMetaData.projCollectionCategories, data.primaryCategory) && data.visibility === 'Default' && {
             chapterCount : data.children ? data.children.length : 0
