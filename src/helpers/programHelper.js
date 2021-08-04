@@ -683,6 +683,9 @@ class ProgramServiceHelper {
                       errObj.errMsg = programMessages.COPY_COLLECTION.BULK_UPDATE_HIERARCHY.FAILED_MESSAGE;
                       errObj.responseCode = responseCode.SERVER_ERROR
                       console.log('Error updating hierarchy for collections', JSON.stringify(error));
+                      if(error && error.response && error.response.data) {
+                        console.log(`Error updating hierarchy for collections ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
+                      }
                       errObj.loggerMsg = 'Error updating hierarchy for collections';
                       cb (errObj, null);
                       loggerService.exitLog({responseCode: errObj.responseCode, errCode: errObj.errCode}, logObject);
@@ -694,6 +697,9 @@ class ProgramServiceHelper {
                   errObj.responseCode = responseCode.SERVER_ERROR
                   errObj.loggerMsg = 'Error fetching hierarchy for collections';
                   console.log('Error fetching hierarchy for collections', JSON.stringify(error));
+                  if(error && error.response && error.response.data) {
+                    console.log(`Error fetching hierarchy for collections ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
+                  }
                   loggerService.exitLog({responseCode: errObj.responseCode, errCode: errObj.errCode}, logObject);
                   cb (errObj, null);
                   return false;
@@ -757,6 +763,9 @@ class ProgramServiceHelper {
                           errObj.errMsg = _.get(error, 'response.data.result.messages') || _.get(error.response, 'data.params.errmsg') || programMessages.COPY_COLLECTION.BULK_UPDATE_HIERARCHY.FAILED_MESSAGE;
                           errObj.responseCode = _.get(error.response, 'data.responseCode') || responseCode.SERVER_ERROR
                           errObj.loggerMsg = 'Error updating hierarchy for collections';
+                          if(error && error.response && error.response.data) {
+                            console.log(`Error updating hierarchy for collection ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
+                          }
                           loggerService.exitLog({responseCode: errObj.responseCode, errCode: errObj.errCode}, logObject);
                           cb(errObj, null);
                         })
@@ -767,6 +776,9 @@ class ProgramServiceHelper {
                       errObj.errMsg = _.get(error.response, 'data.params.errmsg') || programMessages.COPY_COLLECTION.CREATE_COLLECTION.FAILED_MESSAGE;
                       errObj.responseCode = _.get(error.response, 'data.responseCode') || responseCode.SERVER_ERROR
                       errObj.loggerMsg = 'Error creating collection';
+                      if(error && error.response && error.response.data) {
+                        console.log(`Error creating collection ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
+                      }
                       loggerService.exitLog({responseCode: errObj.responseCode, errCode: errObj.errCode}, logObject);
                       cb(errObj, null);
                     })
@@ -776,6 +788,9 @@ class ProgramServiceHelper {
                   errObj.responseCode = responseCode.SERVER_ERROR;
                   errObj.loggerMsg = 'Error fetching hierarchy for collections';
                   console.log('Error fetching hierarchy for collections', JSON.stringify(error));
+                  if(error && error.response && error.response.data) {
+                    console.log(`Error fetching hierarchy for collections ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
+                  }
                   loggerService.exitLog({responseCode: errObj.responseCode, errCode: errObj.errCode}, logObject);
                   cb (errObj, null);
                 })
