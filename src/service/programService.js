@@ -215,7 +215,7 @@ function publishProgram(req, response) {
     rspObj.errMsg = programMessages.PUBLISH.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
     loggerError('',rspObj,errCode+errorCodes.CODE1);
-    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+    loggerService.exitLog({responseCode: rspObj.responseCode, errCode: errCode+errorCodes.CODE1}, logObject);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
 
@@ -253,7 +253,7 @@ function publishProgram(req, response) {
         model.program.update(updateValue, updateQuery).then(resData => {
           if (_.isArray(resData) && !resData[0]) {
             loggerError('',rspObj,errCode+errorCodes.CODE2);
-            loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM'}, logObject);
+            loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: errCode+errorCodes.CODE2}, logObject);
             return response.status(400).send(errorResponse({
               apiId: 'api.program.publish',
               ver: '1.0',
@@ -279,8 +279,8 @@ function publishProgram(req, response) {
         })/*.then(onAfterPublishProgram(res,req))*/
         .catch(error => {
           // console.log(error)
-          loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM'}, logObject);
-          loggerError('',rspObj,errCode+errorCodes.CODE3);
+          loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: errCode+errorCodes.CODE3}, logObject);
+          loggerError('', rspObj, errCode+errorCodes.CODE3);
           return response.status(400).send(errorResponse({
             apiId: 'api.program.publish',
             ver: '1.0',
@@ -289,25 +289,23 @@ function publishProgram(req, response) {
             result: error
           },errCode+errorCodes.CODE3));
         });
-      }
-      else {
-        loggerService.exitLog({responseCode: errObj.responseCode}, logObject);
-        loggerError('',rspObj,errCode+errorCodes.CODE4);
+      } else {
+        loggerService.exitLog({responseCode: errObj.responseCode, errCode: errCode+errorCodes.CODE4}, logObject);
+        loggerError('', rspObj, errCode+errorCodes.CODE4);
         return response.status(400).send(errorResponse(errObj,errCode+errorCodes.CODE4));
       }
     };
-
     programServiceHelper.copyCollections(res, data.request.channel, req.headers, cb);
   })
   .catch(function (err) {
-    console.log(err)
-    loggerService.exitLog({responseCode: 'ERR_READ_PROGRAM'}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE5);
+    console.log(JSON.stringify(err));
+    loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: errCode+errorCodes.CODE5}, logObject);
+    loggerError('', rspObj, errCode+errorCodes.CODE5);
     return response.status(400).send(errorResponse({
       apiId: 'api.program.publish',
       ver: '1.0',
       msgid: uuid(),
-      responseCode: 'ERR_READ_PROGRAM',
+      responseCode: 'ERR_PUBLISH_PROGRAM',
       result: err
     },errCode+errorCodes.CODE5));
   });
@@ -326,8 +324,8 @@ function unlistPublishProgram(req, response) {
     rspObj.errCode = programMessages.PUBLISH.MISSING_CODE
     rspObj.errMsg = programMessages.PUBLISH.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
-    loggerService.exitLog(rspObj.responseCode, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE1);
+    loggerService.exitLog({responseCode: rspObj.responseCode, errCode: errCode+errorCodes.CODE1}, logObject);
+    loggerError('', rspObj, errCode+errorCodes.CODE1);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
 
@@ -364,8 +362,8 @@ function unlistPublishProgram(req, response) {
 
         model.program.update(updateValue, updateQuery).then(resData => {
           if (_.isArray(resData) && !resData[0]) {
-            loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM'}, logObject);
-            loggerError('',rspObj,errCode+errorCodes.CODE2);
+            loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: errCode+errorCodes.CODE2}, logObject);
+            loggerError('', rspObj, errCode+errorCodes.CODE2);
             return response.status(400).send(errorResponse({
               apiId: 'api.program.unlist.publish',
               ver: '1.0',
@@ -388,9 +386,9 @@ function unlistPublishProgram(req, response) {
             }));
         });
         }).catch(error => {
-          console.log(error)
-          loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM'}, logObject);
-          loggerError('',rspObj,errCode+errorCodes.CODE3);
+          console.log(JSON.stringify(error));
+          loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: errCode+errorCodes.CODE3}, logObject);
+          loggerError('', rspObj, errCode+errorCodes.CODE3);
           return response.status(400).send(errorResponse({
             apiId: 'api.program.unlist.publish',
             ver: '1.0',
@@ -401,8 +399,8 @@ function unlistPublishProgram(req, response) {
         });
       }
       else {
-        loggerService.exitLog({responseCode: errObj.responseCode}, logObject);
-        loggerError('',rspObj,errCode+errorCodes.CODE4);
+        loggerService.exitLog({responseCode: errObj.responseCode, errCode: errCode+errorCodes.CODE4}, logObject);
+        loggerError('', rspObj, errCode+errorCodes.CODE4);
         return response.status(400).send(errorResponse(errObj,errCode+errorCodes.CODE4));
       }
     };
@@ -410,14 +408,14 @@ function unlistPublishProgram(req, response) {
     programServiceHelper.copyCollections(res, data.request.channel, req.headers, cb);
   })
   .catch(function (err) {
-    console.log(err)
-    loggerService.exitLog({responseCode: 'ERR_READ_PROGRAM'}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE5);
+    console.log(JSON.stringify(err));
+    loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: errCode+errorCodes.CODE5}, logObject);
+    loggerError('', rspObj, errCode+errorCodes.CODE5);
     return response.status(400).send(errorResponse({
       apiId: 'api.program.publish',
       ver: '1.0',
       msgid: uuid(),
-      responseCode: 'ERR_READ_PROGRAM',
+      responseCode: 'ERR_PUBLISH_PROGRAM',
       result: err
     },errCode+errorCodes.CODE5));
   });
@@ -585,13 +583,13 @@ function onAfterPublishProgram(programDetails, req, afterPublishCallback) {
                 }).catch((error) => {
                   onPublishResult.userMapping['error'] = error;
                   onPublishResult.userMapping['result'] = { };
-                  console.log(error)
+                  console.log(JSON.stringify(error));
                   logger.error({ msg: 'Error- while adding users to contrib org',
                   additionalInfo: { rootorg_id: programDetails.rootorg_id, orgOsid: _.get(userReg,'User_Org.orgId') } }, {});
                 });
               }
             }).catch((error) => {
-                console.log(error);
+                console.log(JSON.stringify(error));
                 onPublishResult.nomination['error'] = nominationRes;
                 onPublishResult.nomination['result'] = {};
                 afterPublishCallback(onPublishResult);
@@ -627,12 +625,12 @@ function onAfterPublishProgram(programDetails, req, afterPublishCallback) {
       }
     })
     .catch((error) => {
-      console.error(error);
+      console.error(JSON.stringify(error));
       onPublishResult['error'] = {"msg": "getOsOrgForRootOrgId failed " + error.message};
       afterPublishCallback(onPublishResult);
     })
   }).catch((error) => {
-    console.error(error);
+    console.error(JSON.stringify(error));
     onPublishResult['error'] = error;
     afterPublishCallback(onPublishResult);
   })
@@ -872,7 +870,7 @@ function addOrUpdateNomination(programDetails, orgosid) {
                 actorId: programDetails.createdby,
                 params: {}
               }
-              console.log("nomination successfully written to DB", loggerService.logFormate(logFormate));
+              console.log("nomination successfully written to DB", JSON.stringify(loggerService.logFormate(logFormate)));
               return resolve(insertObj);
             }).catch(err => {
               logger.error({ msg: 'Nomination creation failed', error, additionalInfo: { nomDetails: insertObj } }, {});
@@ -1268,7 +1266,7 @@ function addNomination(req, response) {
       }
     }));
   }).catch(err => {
-    console.log("Error adding nomination to db", err);
+    console.log("Error adding nomination to db", JSON.stringify(err));
     loggerService.exitLog({responseCode: 'ERR_CREATE_PROGRAM'}, logObject);
     loggerError('',rspObj,errCode+errorCodes.CODE2);
     return response.status(400).send(errorResponse({
@@ -1356,7 +1354,7 @@ function updateNomination(req, response) {
     }));
   }).catch(err => {
     loggerService.exitLog({responseCode: 'ERR_UPDATE_NOMINATION'}, logObject);
-    console.log("Error updating nomination to db", err);
+    console.log("Error updating nomination to db", JSON.stringify(err));
     loggerError('',rspObj,errCode+errorCodes.CODE3);
     return response.status(400).send(errorResponse({
       apiId: 'api.nomination.update',
@@ -1503,19 +1501,19 @@ function getNominationsList(req, response) {
             result: result
           }))
         }, (error) => {
-          console.log(error)
+          console.log(JSON.stringify(error));
           loggerService.exitLog(rspObj.responseCode, logObject);
           loggerError('',rspObj,errCode+errorCodes.CODE3);
           return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE3));
         });
       } catch (err) {
-        console.log(err)
+        console.log(JSON.stringify(err));
         loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
         loggerError('Error fetching nomination with limit and offset',rspObj,errCode+errorCodes.CODE4);
         return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE4));
       }
     }).catch(function (err) {
-      console.log(err)
+      console.log(JSON.stringify(err));
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       loggerError('Error fetching nomination with limit and offset',rspObj,errCode+errorCodes.CODE5);
       return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE5));
@@ -2381,7 +2379,7 @@ async function programCopyCollections(req, response) {
                     rspObj.errCode = programMessages.COPY_COLLECTION.BULK_UPDATE_HIERARCHY.FAILED_CODE;
                       rspObj.errMsg = programMessages.COPY_COLLECTION.BULK_UPDATE_HIERARCHY.FAILED_MESSAGE;
                       rspObj.responseCode = responseCode.SERVER_ERROR
-                      console.log('Error updating hierarchy for collections', error)
+                      console.log('Error updating hierarchy for collections', JSON.stringify(error));
                       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
                       loggerError('',rspObj,errCode+errorCodes.CODE2);
                     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2))
@@ -2390,7 +2388,7 @@ async function programCopyCollections(req, response) {
                 rspObj.errCode = programMessages.COPY_COLLECTION.GET_HIERARCHY.FAILED_CODE;
                   rspObj.errMsg = programMessages.COPY_COLLECTION.GET_HIERARCHY.FAILED_MESSAGE;
                   rspObj.responseCode = responseCode.SERVER_ERROR
-                  console.log('Error fetching hierarchy for collections', error)
+                  console.log('Error fetching hierarchy for collections', JSON.stringify(error));
                   loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
                   loggerError('',rspObj,errCode+errorCodes.CODE3);
                 return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE3))
@@ -2446,7 +2444,7 @@ async function programCopyCollections(req, response) {
                         rspObj.errCode = _.get(error.response, 'data.params.err') || programMessages.COPY_COLLECTION.BULK_UPDATE_HIERARCHY.FAILED_CODE;
                         rspObj.errMsg = _.get(error.response, 'data.params.errmsg') || programMessages.COPY_COLLECTION.BULK_UPDATE_HIERARCHY.FAILED_MESSAGE;
                         rspObj.responseCode = _.get(error.response, 'data.responseCode') || responseCode.SERVER_ERROR
-                        console.log('Error updating hierarchy for collections', error)
+                        console.log('Error updating hierarchy for collections', JSON.stringify(error));
                         loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
                         loggerError('',rspObj,errCode+errorCodes.CODE4);
                         return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE4))
@@ -2455,7 +2453,7 @@ async function programCopyCollections(req, response) {
                     rspObj.errCode = _.get(error.response, 'data.params.err') || programMessages.COPY_COLLECTION.CREATE_COLLECTION.FAILED_CODE;
                     rspObj.errMsg = _.get(error.response, 'data.params.errmsg') || programMessages.COPY_COLLECTION.CREATE_COLLECTION.FAILED_MESSAGE;
                     rspObj.responseCode = _.get(error.response, 'data.responseCode') || responseCode.SERVER_ERROR
-                    console.log('Error creating collection', error)
+                    console.log('Error creating collection', JSON.stringify(error));
                     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
                     loggerError('',rspObj,errCode+errorCodes.CODE5);
                     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE5))
@@ -2464,7 +2462,7 @@ async function programCopyCollections(req, response) {
                 rspObj.errCode = programMessages.COPY_COLLECTION.GET_HIERARCHY.FAILED_CODE;
                 rspObj.errMsg = programMessages.COPY_COLLECTION.GET_HIERARCHY.FAILED_MESSAGE;
                 rspObj.responseCode = responseCode.SERVER_ERROR
-                console.log('Error fetching hierarchy for collections', error)
+                console.log('Error fetching hierarchy for collections', JSON.stringify(error));
                 loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
                 loggerError('',rspObj,errCode+errorCodes.CODE6);
                 return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE6))
@@ -2475,7 +2473,7 @@ async function programCopyCollections(req, response) {
         rspObj.errCode = programMessages.COPY_COLLECTION.SEARCH_DOCK_COLLECTION.FAILED_CODE;
         rspObj.errMsg = error.message || programMessages.COPY_COLLECTION.SEARCH_DOCK_COLLECTION.FAILED_MESSAGE;
         rspObj.responseCode = error.response.statusText || responseCode.SERVER_ERROR
-        console.log('Error searching for collections', error)
+        console.log('Error searching for collections', JSON.stringify(error));
 
         loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
         loggerError('',rspObj,errCode+errorCodes.CODE7);
@@ -2609,8 +2607,8 @@ function publishContent(req, response){
     rspObj.errMsg = programMessages.CONTENT_PUBLISH.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
 
-    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE1);
+    loggerService.exitLog({responseCode: rspObj.responseCode, errCode: rspObj.errCode}, logObject);
+    loggerError('', rspObj, errCode+errorCodes.CODE1);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1));
   }
 
@@ -2636,7 +2634,7 @@ function publishContent(req, response){
         const eventData = publishHelper.getPublishContentEvent(contentMetaData, data.request.origin.textbook_id, units);
         KafkaService.sendRecord(eventData, function (err, res) {
           if (err) {
-            console.log(err)
+            console.log(JSON.stringify(err));
             logger.error({ msg: 'Error while sending event to kafka', err, additionalInfo: { eventData } })
             rspObj.errCode = programMessages.CONTENT_PUBLISH.FAILED_CODE
             rspObj.errMsg = 'Error while sending event to kafka'
@@ -2655,7 +2653,7 @@ function publishContent(req, response){
         });
       },
       (error) => {
-        console.log(error)
+        console.log(JSON.stringify(error));
         rspObj.errCode = programMessages.CONTENT_PUBLISH.FAILED_CODE
         rspObj.errMsg = programMessages.CONTENT_PUBLISH.FAILED_MESSAGE
         rspObj.responseCode = responseCode.SERVER_ERROR
@@ -2742,7 +2740,7 @@ function addorUpdateUserOrgMapping(userProfile, filterRootOrg, orgOsid, userOsid
           actorId: userProfile.identifier,
           params: {userProfile: consoleLogs[userProfile.identifier]}
         }
-        console.log(loggerService.logFormate(logFormate));
+        console.log(JSON.stringify(loggerService.logFormate(logFormate)));
         callbackFunction(null, updateOsid);
       }
       else {
@@ -2793,7 +2791,7 @@ function addorUpdateUserOrgMapping(userProfile, filterRootOrg, orgOsid, userOsid
           actorId: userProfile.identifier,
           params: {userProfile: consoleLogs[userProfile.identifier]}
         }
-        console.log(loggerService.logFormate(logFormate));
+        console.log(JSON.stringify(loggerService.logFormate(logFormate)));
         callbackFunction(null, _.get(mapRes.data, 'result.User_Org.osid'));
       }
       else {
@@ -2864,7 +2862,7 @@ function mapusersToContribOrg(orgOsid, filters, reqHeaders) {
                       }
                     } else {
                       tempRes.result.push(re);
-                      console.log(err);
+                      console.log(JSON.stringify(err));
                       if (checkIfReturnResult(tempRes.result.length, tempRes.count)) {
                         return resolve(tempRes);
                       }
@@ -2893,7 +2891,7 @@ function mapusersToContribOrg(orgOsid, filters, reqHeaders) {
                 } else {
                   re.error = err || {msg: 'Error- addorUpdateUserOrgMapping'};
                   tempRes.result.push(re);
-                  console.log(err);
+                  console.log(JSON.stringify(err));
                   if (checkIfReturnResult(tempRes.result.length, tempRes.result.count)) {
                     return resolve(tempRes);
                   }
@@ -2964,14 +2962,14 @@ function onBeforeMigratingUsers(request) {
                 }
               }, {});
             }).catch((error) => {
-              console.log(error)
+              console.log(JSON.stringify(error));
               logger.error({ msg: 'Error- while adding users to contrib org',
               additionalInfo: { rootorg_id: data.request.rootorg_id, orgOsid: orgOsid } }, {});
             });
           }
         }
       }).catch((error) => {
-        console.log(error);
+        console.log(JSON.stringify(error));
       });
     }
   })
