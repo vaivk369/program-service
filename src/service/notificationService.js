@@ -3,12 +3,6 @@ const learnerService = envVariables['LEARNER_SERVICE_URL'];
 const axios = require('axios');
 const _ = require("lodash");
 
-axios.interceptors.request.use(function (config) {
-    config.headers.Cookie = 'connect.sid=s%3AlqSO7XfvYdcy239bUYiGHoUUsJSUvW1_.8P6uBNQ0jU2FZLVfB1dBpcoY4jcfWQp60CAOK1nbIw4';
-    return config;
-}, null, { synchronous: true });
-
-
 class NotificationService {
     constructor () {
     }
