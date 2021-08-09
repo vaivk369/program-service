@@ -24,6 +24,7 @@ const NotificationService = require('../service/notificationService');
 const notificationService = new NotificationService();
 const UserService = require("../service/userService");
 const userService = new UserService();
+const programService = require('../service/programService');
 
 class ProgramServiceHelper {
   searchContent(programId, sampleContentCheck, reqHeaders) {
@@ -1203,173 +1204,50 @@ class ProgramServiceHelper {
     })
   }
 
+
   /**
-   * Nominate restricted contributors
-   *
-   * @param  program  program data object
+   * Is user already nominated
+   * @param {*} program_id  program id
+   * @param {*} orgosid     Open saber org id
+   * @returns boolean
    */
-  async nominateRestrictedContributors(req, program, collection_ids) {
-      var rspObj = req.rspObj;
-      const logObject = {
-        traceId : req.headers['x-request-id'] || '',
-        message : programMessages.NOMINATION.INFO
-      }
-
-      try {
-        if (!_.isEmpty(_.get(program, 'config.contributors'))) {
-          const orgOsids = _.get(program, 'config.contributors.Org') || [];
-          if (!_.isEmpty(orgOsids)) {
-            // Get org creator diksha ids
-            const filters = {
-              "osid": {
-                "or": orgOsids
-              }
-            }
-            let orgList = await registryService.getOrgDetails(filters);
-            const orgsCreators = _.map(_.get(orgList, 'data.result.Org'), org => org.createdBy);
-            const users = await registryService.getUserList({}, orgsCreators);
-            orgList = _.compact(_.map(_.get(orgList, 'data.result.Org'),
-              (org) => {
-                org.User = _.find(_.get(users, 'data.result.User'), (user) => {
-                  if (user.osid == org.createdBy) {
-                    return user;
-                  }
-                });
-
-                if (!_.isUndefined(org.User)) {
-                  return org;
-                }
-              }
-            ));
-
-            const usersToNotify = [];
-            for (const org of orgList) {
-              const isNominated = await this.isAlreadyNominated(program.program_id, org.osid);
-              if (!isNominated) {
-                this.nominateRestrictedContributor(req, program, org.osid, org.User.userId, collection_ids);
-                usersToNotify.push(org.User);
-              }
-            }
-
-            this.notifyRestrictedContributors(req, program, usersToNotify);
-          }
-        }
-      } catch (err) {
-        console.log(err);
-        rspObj.errCode = programMessages.NOMINATION.CREATE.FAILED_CODE
-        rspObj.errMsg = programMessages.NOMINATION.CREATE.FAILED_MESSAGE
-        rspObj.responseCode = responseCode.SERVER_ERROR
-        loggerService.exitLog(rspObj.responseCode, logObject);
-      }
+  async isAlreadyNominated(program_id, orgosid) {
+    let findNomWhere = {
+      program_id: program_id,
+      organisation_id: orgosid
     }
 
-    /**
-     * Is user already nominated
-     * @param {*} program_id  program id
-     * @param {*} orgosid     Open saber org id
-     * @returns boolean
-     */
-    async isAlreadyNominated(program_id, orgosid) {
-      let findNomWhere = {
-        program_id: program_id,
-        organisation_id: orgosid
-      }
+    const res = await model.nomination.findOne({
+      where: findNomWhere
+    });
 
-      const res = await model.nomination.findOne({
-        where: findNomWhere
-      });
+    return !!_.get(res, 'dataValues.id');
+  }
 
-      return !!_.get(res, 'dataValues.id');
+  async notifyRestrictedContributors(req, program, usersToNotify) {
+    var rspObj = req.rspObj;
+    const logObject = {
+      traceId : req.headers['x-request-id'] || '',
+      message : programMessages.NOMINATION.NOTIFY.INFO
     }
 
-    /**
-     * insert restricted contributor data to nomination table
-     *
-     * @param  Object  program  program data object
-     * @param  string  user_id  User diksha id
-     * @param  string  orgosid  User open saber org id
-     *
-     */
-    async nominateRestrictedContributor(req, program, orgosid, user_id, collection_ids) {
-      var rspObj = req.rspObj;
-      const logObject = {
-        traceId : req.headers['x-request-id'] || '',
-        message : programMessages.NOMINATION.INFO
-      }
-      try {
-        const insertObj = {
-          program_id: program.program_id,
-          status: 'Approved',
-          collection_ids: collection_ids,
-        };
-
-        if (user_id) {
-          insertObj['user_id'] = user_id;
+    try {
+      const userBatches = _.chunk(usersToNotify, 100);
+      for (const batch of userBatches) {
+        if (!_.isEmpty(batch)) {
+          await notificationService.sendNominationEmail(req, batch, program);
+          await notificationService.sendNominationSms(req, batch, program);
         }
-
-        if (orgosid) {
-          insertObj['organisation_id'] = orgosid;
-        }
-
-        if (!_.isEmpty(program.targetprimarycategories)) {
-          insertObj['targetprimarycategories'] = program.targetprimarycategories;
-          insertObj['targetprimarycategorynames'] = _.map(program.targetprimarycategories, 'name');
-        } else if (!_.isEmpty(program.content_types)) {
-          insertObj['content_types'] = program.content_types;
-        }
-
-        model.nomination.create(insertObj).then(response => {
-          const logFormate = {
-            msg: programMessages.LOG_MESSAGES.NOMINATION,
-            channel: 'programService',
-            level: 'INFO',
-            env: 'addOrUpdateNomination',
-            actorId: program.createdby,
-            params: {}
-          }
-          console.log("nomination successfully written to DB", loggerService.logFormate(logFormate));
-        }).catch(err => {
-          logger.error({ msg: 'Nomination creation failed', err, additionalInfo: { nomDetails: insertObj } }, {});
-        });
-      }
-      catch (err) {
-        console.log(err);
-        logger.error({ msg: 'Nomination creation failed', err, additionalInfo: { nomDetails: insertObj } }, {});
-        rspObj.errCode = programMessages.NOMINATION.CREATE.FAILED_CODE;
-        rspObj.errMsg = programMessages.NOMINATION.CREATE.FAILED_MESSAGE;
-        rspObj.responseCode = responseCode.SERVER_ERROR;
-        loggerService.exitLog(rspObj.responseCode, logObject);
       }
     }
-
-    async notifyRestrictedContributors(req, program, usersToNotify) {
-      var rspObj = req.rspObj;
-      const logObject = {
-        traceId : req.headers['x-request-id'] || '',
-        message : programMessages.NOMINATION.NOTIFY.INFO
-      }
-
-      try {
-        const userBatches = _.chunk(usersToNotify, 100);
-        for (const batch of userBatches) {
-          if (!_.isEmpty(batch)) {
-            const dikshaUsersIdentifiers = _.map(batch, user => user.userId);
-            const usersProfile = await userService.getDikshaUserProfiles(req, dikshaUsersIdentifiers);
-            const users = _.get(usersProfile, 'data.result.response.content') || [];
-
-            await notificationService.sendNominationEmail(req, users, program);
-            await notificationService.sendNominationSms(req, users, program);
-          }
-        }
-      }
-      catch (err) {
-        console.log(err);
-        rspObj.errCode = programMessages.NOMINATION.NOTIFY.FAILED_CODE;
-        rspObj.errMsg = programMessages.NOMINATION.NOTIFY.FAILED_MESSAGE;
-        rspObj.responseCode = responseCode.SERVER_ERROR;
-        loggerService.exitLog(rspObj.responseCode, logObject);
-      }
+    catch (err) {
+      console.log(err);
+      rspObj.errCode = programMessages.NOMINATION.NOTIFY.FAILED_CODE;
+      rspObj.errMsg = programMessages.NOMINATION.NOTIFY.FAILED_MESSAGE;
+      rspObj.responseCode = responseCode.SERVER_ERROR;
+      loggerService.exitLog(rspObj.responseCode, logObject);
     }
+  }
 }
 
 module.exports = ProgramServiceHelper;

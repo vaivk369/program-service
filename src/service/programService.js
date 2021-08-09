@@ -28,8 +28,6 @@ const RedisManager = require('../helpers/redisUtil')
 const KafkaService = require('../helpers/kafkaUtil')
 const publishHelper = require('../helpers/publishHelper')
 var async = require('async')
-
-
 const queryRes_Max = 1000;
 const queryRes_Min = 300;
 const stackTrace_MaxLimit = 500;
@@ -337,7 +335,7 @@ async function asyncOnAfterPublish (req, program_id) {
 
       const collection_ids = _.get(nomination, 'collection_ids') || [];
       if (!_.isEmpty(collection_ids)) {
-        await programServiceHelper.nominateRestrictedContributors(req, program, collection_ids);
+        await nominateRestrictedContributors(req, program, collection_ids);
       }
     }
   }
@@ -520,7 +518,7 @@ function onAfterPublishProgram(programDetails, req, afterPublishCallback) {
       const contribMapped = _.find(userRegData.User_Org, function(o) { return o.roles.includes('user') || o.roles.includes('admin') });
       if (userOsid && iforgFoundInRegData && !_.isEmpty(osOrgforRootOrg)) {
         // When in opensaber user is mapped to the org with OrgId as rootOrgId
-        addOrUpdateNomination(programDetails, osOrgforRootOrg.osid).then ((nominationRes) => {
+        addOrUpdateNomination(programDetails, programDetails.createdby, osOrgforRootOrg.osid).then ((nominationRes) => {
           onPublishResult.nomination['error'] = null;
           onPublishResult.nomination['result'] = nominationRes;
           afterPublishCallback(onPublishResult);
@@ -541,7 +539,7 @@ function onAfterPublishProgram(programDetails, req, afterPublishCallback) {
         // When in opensaber user is *not mapped to the org with OrgId as rootOrgId, but we found a org with orgId as rootorgId through query
         // We can map that user to the found org only when user is not mapped to any other org as 'user' or 'admin'
         if (!_.isEmpty(contribMapped)) {
-          addOrUpdateNomination(programDetails, osOrgforRootOrg.osid).then ((nominationRes) => {
+          addOrUpdateNomination(programDetails, programDetails.createdby, osOrgforRootOrg.osid).then ((nominationRes) => {
             onPublishResult.nomination['error'] = null;
             onPublishResult.nomination['result'] = nominationRes;
             afterPublishCallback(onPublishResult);
@@ -567,7 +565,7 @@ function onAfterPublishProgram(programDetails, req, afterPublishCallback) {
           registryService.addRecord(regReq, (userOrgErr, userOrgRes) => {
             if (!userOrgErr && userOrgRes && userOrgRes.status == 200 &&
               !_.isEmpty(_.get(userOrgRes.data, 'result')) && _.get(userOrgRes.data, 'result.User_Org.osid')) {
-                addOrUpdateNomination(programDetails, osOrgforRootOrg.osid).then ((nominationRes) => {
+                addOrUpdateNomination(programDetails, programDetails.createdby, osOrgforRootOrg.osid).then ((nominationRes) => {
                   onPublishResult.nomination['error'] = null;
                   onPublishResult.nomination['result'] = nominationRes;
                   afterPublishCallback(onPublishResult);
@@ -587,7 +585,7 @@ function onAfterPublishProgram(programDetails, req, afterPublishCallback) {
           if (!errObj && rspObj) {
             const userReg = rspObj.result;
 
-            addOrUpdateNomination(programDetails, userReg.User_Org.orgId).then((nominationRes) => {
+            addOrUpdateNomination(programDetails, programDetails.createdby, userReg.User_Org.orgId).then((nominationRes) => {
               onPublishResult.nomination['error'] = null;
               onPublishResult.nomination['result'] = nominationRes;
               afterPublishCallback(onPublishResult);
@@ -848,12 +846,12 @@ function createOrgMappingInRegistry(userProfile, userReg, regMethodCallback) {
   });
 }
 
-function addOrUpdateNomination(programDetails, orgosid) {
+function addOrUpdateNomination(programDetails, user_id, orgosid) {
   return new Promise((resolve, reject) => {
     if (orgosid) {
       const insertObj = {
         program_id: programDetails.program_id,
-        user_id: programDetails.createdby,
+        user_id: user_id,
         organisation_id: orgosid,
         status: 'Approved',
         collection_ids: programDetails.copiedCollections,
@@ -3283,6 +3281,47 @@ function getParams(msgId, status, errCode, msg) {
 
   return params
 }
+
+/**
+ * Nominate restricted contributors
+ *
+ * @param  program  program data object
+ */
+async function nominateRestrictedContributors(req, program, collection_ids) {
+  var rspObj = req.rspObj;
+  const logObject = {
+    traceId : req.headers['x-request-id'] || '',
+    message : programMessages.NOMINATION.INFO
+  }
+
+  try {
+    if (!_.isEmpty(_.get(program, 'config.contributors'))) {
+      const orgList = _.get(program, 'config.contributors.Org') || [];
+      if (!_.isEmpty(orgList)) {
+        // Get org creator diksha ids
+        const usersToNotify = [];
+        for (const org of orgList) {
+          const isNominated = await programServiceHelper.isAlreadyNominated(program.program_id, org.osid);
+          if (!isNominated) {
+            program['copiedCollections'] = collection_ids;
+            await addOrUpdateNomination(program,org.User.userId, org.osid);
+            usersToNotify.push(org.User);
+          }
+        }
+
+        programServiceHelper.notifyRestrictedContributors(req, program, usersToNotify);
+      }
+    }
+  }
+  catch (err) {
+    console.log(err);
+    rspObj.errCode = programMessages.NOMINATION.CREATE.FAILED_CODE
+    rspObj.errMsg = programMessages.NOMINATION.CREATE.FAILED_MESSAGE
+    rspObj.responseCode = responseCode.SERVER_ERROR
+    loggerService.exitLog(rspObj.responseCode, logObject);
+  }
+}
+
 
 module.exports.syncUsersToRegistry = syncUsersToRegistry
 module.exports.getProgramAPI = getProgram

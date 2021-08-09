@@ -35,7 +35,7 @@ class NotificationService {
 
     async sendNominationEmail(req, users, program) {
         const userIdsToEmail = _.compact(_.map(users, user => {
-            if (user.email) {
+            if (user.maskedEmail) {
                 return user.userId;
             }
         }));
@@ -60,7 +60,7 @@ class NotificationService {
 
     async sendNominationSms(req, users, program) {
         const userIdsToSms = _.compact(_.map(users, user => {
-            if (user.phone) {
+            if (user.maskedPhone) {
                 return user.userId;
             }
         }));
