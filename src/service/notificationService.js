@@ -12,8 +12,7 @@ class NotificationService {
             url: learnerService + '/user/v1/notification/email',
             method: 'post',
             headers: {
-                ...req.headers,
-                ...{ 'Cookie': 'connect.sid=s%3AlqSO7XfvYdcy239bUYiGHoUUsJSUvW1_.8P6uBNQ0jU2FZLVfB1dBpcoY4jcfWQp60CAOK1nbIw4' }
+                ...req.headers
             },
             data: {
                 request: reqData
