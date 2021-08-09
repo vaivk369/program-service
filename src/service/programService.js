@@ -150,7 +150,6 @@ function updateProgram(req, response) {
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
-  asyncOnAfterPublish(data.request.program_id);
   const updateQuery = {
     where: {
       program_id: data.request.program_id
@@ -178,6 +177,7 @@ function updateProgram(req, response) {
       },errCode+errorCodes.CODE2));
     }
     loggerService.exitLog({responseCode: 'OK'}, logObject);
+    asyncOnAfterPublish(req, data.request.program_id);
     return response.status(200).send(successResponse({
       apiId: 'api.program.update',
       ver: '1.0',
@@ -230,6 +230,7 @@ function publishProgram(req, response) {
           return collection.result.content_id;
           });
         }
+
         const updateValue = {
           status: "Live",
           updatedon: new Date(),
@@ -266,7 +267,7 @@ function publishProgram(req, response) {
           onAfterPublishProgram(res,req, function(afterPublishResponse) {
               loggerService.exitLog({responseCode: 'OK'}, logObject);
               // Async function to perform on after publish if any
-              asyncOnAfterPublish(data.request.program_id);
+              asyncOnAfterPublish(req, data.request.program_id);
               return response.status(200).send(successResponse({
                 apiId: 'api.program.publish',
                 ver: '1.0',
@@ -316,21 +317,39 @@ function publishProgram(req, response) {
   });
 }
 
-async function asyncOnAfterPublish (program_id) {
+async function asyncOnAfterPublish (req, program_id) {
+  var rspObj = req.rspObj;
+  const logObject = {
+    traceId : req.headers['x-request-id'] || '',
+    message : programMessages.NOMINATION.INFO
+  }
+
   try {
     const res = await model.program.findByPk(program_id);
     const program = _.get(res, 'dataValues');
 
     if (_.get(program, 'type') === 'restricted') {
-      await programServiceHelper.nominateRestrictedContributors(program);
+      const nomination = await model.nomination.findOne({
+        where: {
+          program_id: program_id,
+          user_id: _.get(program, 'createdby')
+        }
+      });
+
+      const collection_ids = _.get(nomination, 'collection_ids') || [];
+      if (!_.isEmpty(collection_ids)) {
+        await programServiceHelper.nominateRestrictedContributors(req, program, collection_ids);
+      }
     }
   }
   catch(err) {
     console.log(err);
-    debugger;
+    rspObj.errCode = programMessages.NOMINATION.CREATE.FAILED_CODE
+    rspObj.errMsg = programMessages.NOMINATION.CREATE.FAILED_MESSAGE
+    rspObj.responseCode = responseCode.SERVER_ERROR
+    loggerService.exitLog(rspObj.responseCode, logObject);
+    loggerError('',rspObj,errCode+errorCodes.CODE1);
   }
-
-  // setTimeout(()=> {debugger;}, 30000);
 }
 
 function unlistPublishProgram(req, response) {
@@ -495,7 +514,6 @@ function onAfterPublishProgram(programDetails, req, afterPublishCallback) {
   onPublishResult['nomination']= {};
   onPublishResult['userMapping']= {};
   getUserRegistryDetails(programDetails.createdby).then((userRegData) => {
-    debugger;
     getOsOrgForRootOrgId(programDetails.rootorg_id, userRegData, reqHeaders).then((osOrgforRootOrgRes) => {
       const iforgFoundInRegData = osOrgforRootOrgRes.orgFoundInRegData;
       const osOrgforRootOrg = osOrgforRootOrgRes.osOrgforRootOrg;

@@ -4,7 +4,6 @@ const axios = require('axios');
 const _ = require("lodash");
 
 class RegistryService {
-
     constructor() {
     }
 
@@ -144,8 +143,7 @@ class RegistryService {
     getDefaultHeaders() {
         let headers = {
             'content-type': 'application/json',
-            'accept': 'application/json',
-            'Cookie': 'connect.sid=s%3AJ-bJJI_q3-b-WKFnoKocNUUL-fvtrt79.o5%2Fm0lACbMx2cx%2FHv6U%2BremRtU%2BE7uE4dWJ51SOXalc'
+            'accept': 'application/json'
         }
         return headers;
     }
