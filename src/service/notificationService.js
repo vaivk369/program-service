@@ -6,9 +6,6 @@ const messageUtils = require('../service/messageUtil');
 const programMessages = messageUtils.PROGRAM;
 
 class NotificationService {
-    constructor () {
-    }
-
     async sendNotification(req, reqData) {
         const option = {
             url: learnerService + '/user/v1/notification/email',
