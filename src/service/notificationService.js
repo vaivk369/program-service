@@ -2,6 +2,8 @@ const envVariables = require('../envVariables');
 const learnerService = envVariables['LEARNER_SERVICE_URL'];
 const axios = require('axios');
 const _ = require("lodash");
+const messageUtils = require('../service/messageUtil');
+const programMessages = messageUtils.PROGRAM;
 
 class NotificationService {
     constructor () {
@@ -44,7 +46,7 @@ class NotificationService {
             return;
         }
 
-        const emailSubject = `VidyaDaan: Your nomination for ${ program.name } project is accepted`;
+        const emailSubject = programMessages.NOMINATION.NOTIFY.EMAIL_SUBJECT.replace('{PROGRAM_NAME}', program.name);
         const mode = 'email';
         const request = {
             mode: mode,
@@ -70,8 +72,8 @@ class NotificationService {
         }
 
         const projectName = _.truncate(program.name, { length: 25 });
-        const smsURL = envVariables.baseURL;
-        const smsYouAreNominated = `VidyaDaan: Your nomination for ${ projectName } is accepted. Please login to ${ smsURL } to start contributing content`;
+        let smsYouAreNominated = programMessages.NOMINATION.NOTIFY.SMS.replace('{PROGRAM_NAME}', projectName);
+        smsYouAreNominated = smsYouAreNominated.replace('{smsURL}', envVariables.baseURL);
 
         const request = {
             mode: 'sms',
