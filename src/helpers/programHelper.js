@@ -648,7 +648,7 @@ class ProgramServiceHelper {
           const nonExistingTextbooks = hierarchyService.getNonExistingCollection(consolidatedResult)
 
           if (existingTextbooks && existingTextbooks.length > 0) {
-            hierarchyService.getHierarchy(existingTextbooks, req.headers)
+            hierarchyService.getHierarchy(existingTextbooks, reqHeaders)
               .subscribe(
                 (originHierarchyResult) => {
                   const originHierarchyResultData = _.map(originHierarchyResult, r => {
@@ -664,7 +664,7 @@ class ProgramServiceHelper {
 
                     return hierarchyService.existingHierarchyUpdateRequest(c, additionalMetaData, children);
                   })
-                  hierarchyService.bulkUpdateHierarchy(getCollectiveRequest, req.headers)
+                  hierarchyService.bulkUpdateHierarchy(getCollectiveRequest, reqHeaders)
                     .subscribe(updateResult => {
                       const updateResultData = _.map(updateResult, obj => {
                         return obj.data
