@@ -201,117 +201,129 @@ function updateProgram(req, response) {
 }
 
 function publishProgram(req, response) {
-  var data = req.body;
-  var rspObj = req.rspObj;
+  var reqBody = req.body;
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
     message : programMessages.PUBLISH.INFO
   }
- loggerService.entryLog(data, logObject);
-  const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.PUBLISH.EXCEPTION_CODE
-
-  if (!data.request || !data.request.program_id || !data.request.channel) {
-    rspObj.errCode = programMessages.PUBLISH.MISSING_CODE
-    rspObj.errMsg = programMessages.PUBLISH.MISSING_MESSAGE
-    rspObj.responseCode = responseCode.CLIENT_ERROR
-    loggerError('',rspObj,errCode+errorCodes.CODE1);
-    loggerService.exitLog({responseCode: rspObj.responseCode, errCode: errCode+errorCodes.CODE1}, logObject);
-    return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
+  loggerService.entryLog(reqBody, logObject);
+  
+  if (!reqBody.request || !reqBody.request.program_id || !reqBody.request.channel) {
+    req.rspObj.errCode = programMessages.PUBLISH.MISSING_CODE
+    req.rspObj.errMsg = programMessages.PUBLISH.MISSING_MESSAGE
+    req.rspObj.responseCode = responseCode.CLIENT_ERROR
+    loggerError('',req.rspObj,errCode+errorCodes.CODE1);
+    loggerService.exitLog({responseCode: req.rspObj.responseCode, errCode: req.rspObj.errCode+errorCodes.CODE1}, logObject);
+    return response.status(400).send(errorResponse(req.rspObj,req.rspObj.errCode+errorCodes.CODE1))
   }
+  req.rspObj.errCode = programMessages.EXCEPTION_CODE + '_' + programMessages.PUBLISH.EXCEPTION_CODE
 
-  model.program.findByPk(data.request.program_id)
-  .then(function (res) {
-    const cb = function(errObj, rspObj) {
-      if (!errObj && rspObj) {
-        res.copiedCollections = [];
-        if (rspObj && rspObj.result) {
-          res.copiedCollections = _.map(rspObj.result, (collection) => {
-          return collection.result.content_id;
-          });
-        }
-        const updateValue = {
-          status: "Live",
-          updatedon: new Date(),
-          collection_ids: []
-        };
-
-       const collections = _.get(res, 'config.collections');
-       if (collections) {
-        _.forEach(collections, el => {
-          updateValue.collection_ids.push(el.id);
-        });
-       }
-
-        const updateQuery = {
-          where: {
-            program_id: data.request.program_id
-          },
-          returning: true,
-          individualHooks: true,
-        };
-
-        model.program.update(updateValue, updateQuery).then(resData => {
-          if (_.isArray(resData) && !resData[0]) {
-            loggerError('',rspObj,errCode+errorCodes.CODE2);
-            loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: errCode+errorCodes.CODE2}, logObject);
-            return response.status(400).send(errorResponse({
-              apiId: 'api.program.publish',
-              ver: '1.0',
-              msgid: uuid(),
-              responseCode: 'ERR_PUBLISH_PROGRAM',
-              result: 'Program_id Not Found'
-            },errCode+errorCodes.CODE2));
-          }
-          onAfterPublishProgram(res,req, function(afterPublishResponse) {
-              loggerService.exitLog({responseCode: 'OK'}, logObject);
-              return response.status(200).send(successResponse({
-                apiId: 'api.program.publish',
-                ver: '1.0',
-                msgid: uuid(),
-                responseCode: 'OK',
-                result: {
-                  'program_id': updateQuery.where.program_id,
-                  afterPublishResponse
-                }
-              }));
-          });
-
-        })/*.then(onAfterPublishProgram(res,req))*/
-        .catch(error => {
-          // console.log(error)
-          loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: errCode+errorCodes.CODE3}, logObject);
-          loggerError('', rspObj, errCode+errorCodes.CODE3);
-          return response.status(400).send(errorResponse({
-            apiId: 'api.program.publish',
-            ver: '1.0',
-            msgid: uuid(),
-            responseCode: 'ERR_PUBLISH_PROGRAM',
-            result: error
-          },errCode+errorCodes.CODE3));
-        });
-      } else {
-        loggerService.exitLog({responseCode: errObj.responseCode, errCode: errCode+errorCodes.CODE4}, logObject);
-        loggerError('', rspObj, errCode+errorCodes.CODE4);
-        return response.status(400).send(errorResponse(errObj,errCode+errorCodes.CODE4));
-      }
-    };
-    programServiceHelper.copyCollections(res, data.request.channel, req.headers, cb);
-  })
-  .catch(function (err) {
+  model.program.findByPk(reqBody.request.program_id)
+  .then(function (program) {
+    if (_.get(program, 'program_id') && _.get(program, 'type') === 'private') {
+      req.rspObj.errCode = programMessages.EXCEPTION_CODE+'_'+contentMessages.UNLISTED_PUBLISH.EXCEPTION_CODE
+    }
+    if (_.get(program, 'program_id') && _.get(program, 'target_type') === 'collections') {
+      programServiceHelper.copyCollections(program, req, response, publishCallback);
+    } else if (_.get(program, 'program_id')) {
+      publishCallback(null, req, response, program);
+    } else {
+        loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: req.rspObj.errCode+errorCodes.CODE2}, logObject);
+        loggerError('', req.rspObj, req.rspObj.errCode+errorCodes.CODE2);
+        req.rspObj.responseCode = 'ERR_PUBLISH_PROGRAM';
+        req.rspObj.result = 'Program_id Not Found';
+        req.rspObj.errMsg = programMessages.PUBLISH.FAILED_MESSAGE;
+        return response.status(404).send(errorResponse(req.rspObj, req.rspObj.errCode+errorCodes.CODE2));
+    }
+  }).catch(function (err) {
     console.log(JSON.stringify(err));
-    loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: errCode+errorCodes.CODE5}, logObject);
-    loggerError('', rspObj, errCode+errorCodes.CODE5);
-    return response.status(400).send(errorResponse({
-      apiId: 'api.program.publish',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'ERR_PUBLISH_PROGRAM',
-      result: err
-    },errCode+errorCodes.CODE5));
+    req.rspObj.responseCode = 'ERR_PUBLISH_PROGRAM';
+    req.rspObj.result = err;
+    req.rspObj.errMsg = programMessages.PUBLISH.FAILED_MESSAGE;
+    loggerService.exitLog({responseCode: req.rspObj.responseCode, errCode: req.rspObj.errCode+errorCodes.CODE5}, logObject);
+    loggerError('', req.rspObj, req.rspObj.errCode+errorCodes.CODE5);
+    return response.status(400).send(errorResponse(req.rspObj, req.rspObjerrCode+errorCodes.CODE5));
   });
 }
 
-function unlistPublishProgram(req, response) {
+const publishCallback = function(errObj, req, response, program, copyCollectionRes) {
+  let logObject = {
+    traceId : req.headers['x-request-id'] || '',
+    message : (_.get(program, 'type') === 'public') ? programMessages.PUBLISH.INFO : contentMessages.UNLISTED_PUBLISH.INFO
+  }
+  if (!errObj && (_.isUndefined(copyCollectionRes) || copyCollectionRes !== null)) {
+    const reqHeaders = req.headers;
+    program.copiedCollections = [];
+      if (copyCollectionRes) {
+        program.copiedCollections = _.map(copyCollectionRes, (collection) => {
+        return collection.result.content_id;
+       });
+    }
+    const updateValue = {
+      status: (_.get(program, 'type') === "public") ? "Live" : "Unlisted",
+      updatedon: new Date(),
+      collection_ids: []
+    };
+
+    const collections = _.get(program, 'config.collections');
+    if (collections) {
+      _.forEach(collections, el => {
+        updateValue.collection_ids.push(el.id);
+      });
+    }
+    const updateQuery = {
+      where: {
+        program_id: program.program_id
+      },
+      returning: true,
+      individualHooks: true,
+    };
+
+    model.program.update(updateValue, updateQuery).then(resData => {
+      if (_.isArray(resData) && !resData[0]) {
+        loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: req.rspObj.errCode+errorCodes.CODE2}, logObject);
+        loggerError('', req.rspObj, errCode+errorCodes.CODE2);
+        req.rspObj.responseCode = 'ERR_PUBLISH_PROGRAM';
+        req.rspObj.result = 'Program_id Not Found';
+        req.rspObj.errMsg = programMessages.PUBLISH.FAILED_MESSAGE;
+        return response.status(404).send(errorResponse(req.rspObj, req.rspObj.errCode+errorCodes.CODE2));
+      }
+      onAfterPublishProgram(program, reqHeaders, function(afterPublishResponse) {
+        if (afterPublishResponse.error) {
+          console.log(JSON.stringify(afterPublishResponse.error));
+          loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: req.rspObj.errCode+errorCodes.CODE3}, logObject);
+          loggerError('', req.rspObj, req.rspObj.errCode+errorCodes.CODE2);
+          req.rspObj.responseCode = 'ERR_PUBLISH_PROGRAM';
+          req.rspObj.result = (_.get(afterPublishResponse.error, 'Error.response.data')) ? _.get(afterPublishResponse.error, 'Error.response.data') : 'On After Publish callback failed';
+          return response.status(400).send(errorResponse(req.rspObj, req.rspObj.errCode+errorCodes.CODE2));
+        } else {
+          loggerService.exitLog({responseCode: 'OK'}, logObject);
+          req.rspObj.responseCode = 'OK';
+          req.rspObj.result = {
+            'program_id': updateQuery.where.program_id,
+            afterPublishResponse
+          };
+          return response.status(200).send(successResponse(req.rspObj));
+        }
+    });
+    }).catch(error => {
+      console.log(JSON.stringify(error));
+      loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: req.rspObj.errCode+errorCodes.CODE3}, logObject);
+      loggerError('', req.rspObj, req.rspObj.errCode+errorCodes.CODE3);
+      req.rspObj.responseCode = 'ERR_PUBLISH_PROGRAM';
+      req.rspObj.result = error;
+      req.rspObj.errMsg = programMessages.PUBLISH.FAILED_MESSAGE;
+      return response.status(400).send(errorResponse(req.rspObj, req.rspObj.errCode+errorCodes.CODE3));
+    });
+  }
+  else {
+    loggerService.exitLog({responseCode: errObj.responseCode, errCode: req.rspObj.errCode+errorCodes.CODE4}, logObject);
+    loggerError('', req.rspObj, req.rspObj.errCode+errorCodes.CODE4);
+    return response.status(400).send(errorResponse(errObj,req.rspObj.errCode+errorCodes.CODE4));
+  }
+};
+
+/*function unlistPublishProgram(req, response) {
   var data = req.body;
   var rspObj = req.rspObj;
   const logObject = {
@@ -331,81 +343,16 @@ function unlistPublishProgram(req, response) {
 
   model.program.findByPk(data.request.program_id)
   .then(function (res) {
-    const cb = function(errObj, rspObj) {
-      if (!errObj && rspObj) {
-        res.copiedCollections = [];
-          if (rspObj && rspObj.result) {
-           res.copiedCollections = _.map(rspObj.result, (collection) => {
-            return collection.result.content_id;
-           });
-        }
-        const updateValue = {
-          status: "Unlisted",
-          updatedon: new Date(),
-          collection_ids: []
-        };
-
-       const collections = _.get(res, 'config.collections');
-       if (collections) {
-        _.forEach(collections, el => {
-          updateValue.collection_ids.push(el.id);
-        });
-       }
-
-        const updateQuery = {
-          where: {
-            program_id: data.request.program_id
-          },
-          returning: true,
-          individualHooks: true,
-        };
-
-        model.program.update(updateValue, updateQuery).then(resData => {
-          if (_.isArray(resData) && !resData[0]) {
-            loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: errCode+errorCodes.CODE2}, logObject);
-            loggerError('', rspObj, errCode+errorCodes.CODE2);
-            return response.status(400).send(errorResponse({
-              apiId: 'api.program.unlist.publish',
-              ver: '1.0',
-              msgid: uuid(),
-              responseCode: 'ERR_PUBLISH_PROGRAM',
-              result: 'Program_id Not Found'
-            },errCode+errorCodes.CODE2));
-          }
-          onAfterPublishProgram(res,req, function(afterPublishResponse) {
-            loggerService.exitLog({responseCode: 'OK'}, logObject);
-            return response.status(200).send(successResponse({
-              apiId: 'api.program.publish',
-              ver: '1.0',
-              msgid: uuid(),
-              responseCode: 'OK',
-              result: {
-                'program_id': updateQuery.where.program_id,
-                afterPublishResponse
-              }
-            }));
-        });
-        }).catch(error => {
-          console.log(JSON.stringify(error));
-          loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: errCode+errorCodes.CODE3}, logObject);
-          loggerError('', rspObj, errCode+errorCodes.CODE3);
-          return response.status(400).send(errorResponse({
-            apiId: 'api.program.unlist.publish',
-            ver: '1.0',
-            msgid: uuid(),
-            responseCode: 'ERR_PUBLISH_PROGRAM',
-            result: error
-          },errCode+errorCodes.CODE3));
-        });
-      }
-      else {
-        loggerService.exitLog({responseCode: errObj.responseCode, errCode: errCode+errorCodes.CODE4}, logObject);
-        loggerError('', rspObj, errCode+errorCodes.CODE4);
-        return response.status(400).send(errorResponse(errObj,errCode+errorCodes.CODE4));
-      }
-    };
-
-    programServiceHelper.copyCollections(res, data.request.channel, req.headers, cb);
+    if (_.get(res, 'target_type') === 'collections') {
+      programServiceHelper.copyCollections(res, data.request.channel, req.headers, publishCallback);
+    } else {
+      let callbackParam = {};
+      callbackParam.reqHeaders = req.headers;
+      callbackParam.program = res;
+      callbackParam.responseCode = 'OK';
+      callbackParam.result = {};
+      publishCallback(null, callbackParam);
+    }
   })
   .catch(function (err) {
     console.log(JSON.stringify(err));
@@ -419,7 +366,7 @@ function unlistPublishProgram(req, response) {
       result: err
     },errCode+errorCodes.CODE5));
   });
-}
+}*/
 
 function getOsOrgForRootOrgId(rootorg_id, userRegData, reqHeaders) {
     let returnRes = {};
@@ -467,8 +414,7 @@ function getOsOrgForRootOrgId(rootorg_id, userRegData, reqHeaders) {
   })
 }
 
-function onAfterPublishProgram(programDetails, req, afterPublishCallback) {
-  const reqHeaders = req.headers;
+function onAfterPublishProgram(programDetails, reqHeaders, afterPublishCallback) {
   const onPublishResult = {};
   onPublishResult['nomination']= {};
   onPublishResult['userMapping']= {};
@@ -3249,7 +3195,7 @@ module.exports.getProgramAPI = getProgram
 module.exports.createProgramAPI = createProgram
 module.exports.updateProgramAPI = updateProgram
 module.exports.publishProgramAPI = publishProgram
-module.exports.unlistPublishProgramAPI = unlistPublishProgram
+//module.exports.unlistPublishProgramAPI = unlistPublishProgram
 module.exports.deleteProgramAPI = deleteProgram
 module.exports.programListAPI = programList
 module.exports.addNominationAPI = addNomination
