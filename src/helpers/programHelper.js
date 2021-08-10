@@ -11,6 +11,7 @@ const Op = Sequelize.Op;
 const messageUtils = require('../service/messageUtil');
 const responseCode = messageUtils.RESPONSE_CODE;
 const programMessages = messageUtils.PROGRAM;
+const contentMessages = messageUtils.CONTENT;
 const logger = require('sb_logger_util_v2');
 const { retry } = require("rxjs/operators");
 const HierarchyService = require('./updateHierarchy.helper');
@@ -604,26 +605,21 @@ class ProgramServiceHelper {
       });
   }
 
-  copyCollections(data, channel, reqHeaders, cb) { //
+  copyCollections(data, req, response, cb) {
+    const channel = _.get(req, 'body.request.channel');
+    const reqHeaders = req.headers;
     const logObject = {
       traceId : reqHeaders['x-request-id'] || '',
-      message : programMessages.PUBLISH.INFO
+      message : (_.get(data, 'type') === 'public') ? programMessages.PUBLISH.INFO : contentMessages.UNLISTED_PUBLISH.INFO
     }
-   loggerService.entryLog({programId: _.get(data, 'program_id') || ''}, logObject);
-    const rspObj = {};
-    const errObj = {
-      'loggerMsg': null,
-      'errCode': null,
-      'errMsg': null,
-      'responseCode': null
-    };
-
+    loggerService.entryLog({programId: _.get(data, 'program_id') || ''}, logObject);
+    const errObj = req.rspObj;
     if (!data.program_id || !data.config.collections || !channel || (!data.content_types && !data.targetprimarycategories)) {
       errObj.errCode = programMessages.COPY_COLLECTION.COPY.MISSING_CODE;
       errObj.errMsg = programMessages.COPY_COLLECTION.COPY.MISSING_MESSAGE;
       errObj.responseCode = responseCode.CLIENT_ERROR;
       errObj.loggerMsg = 'Error due to missing request or program_id or request collections or request allowed_content_types or channel'
-      cb(errObj, null);
+      cb(errObj, req, response, data, null);
       loggerService.exitLog({responseCode: errObj.responseCode, errCode: errObj.errCode}, logObject);
       return false;
     }
@@ -673,10 +669,8 @@ class ProgramServiceHelper {
                       const updateResultData = _.map(updateResult, obj => {
                         return obj.data
                       })
-                      rspObj.result = updateResultData;
-                      rspObj.responseCode = 'OK'
-                      cb(null, rspObj);
-                      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+                      cb(null, req, response, data, updateResultData);
+                      loggerService.exitLog({responseCode: req.rspObj.responseCode}, logObject);
                       return true;
                     }, error => {
                       errObj.errCode = programMessages.COPY_COLLECTION.BULK_UPDATE_HIERARCHY.FAILED_CODE;
@@ -687,7 +681,7 @@ class ProgramServiceHelper {
                         console.log(`Error updating hierarchy for collections ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
                       }
                       errObj.loggerMsg = 'Error updating hierarchy for collections';
-                      cb (errObj, null);
+                      cb(errObj, req, response, data, null);
                       loggerService.exitLog({responseCode: errObj.responseCode, errCode: errObj.errCode}, logObject);
                       return false;
                     })
@@ -701,7 +695,7 @@ class ProgramServiceHelper {
                     console.log(`Error fetching hierarchy for collections ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
                   }
                   loggerService.exitLog({responseCode: errObj.responseCode, errCode: errObj.errCode}, logObject);
-                  cb (errObj, null);
+                  cb(errObj, req, response, data, null);
                   return false;
                 })
           }
@@ -750,11 +744,8 @@ class ProgramServiceHelper {
                           const updateResultData = _.map(updateResult, obj => {
                             return obj.data
                           })
-
-                          rspObj.result = updateResultData;
-                          rspObj.responseCode = 'OK';
-                          loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-                          cb(null, rspObj);
+                          loggerService.exitLog({responseCode: req.rspObj.responseCode}, logObject);
+                          cb(null, req, response, data, updateResultData);
                         }, error => {
                           console.log('Error updating hierarchy for collections')
                           console.log(_.get(error, 'response.data.result.messages'))
@@ -767,7 +758,7 @@ class ProgramServiceHelper {
                             console.log(`Error updating hierarchy for collection ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
                           }
                           loggerService.exitLog({responseCode: errObj.responseCode, errCode: errObj.errCode}, logObject);
-                          cb(errObj, null);
+                          cb (errObj, req, response, data, null);
                         })
                     }, error => {
                       console.log('Error creating collection')
@@ -780,7 +771,7 @@ class ProgramServiceHelper {
                         console.log(`Error creating collection ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
                       }
                       loggerService.exitLog({responseCode: errObj.responseCode, errCode: errObj.errCode}, logObject);
-                      cb(errObj, null);
+                      cb (errObj, req, response, data, null);
                     })
                 }, (error) => {
                   errObj.errCode = programMessages.COPY_COLLECTION.GET_HIERARCHY.FAILED_CODE;
@@ -792,7 +783,7 @@ class ProgramServiceHelper {
                     console.log(`Error fetching hierarchy for collections ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
                   }
                   loggerService.exitLog({responseCode: errObj.responseCode, errCode: errObj.errCode}, logObject);
-                  cb (errObj, null);
+                  cb (errObj, req, response, data, null);
                 })
           }
         },
@@ -803,7 +794,7 @@ class ProgramServiceHelper {
           errObj.loggerMsg = 'Error searching for collections';
           console.log('Error searching for collections', JSON.stringify(error));
           loggerService.exitLog({responseCode: errObj.responseCode, errCode: errObj.errCode}, logObject);
-          cb (errObj, null);
+          cb (errObj, req, response, data, null);
           return false;
         }
       );
