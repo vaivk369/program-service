@@ -22,11 +22,9 @@ const loggerService = require('../service/loggerService');
 const queryRes_Min = 300;
 const NotificationService = require('../service/notificationService');
 const notificationService = new NotificationService();
-const UserService = require("../service/userService");
-const userService = new UserService();
-const programService = require('../service/programService');
 
 class ProgramServiceHelper {
+
   searchContent(programId, sampleContentCheck, reqHeaders) {
     const url = `${envVariables.baseURL}/api/composite/v1/search`
     const option = {
