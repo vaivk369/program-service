@@ -1,5 +1,5 @@
 const envVariables = require('../envVariables');
-const learnerService = envVariables['dock_base_url'];
+const learnerService = envVariables['baseURL'];
 const axios = require('axios');
 const _ = require("lodash");
 const messageUtils = require('../service/messageUtil');
