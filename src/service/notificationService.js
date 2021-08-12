@@ -8,7 +8,7 @@ const programMessages = messageUtils.PROGRAM;
 class NotificationService {
     async sendNotification(req, reqData) {
         const option = {
-            url: learnerService + '/learner/v1/notification/email',
+            url: `http://${learnerService}/learner/v1/notification/email`,
             method: 'post',
             headers: {
                 ...req.headers
