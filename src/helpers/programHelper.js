@@ -1230,7 +1230,10 @@ class ProgramServiceHelper {
       }
     }
     catch (err) {
-      console.log(err);
+      console.log('send notification error', JSON.stringify(err))
+      if(err.response && err.response.data) {
+        console.log(`send notification error ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(err.response.data));
+      }
       rspObj.errCode = programMessages.NOMINATION.NOTIFY.FAILED_CODE;
       rspObj.errMsg = programMessages.NOMINATION.NOTIFY.FAILED_MESSAGE;
       rspObj.responseCode = responseCode.SERVER_ERROR;
