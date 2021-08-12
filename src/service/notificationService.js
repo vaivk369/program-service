@@ -1,5 +1,5 @@
 const envVariables = require('../envVariables');
-const learnerService = envVariables['LEARNER_SERVICE_URL'];
+const learnerService = envVariables['CORE_INGRESS_GATEWAY_IP'];
 const axios = require('axios');
 const _ = require("lodash");
 const messageUtils = require('../service/messageUtil');
@@ -8,7 +8,7 @@ const programMessages = messageUtils.PROGRAM;
 class NotificationService {
     async sendNotification(req, reqData) {
         const option = {
-            url: learnerService + '/user/v1/notification/email',
+            url: learnerService + '/learner/v1/notification/email',
             method: 'post',
             headers: {
                 ...req.headers
