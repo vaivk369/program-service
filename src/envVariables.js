@@ -14,6 +14,7 @@ const envVariables = {
     DOCK_REDIS_HOST: process.env.dock_redis_host,
     DOCK_REDIS_PORT: process.env.dock_redis_port || 6379,
     SUNBIRD_AUTO_CREATION_TOPIC: process.env.sunbird_auto_creation_topic,
+    CORE_INGRESS_GATEWAY_IP: process.env.core_ingress_gateway_ip,
     config: {
         user: process.env.sunbird_program_db_user || "postgres",
         host: process.env.sunbird_program_db_host || "localhost",
