@@ -29,7 +29,6 @@ const KafkaService = require('../helpers/kafkaUtil')
 const publishHelper = require('../helpers/publishHelper')
 var async = require('async')
 
-
 const queryRes_Max = 1000;
 const queryRes_Min = 300;
 const stackTrace_MaxLimit = 500;
@@ -3216,7 +3215,10 @@ async function asyncOnAfterPublish (req, program_id) {
     }
   }
   catch(err) {
-    console.log(err);
+    console.log('nominate restricted contributor error', JSON.stringify(err))
+    if(err.response && err.response.data) {
+      console.log(`nominate restricted contributor error ==> ${program.program_id}  ==>`, JSON.stringify(err.response.data));
+    }
     rspObj.errCode = programMessages.NOMINATION.CREATE.FAILED_CODE
     rspObj.errMsg = programMessages.NOMINATION.CREATE.FAILED_MESSAGE
     rspObj.responseCode = responseCode.SERVER_ERROR
@@ -3257,7 +3259,10 @@ async function asyncOnAfterPublish (req, program_id) {
     }
   }
   catch (err) {
-    console.log(err);
+    console.log('nominate restricted contributor error', JSON.stringify(err))
+    if(err.response && err.response.data) {
+      console.log(`nominate restricted contributor error ==> ${program.program_id}  ==>`, JSON.stringify(err.response.data));
+    }
     rspObj.errCode = programMessages.NOMINATION.CREATE.FAILED_CODE
     rspObj.errMsg = programMessages.NOMINATION.CREATE.FAILED_MESSAGE
     rspObj.responseCode = responseCode.SERVER_ERROR
