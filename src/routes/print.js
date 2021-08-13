@@ -11,7 +11,7 @@ async function printDocx(req,res){
   const id = req.query.id;
   const format = req.query.format;
   // buildDOCXwithCallback(function (binary, error, errorMsg) {
-    buildDOCXWithCallback(id,function (binary, error, errorMsg) {
+    buildDOCXWithCallback(id,function (binary, error, errorMsg,filename) {
     // console.log("Enttere dres")
     var date = new Date();
     if (!error) {
@@ -36,7 +36,7 @@ async function printDocx(req,res){
         res.send(resJSON);
       } else {
         
-        res.setHeader('Content-Disposition', 'attachment; filename=MyDocument.docx');
+        res.setHeader('Content-Disposition', `attachment; filename=${filename}.docx`);
         res.send(Buffer.from(binary, 'base64'));
       }
     } else {
