@@ -13,7 +13,6 @@ const responseCode = messageUtils.RESPONSE_CODE;
 const programMessages = messageUtils.PROGRAM;
 const contentMessages = messageUtils.CONTENT;
 const logger = require('sb_logger_util_v2');
-const { retry } = require("rxjs/operators");
 const HierarchyService = require('./updateHierarchy.helper');
 const RegistryService = require('../service/registryService');
 const hierarchyService = new HierarchyService();
@@ -22,8 +21,11 @@ const SbCacheManager = require('sb_cache_manager');
 const cacheManager = new SbCacheManager({ttl: envVariables.CACHE_TTL});
 const loggerService = require('../service/loggerService');
 const queryRes_Min = 300;
+const NotificationService = require('../service/notificationService');
+const notificationService = new NotificationService();
 
 class ProgramServiceHelper {
+
   searchContent(programId, sampleContentCheck, reqHeaders) {
     const url = `${envVariables.baseURL}/api/composite/v1/search`
     const option = {
@@ -522,8 +524,8 @@ class ProgramServiceHelper {
       forkJoin(..._.map(collectedData, data => this.getProgramDetails(data.program_id))).subscribe(details => {
       try {
         const contentTypes = details.length ? _.uniq(_.compact(..._.map(details, (model) => {
-          if (model && (!_.isEmpty(model.dataValues.content_types))) 
-              return  model.content_types 
+          if (model && (!_.isEmpty(model.dataValues.content_types)))
+              return  model.content_types
           else (model && (!_.isEmpty(model.dataValues.targetprimarycategorynames)))
               return model.dataValues.targetprimarycategorynames
         }))) : [];
@@ -566,8 +568,8 @@ class ProgramServiceHelper {
       forkJoin(..._.map(collectedData, data => this.getProgramDetails(data.program_id))).subscribe(details => {
         try {
           const contentTypes = details.length ? _.uniq(_.compact(..._.map(details, (model) => {
-            if (model && (!_.isEmpty(model.dataValues.content_types))) 
-                return  model.content_types 
+            if (model && (!_.isEmpty(model.dataValues.content_types)))
+                return  model.content_types
             else (model && (!_.isEmpty(model.dataValues.targetprimarycategorynames)))
                 return model.dataValues.targetprimarycategorynames
           }))) : [];
@@ -1150,27 +1152,27 @@ class ProgramServiceHelper {
 
   addBaseUrlIfAbsent(url) {
     if(url.search("http://") >= 0) return url;
-    else return `${envVariables.baseURL}${url}`; 
+    else return `${envVariables.baseURL}${url}`;
   }
 
   questionMediaRequest(url) {
-   url = this.addBaseUrlIfAbsent(url);   
+   url = this.addBaseUrlIfAbsent(url);
     const option = {
       url,
       method: 'get',
-      responseType: 'arraybuffer' 
+      responseType: 'arraybuffer'
     };
     return from(axios(option));
   }
 
-  getQuestionMedia(url) {    
-    return new Promise((resolve, reject) => {          
+  getQuestionMedia(url) {
+    return new Promise((resolve, reject) => {
       cacheManager.get(`base64Img_${url}`, (err, cacheData) => {
-        if(err || !cacheData) {          
+        if(err || !cacheData) {
           this.questionMediaRequest(url).subscribe(
-            (res) => {            
+            (res) => {
             let raw = Buffer.from(res.data).toString('base64');
-            let base64Img = `data:${res.headers['content-type']};base64,${raw}`;                                               
+            let base64Img = `data:${res.headers['content-type']};base64,${raw}`;
             cacheManager.set({ key: `base64Img_${url}`, value: base64Img }, function (err, cachedImage) {
               if (err) {
                 logger.error({msg: 'Error - caching', err}, {})
@@ -1184,11 +1186,64 @@ class ProgramServiceHelper {
             return reject(err.message);
           })
         }
-        else {                    
+        else {
           return resolve(cacheData);
         }
       })
     })
+  }
+
+
+  /**
+   * Is user already nominated
+   * @param {*} program_id  program id
+   * @param {*} orgosid     Open saber org id
+   * @param {*} user_id     User id
+   * @returns boolean
+   */
+  async isAlreadyNominated(program_id, orgosid, user_id) {
+    let findNomWhere = {
+      program_id: program_id,
+      organisation_id: orgosid
+    }
+
+    if (user_id) {
+      findNomWhere['user_id'] = user_id;
+    }
+
+    const res = await model.nomination.findOne({
+      where: findNomWhere
+    });
+
+    return !!_.get(res, 'dataValues.id');
+  }
+
+  async notifyRestrictedContributors(req, program, usersToNotify) {
+    var rspObj = req.rspObj;
+    const logObject = {
+      traceId : req.headers['x-request-id'] || '',
+      message : programMessages.NOMINATION.NOTIFY.INFO
+    }
+
+    try {
+      const userBatches = _.chunk(usersToNotify, 100);
+      for (const batch of userBatches) {
+        if (!_.isEmpty(batch)) {
+          await notificationService.sendNominationEmail(req, batch, program);
+          await notificationService.sendNominationSms(req, batch, program);
+        }
+      }
+    }
+    catch (err) {
+      console.log('send notification error', JSON.stringify(err));
+      if(err.response && err.response.data) {
+        console.log(`send notification error ==> ${program.program_id}  ==>`, JSON.stringify(err.response.data));
+      }
+      rspObj.errCode = programMessages.NOMINATION.NOTIFY.FAILED_CODE;
+      rspObj.errMsg = programMessages.NOMINATION.NOTIFY.FAILED_MESSAGE;
+      rspObj.responseCode = responseCode.SERVER_ERROR;
+      loggerService.exitLog(rspObj.responseCode, logObject);
+    }
   }
 }
 
