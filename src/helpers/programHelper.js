@@ -1198,12 +1198,17 @@ class ProgramServiceHelper {
    * Is user already nominated
    * @param {*} program_id  program id
    * @param {*} orgosid     Open saber org id
+   * @param {*} user_id     User id
    * @returns boolean
    */
-  async isAlreadyNominated(program_id, orgosid) {
+  async isAlreadyNominated(program_id, orgosid, user_id) {
     let findNomWhere = {
       program_id: program_id,
       organisation_id: orgosid
+    }
+
+    if (user_id) {
+      findNomWhere['user_id'] = user_id;
     }
 
     const res = await model.nomination.findOne({
