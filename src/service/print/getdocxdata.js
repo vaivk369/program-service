@@ -98,7 +98,7 @@ function create(data, paperData) {
                   arr.push(Marks(question));
                   question[0].Questions.map((item) => {
                     if (item.ol) {
-                      let count = 0;
+                      // let count = 0;
                       item.ol.map((text) => {
                         count++;
                         if (typeof text === "object") {
@@ -184,19 +184,23 @@ function create(data, paperData) {
                     })
                   );
                 } 
-              //   else if (question[0].type === "MCQ") {
-              //     let testimage = formatOptions(question[0]);
-              //     arr.push(Marks(question));
-                
-              //     arr.push(createMCQdata(question));
+                else if (question[0].type === "MCQ") {
+                  let testimage = formatOptions(question[0]);
+                  arr.push(Marks(question));
+                  let count = 0;
+                  question[0].Questions.map((item) => {
+                    
+                      arr.push(createSAObject(item));
+          
+                  });
                   
-              //     arr.push(optionsTabel(testimage));
-              //     arr.push(
-              //       new Paragraph({
-              //         children: [], // Just newline without text
-              //       })
-              //     );
-              //   }
+                  arr.push(optionsTabel(testimage));
+                  arr.push(
+                    new Paragraph({
+                      children: [], // Just newline without text
+                    })
+                  );
+                }
               }
 
               return arr;
@@ -227,15 +231,7 @@ function Marks(data) {
     });
   }
 }
-function createMCQdata(data) {
-  console.log("Data:", data[0].Questions[0]);
-  return new Paragraph({
-    alignment: AlignmentType.LEFT,
-    children: [
-      new TextRun({text : `${data[0].Questions[0]}`}), 
-    ],
-  });
-}
+
 function createFTBObject(data) {
   const arr = [];
 
@@ -280,48 +276,6 @@ function createFTB(data, count) {
         }),
       ],
     });
-  }
-}
-function createMCWObject(data, count) {
-  // console.log("Item:", data)
-  const arr = [];
-  if (data.text) {
-    data.text
-      .map((text) => {
-        if (typeof text === "object") {
-          arr.push(new TextRun(text));
-        } else {
-          arr.push(
-            new TextRun({
-              text: `${text}`,
-            })
-          );
-        }
-        // return arr
-      })
-      .reduce((prev, curr) => prev.concat(curr), []);
-    return new Paragraph({
-      alignment: AlignmentType.LEFT,
-      children: arr,
-    });
-  } else if (data.image) {
-    if (data.image.includes("data:image/")) {
-      let image = getBufferImg(data.image);
-
-      return new Paragraph({
-        children: [
-          new ImageRun({
-            data: image,
-            transformation: {
-              width: data.width,
-              height: data.height,
-            },
-          }),
-        ],
-      });
-    }
-  } else {
-    return createFTB(data, count);
   }
 }
 
@@ -432,6 +386,7 @@ function getBufferImg(data) {
   return image;
 }
 function formatOptions(data) {
+  // console.log("Options:",data)
   let optionArr = [];
   let image;
   let testimage = data;
@@ -456,15 +411,18 @@ function formatOptions(data) {
     } else {
       optionArr.push(testimage.Option4);
     }
+    optionArr.push(testimage.height)
+    optionArr.push(testimage.width)
   }
   // console.log("options :",optionArr)
   return optionArr;
 }
 
-function displayOptions(option) {
+function displayOptions(option,height,width) {
+  // console.log("image", option);
   if (option.includes("data:image/")) {
     let image = getBufferData(option);
-    // console.log("image", image);
+    console.log("image", option);
 
     return new Paragraph({
       text: option.substr(0, 1),
@@ -472,8 +430,8 @@ function displayOptions(option) {
         new ImageRun({
           data: image,
           transformation: {
-            width: 150,
-            height: 150,
+            width: width,
+            height: height,
           },
         }),
       ],
@@ -596,6 +554,7 @@ function headers() {
 }
 //
 function optionsTabel(testimage) {
+  // console.log(testimage)
   return new Table({
     columnWidths: [5505, 5505],
     rows: [
@@ -607,7 +566,7 @@ function optionsTabel(testimage) {
               size: 5505,
               type: WidthType.DXA,
             },
-            children: [displayOptions(testimage[0])],
+            children: [displayOptions(testimage[0],testimage[4],testimage[5])],
           }),
           new TableCell({
             borders: border,
@@ -615,7 +574,7 @@ function optionsTabel(testimage) {
               size: 5505,
               type: WidthType.DXA,
             },
-            children: [displayOptions(testimage[1])],
+            children: [displayOptions(testimage[1],testimage[4],testimage[5])],
           }),
         ],
       }),
@@ -627,7 +586,7 @@ function optionsTabel(testimage) {
               size: 5505,
               type: WidthType.DXA,
             },
-            children: [displayOptions(testimage[2])],
+            children: [displayOptions(testimage[2],testimage[4],testimage[5])],
           }),
           new TableCell({
             borders: border,
@@ -635,7 +594,7 @@ function optionsTabel(testimage) {
               size: 5505,
               type: WidthType.DXA,
             },
-            children: [displayOptions(testimage[3])],
+            children: [displayOptions(testimage[3],testimage[4],testimage[5])],
           }),
         ],
       }),

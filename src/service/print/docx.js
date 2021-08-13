@@ -391,48 +391,83 @@ async function renderMCQ(question, questionCounter, marks) {
       : [`${questionCounter}. ${cleanHTML(q)}`];
 
   let questionOpt = [];
+  let imageProperties = []
   if (typeof questionOptions[0][1] === "object") {
-    // console.log("Que:",questionOptions[0][0])
+    // console.log("Que:",questionOptions)
     questionOpt.push(
       questionOptions[0][0] + (questionOptions[0][1].image)
     );
+    imageProperties.push({
+   width:   questionOptions[0][1].width,
+   height:questionOptions[0][1].height
+    })
   } else {
     questionOpt.push(questionOptions[0][0]);
+    imageProperties.push({
+      width:  0,
+      height:0
+       })
   }
 
   if (typeof questionOptions[1][1] === "object") {
     questionOpt.push(
       questionOptions[1][0] + (questionOptions[1][1].image)
     );
+    imageProperties.push({
+      width:   questionOptions[1][1].width,
+      height:questionOptions[1][1].height
+       })
   } else {
     questionOpt.push(questionOptions[1][0]);
+    imageProperties.push({
+      width:   0,
+      height:0
+       })
   }
 
   if (typeof questionOptions[2][1] === "object") {
     questionOpt.push(
       questionOptions[2][0] + (questionOptions[2][1].image)
     );
+    imageProperties.push({
+      width:   questionOptions[2][1].width,
+      height:questionOptions[2][1].height
+       })
   } else {
     questionOpt.push(questionOptions[2][0]);
+    imageProperties.push({
+      width:  0,
+      height:0
+       })
   }
 
   if (typeof questionOptions[3][1] === "object") {
     questionOpt.push(
       questionOptions[3][0] + (questionOptions[3][1].image)
     );
+    imageProperties.push({
+      width:   questionOptions[3][1].width,
+      height:questionOptions[3][1].height
+       })
   } else {
     questionOpt.push(questionOptions[3][0]);
+    imageProperties.push({
+      width:0,
+      height:0
+       })
   }
 
   let data = {
     Questions: questionTitle,
-    Option1: questionOpt,
-    Option2: questionOpt,
-    Option3: questionOpt,
-    Option4: questionOpt,
+    Option1: questionOpt[0],
+    Option2: questionOpt[1],
+    Option3: questionOpt[2],
+    Option4: questionOpt[3],
     Marks: marks,
     Language: detectLanguage(questionTitle[0]),
-    type:'MCQ'
+    type:'MCQ',
+    height:imageProperties[0].height,
+    width:imageProperties[0].width
   };
   return data;
   // return getMCQ(
