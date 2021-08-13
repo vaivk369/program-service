@@ -1,7 +1,5 @@
 var express = require("express");
 const { buildPDFWithCallback } = require("../service/print/pdf");
-const { buildCSVWithCallback } = require("../service/print/csv");
-const { buildCSVReportWithCallback } = require('../service/print/csvreport');
 const { buildDOCXWithCallback } = require('../service/print/docx')
 const requestMiddleware = require("../middlewares/request.middleware");
 // const base64 = require('base64topdf');
@@ -84,80 +82,7 @@ async function printPDF(req, res) {
     }
   });
 }
-async function printCSV(req, res) {
-  const id = req.query.id;
-  const format = req.query.format;
-  if((req.body.path).includes('print/csv')){
-    console.log("CSV",req.body.path);
-     buildCSVWithCallback(id, function (binary, error, errorMsg,filename) {
-      var date = new Date();
-      if (!error) {
-        if (format === "json") {
-          const resJSON = {
-            id: "api.collection.print",
-            ver: "1.0",
-            ts: date.toISOString(),
-            params: {
-              id,
-              format,
-              status: "successful",
-              err: null,
-              errmsg: null,
-            },
-            responseCode: "OK",
-            result: {
-              content_id: id,
-              base64string: binary,
-            },
-          };
-          res.send(resJSON);
-        } else {
-          res.setHeader('Content-disposition', `attachment; filename=${filename}.csv`);
-          res.setHeader('Content-type', 'text/csv; charset=utf-8');
-          res.send(binary);
-        }
-      } else {
-        res.status(404).send({
-          error: errorMsg,
-        });
-      }
-    });
-  } else {
-   buildCSVReportWithCallback(id, function (binary, error, errorMsg,filename) {
-      var date = new Date();
-      if (!error) {
-        if (format === "json") {
-          const resJSON = {
-            id: "api.collection.print",
-            ver: "1.0",
-            ts: date.toISOString(),
-            params: {
-              id,
-              format,
-              status: "successful",
-              err: null,
-              errmsg: null,
-            },
-            responseCode: "OK",
-            result: {
-              content_id: id,
-              base64string: binary,
-            },
-          };
-          res.send(resJSON);
-        } else {
-          res.setHeader('Content-disposition', `attachment; filename=${filename}.csv`);
-          res.setHeader('Content-type', 'text/csv; charset=utf-8');
-          res.send(binary);
-        }
-      } else {
-        res.status(404).send({
-          error: errorMsg,
-        });
-      }
-    });
-  }
-}
+
 module.exports = function (app) {
   app
     .route(BASE_URL + "/print/pdf")
@@ -166,20 +91,6 @@ module.exports = function (app) {
       requestMiddleware.createAndValidateRequestBody,
       printDocx
       // printPDF
-    );
-  app
-    .route(BASE_URL + "/print/csv")
-    .get(
-      requestMiddleware.gzipCompression(),
-      requestMiddleware.createAndValidateRequestBody,
-      printCSV
-    );
-  app
-    .route(BASE_URL + "/print/report/aggregate")
-    .get(
-      requestMiddleware.gzipCompression(),
-      requestMiddleware.createAndValidateRequestBody,
-      printCSV
     );
   app
     .route(BASE_URL + "/print/docx")
