@@ -2,10 +2,51 @@ var express = require("express");
 const { buildPDFWithCallback } = require("../service/print/pdf");
 const { buildCSVWithCallback } = require("../service/print/csv");
 const { buildCSVReportWithCallback } = require('../service/print/csvreport');
+const { buildDOCXWithCallback } = require('../service/print/docx')
 const requestMiddleware = require("../middlewares/request.middleware");
 // const base64 = require('base64topdf');
 const BASE_URL = "/program/v1";
 // Refactor this to move to service
+async function printDocx(req,res){
+  const id = req.query.id;
+  const format = req.query.format;
+  // buildDOCXwithCallback(function (binary, error, errorMsg) {
+    buildDOCXWithCallback(id,function (binary, error, errorMsg) {
+    // console.log("Enttere dres")
+    var date = new Date();
+    if (!error) {
+      if (format === "json") {
+        const resJSON = {
+          id: "api.collection.print",
+          ver: "1.0",
+          ts: date.toISOString(),
+          params: {
+            id,
+            format,
+            status: "successful",
+            err: null,
+            errmsg: null,
+          }, 
+          responseCode: "OK",
+          result: {
+            content_id: id,
+            base64string: binary,
+          },
+        };
+        res.send(resJSON);
+      } else {
+        
+        res.setHeader('Content-Disposition', 'attachment; filename=MyDocument.docx');
+        res.send(Buffer.from(binary, 'base64'));
+      }
+    } else {
+      res.status(404).send({
+        error: errorMsg,
+      });
+    }
+  });
+}
+
 async function printPDF(req, res) {
   const id = req.query.id;
   const format = req.query.format;
@@ -123,7 +164,8 @@ module.exports = function (app) {
     .get(
       requestMiddleware.gzipCompression(),
       requestMiddleware.createAndValidateRequestBody,
-      printPDF
+      printDocx
+      // printPDF
     );
   app
     .route(BASE_URL + "/print/csv")
@@ -138,5 +180,13 @@ module.exports = function (app) {
       requestMiddleware.gzipCompression(),
       requestMiddleware.createAndValidateRequestBody,
       printCSV
+    );
+  app
+    .route(BASE_URL + "/print/docx")
+    .get(
+      requestMiddleware.gzipCompression(),
+      requestMiddleware.createAndValidateRequestBody,
+      // printDocx
+      printPDF
     );
 };
