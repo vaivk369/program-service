@@ -757,7 +757,7 @@ exports.PROGRAM = {
       FAILED_CODE: 'ERR_TO_SEND_NOMINATION_NOTIFICATION_FAILED',
       FAILED_MESSAGE: 'Unable to send nomination notification',
       EMAIL_SUBJECT: 'VidyaDaan: Your nomination for {PROGRAM_NAME} project is accepted',
-      SMS:'VidyaDaan: Your nomination for {PROGRAM_NAME} is accepted. Please login to {smsURL} to start contributing content'
+      SMS:'VidyaDaan: Your nomination for {PROGRAM_NAME} is accepted. Please login to https://vdn.diksha.gov.in to start contributing content.'
     },
     READ: {
       EXCEPTION_CODE: 'NOMRED',

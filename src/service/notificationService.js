@@ -70,7 +70,6 @@ class NotificationService {
 
         const projectName = _.truncate(program.name, { length: 25 });
         let smsYouAreNominated = programMessages.NOMINATION.NOTIFY.SMS.replace('{PROGRAM_NAME}', projectName);
-        smsYouAreNominated = smsYouAreNominated.replace('{smsURL}', envVariables.baseURL);
 
         const request = {
             mode: 'sms',
@@ -78,6 +77,7 @@ class NotificationService {
             body: smsYouAreNominated,
             recipientUserIds: userIdsToSms
         };
+
         return this.sendNotification(req, request);
     }
 }
