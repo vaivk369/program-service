@@ -6,7 +6,6 @@ const messageUtils = require('../service/messageUtil');
 const programMessages = messageUtils.PROGRAM;
 const model = require('../models');
 
-
 class NotificationService {
     async sendNotification(req, reqData) {
         const option = {
