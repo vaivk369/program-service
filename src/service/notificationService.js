@@ -4,6 +4,7 @@ const axios = require('axios');
 const _ = require("lodash");
 const messageUtils = require('../service/messageUtil');
 const programMessages = messageUtils.PROGRAM;
+const model = require('../models');
 
 class NotificationService {
     async sendNotification(req, reqData) {
@@ -68,16 +69,25 @@ class NotificationService {
             return;
         }
 
+        const result = await model.configuration.findAll({
+            where: {
+              key: 'smsNominationAccept',
+              status: 'active'
+            }
+          });
+
         const projectName = _.truncate(program.name, { length: 25 });
-        let smsYouAreNominated = programMessages.NOMINATION.NOTIFY.SMS.replace('{PROGRAM_NAME}', projectName);
-        smsYouAreNominated = smsYouAreNominated.replace('{smsURL}', envVariables.baseURL);
+        let smsBody = _.get(_.first(result),'dataValues.value');
+        smsBody = smsBody.replace('$projectName', projectName);
+        smsBody = smsBody.replace('$url', 'https://vdn.diksha.gov.in');
 
         const request = {
             mode: 'sms',
             subject: 'VidyaDaan',
-            body: smsYouAreNominated,
+            body: smsBody,
             recipientUserIds: userIdsToSms
         };
+
         return this.sendNotification(req, request);
     }
 }
