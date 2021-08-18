@@ -56,7 +56,7 @@ class HierarchyService {
         actorId: '',
         params: {collection: option.data.request.data}
       }
-      console.log(loggerService.logFormate(logObject));
+      console.log(JSON.stringify(loggerService.logFormate(logObject)));
       return axios(option);
     });
     return forkJoin(...bulkRequest);
@@ -107,7 +107,9 @@ class HierarchyService {
                 "lastUpdatedOn",
                 "lastStatusChangedOn",
                 "lockKey",
-                "variants"
+                "variants",
+                "mimeTypesCount",
+                "contentTypesCount"
               ])
             }
           }
@@ -237,7 +239,7 @@ class HierarchyService {
         primaryCategory: data.primaryCategory,
         children: _.compact(
           _.map(data.children, function(child) {
-            if (child.mimeType === "application/vnd.ekstep.content-collection")
+            if (child.mimeType === "application/vnd.ekstep.content-collection" && child.visibility === 'Parent')
              {
               return child.identifier;
             }
@@ -247,7 +249,7 @@ class HierarchyService {
       };
     }
     _.forEach(data.children, child => {
-      if (child.mimeType === "application/vnd.ekstep.content-collection") {
+      if (child.mimeType === "application/vnd.ekstep.content-collection" && child.visibility === 'Parent') {
         instance.getFlatHierarchyObj(child, additionalMetaData, children);
       }
     });
@@ -294,7 +296,9 @@ class HierarchyService {
             "lastUpdatedOn",
             "lastStatusChangedOn",
             "lockKey",
-            "variants"
+            "variants",
+            "mimeTypesCount",
+            "contentTypesCount"
           ]),
           ...(_.includes(additionalMetaData.projCollectionCategories, data.primaryCategory) && data.visibility === 'Default' && {
             chapterCount : data.children ? data.children.length : 0
@@ -314,7 +318,7 @@ class HierarchyService {
     }
 
     _.forEach(data.children, child => {
-      if (child.mimeType === "application/vnd.ekstep.content-collection") {
+      if (child.mimeType === "application/vnd.ekstep.content-collection" && child.visibility === 'Parent') {
         instance.getFlatNodesModified(child, additionalMetaData, children);
       }
     });

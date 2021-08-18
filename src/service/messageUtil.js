@@ -749,6 +749,15 @@ exports.PROGRAM = {
     }
   },
   NOMINATION: {
+    NOTIFY: {
+      INFO: 'NOMINATION_NOTIFY',
+      EXCEPTION_CODE: 'NOMNOTIFY',
+      MISSING_CODE: 'ERR_NOTIFY_NOMINATION_CREATED',
+      MISSING_MESSAGE: 'Required fields like email id or phone to send nomination notificiation missing',
+      FAILED_CODE: 'ERR_TO_SEND_NOMINATION_NOTIFICATION_FAILED',
+      FAILED_MESSAGE: 'Unable to send nomination notification',
+      EMAIL_SUBJECT: 'VidyaDaan: Your nomination for {PROGRAM_NAME} project is accepted'
+    },
     READ: {
       EXCEPTION_CODE: 'NOMRED',
       MISSING_CODE: 'ERR_GET_NOMINATION_DATA',
