@@ -2,6 +2,7 @@ var kafka = require("kafka-node");
 const fetch = require("node-fetch");
 const logger = require('sb_logger_util_v2');
 const loggerService = require('./loggerService');
+const messageUtils = require('../service/messageUtil');
 const responseCode = messageUtils.RESPONSE_CODE;
 const errorCodes = messageUtils.ERRORCODES;
 const envVariables = require("../envVariables");
