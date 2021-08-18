@@ -40,6 +40,7 @@ const createAppServer = () => {
   require("./routes/configurationRoutes")(app);
   require("./routes/programFeedRoutes")(app);
   require("./routes/print")(app);
+  require("./routes/qumlBulkRoutes")(app);
   app.use(cookieParser());
   module.exports = app;
   return app;
