@@ -1,4 +1,5 @@
 const createError = require("http-errors");
+const fileupload = require('express-fileupload');
 express = require("express");
 path = require("path");
 http = require("http");
@@ -33,6 +34,7 @@ const createAppServer = () => {
     else next();
   });
   app.use(bodyParser.json({ limit: "1mb" }));
+  app.use(fileupload());
   app.use(logger("dev"));
   app.use(express.json());
   app.use(bodyParser.urlencoded({ extended: false }));
