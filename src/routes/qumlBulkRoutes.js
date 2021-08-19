@@ -1,5 +1,5 @@
 const qumlBulkUpload = require("../service/qumlBulkService");
-const BASE_URL = '/api/question/v1/';
+const BASE_URL = '/question/v1';
 
 module.exports = function (app) {
     app.route(BASE_URL + '/bulkUpload')
