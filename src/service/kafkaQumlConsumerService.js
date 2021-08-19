@@ -51,7 +51,7 @@ const qumlConsumer = () => {
           },
         };
         //fetch call for creating a question.
-        fetch(`${envVariables.baseURL}/api/question/v1/create`, {
+        fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}question/v1/create`, {
           method: "POST", // or 'PUT'
           headers: {
             "Content-Type": "application/json",
@@ -74,7 +74,7 @@ const qumlConsumer = () => {
               "OK".toLowerCase()
             ) {
               fetch(
-                `${envVariables.baseURL}/api/question/v1/update/${updateApiData.result.identifier}`,
+                `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}question/v1/update/${updateApiData.result.identifier}`,
                 {
                   method: "PATCH", // or 'PUT'
                   headers: {
@@ -92,7 +92,7 @@ const qumlConsumer = () => {
                     "OK".toLowerCase()
                   ) {
                     fetch(
-                      `${envVariables.baseURL}/api/question/v1/review/${updateApiData.result.identifier}`,
+                      `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}question/v1/review/${updateApiData.result.identifier}`,
                       {
                         method: "POST", // or 'PUT'
                         headers: {
@@ -110,7 +110,7 @@ const qumlConsumer = () => {
                           "OK".toLowerCase()
                         ) {
                           fetch(
-                            `${envVariables.baseURL}/api/question/v1/publish/${updateApiData.result.identifier}`,
+                            `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}question/v1/publish/${updateApiData.result.identifier}`,
                             {
                               method: "POST", // or 'PUT'
                               headers: {
@@ -244,7 +244,7 @@ const updateResponse = (updateData, updateMessage, versionKey) => {
       },
     },
   };
-  fetch(`${envVariables.baseURL}/api/question/v1/review/${updateData}`, {
+  fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}question/v1/update/${updateData}`, {
     method: "POST", // or 'PUT'
     headers: {
       "Content-Type": "application/json",
