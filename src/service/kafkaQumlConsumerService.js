@@ -8,7 +8,7 @@ const errorCodes = messageUtils.ERRORCODES;
 const envVariables = require("../envVariables");
 const rspObj = {};
 
-const qumlConsumer  = ()=>{
+const qumlConsumer = () => {
   try {
     Consumer = kafka.Consumer;
     ConsumerGroup = kafka.ConsumerGroup;
@@ -21,23 +21,19 @@ const qumlConsumer  = ()=>{
         partition: 1,
       },
     ];
-  
+
     var options = {
       kafkaHost: envVariables.SUNBIRD_KAFKA_HOST,
       groupId: envVariables.SUNBIRD_KAFKA_BULKUPLOAD_CONSUMER_GROUP_ID,
       fromOffset: "latest",
     };
     var consumerGroup = new ConsumerGroup(options, [
-      envVariables.SUNBIRD_QUESTION_BULKUPLOAD_TOPIC,
+      envVariables.SUNBIRD_QUESTION_BULKUPLOAD_TOPIC
     ]);
-  
+
     consumerGroup
       .on("message", function (message) {
         const qumlArr = JSON.parse(message.value);
-        loggerService.entryLog(
-          { message: "QUML BULK UPLOAD CONSUMER" },
-          message.value
-        );
         logger.info({ message: "Entered into the consumer service" });
         let parsedJsonValue = JSON.parse(qumlArr);
         let createApiData = {
@@ -74,7 +70,8 @@ const qumlConsumer  = ()=>{
             let updateData = { request: parsedJsonValue };
             //if success fetch call for updating question.
             if (
-              createResponseData.responseCode.toLowerCase() === "OK".toLowerCase()
+              createResponseData.responseCode.toLowerCase() ===
+              "OK".toLowerCase()
             ) {
               fetch(
                 `${envVariables.baseURL}/api/question/v1/update/${updateApiData.result.identifier}`,
@@ -179,7 +176,8 @@ const qumlConsumer  = ()=>{
                       });
                   } else {
                     logger.error({
-                      message: "Something Went Wrong While Updating the question",
+                      message:
+                        "Something Went Wrong While Updating the question",
                     });
                     updateResponse(
                       updateApiData.result.identifier,
@@ -227,12 +225,14 @@ const qumlConsumer  = ()=>{
         client.close();
       });
   } catch (error) {
-    logger.error({
-      message: "Something Went Wrong While Creating the question",
-    },error);
+    logger.error(
+      {
+        message: "Something Went Wrong While Creating the question",
+      },
+      error
+    );
   }
-}
-
+};
 
 //function to update the status of all other fetch calls mentioned above using question update.
 const updateResponse = (updateData, updateMessage, versionKey) => {
@@ -276,6 +276,6 @@ const updateResponse = (updateData, updateMessage, versionKey) => {
     });
 };
 
-module.exports={
-  qumlConsumer
-}
+module.exports = {
+  qumlConsumer,
+};

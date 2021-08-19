@@ -37,8 +37,7 @@ const KafkaService = {
     logger.info({msg: 'Kafka record', additionalInfo: {record}})
     // Send record to Kafka and log result/error
     producer.send(record, callback)
-  }
-,
+  },
   sendRecordWithTopic: (data,topicName, callback = () => { }) => {
     if (_.isEmpty(data)) {
       logger.error({msg: 'Data must be provided to send Record', additionalInfo: {data}})

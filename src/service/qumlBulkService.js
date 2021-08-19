@@ -23,7 +23,7 @@ const bulkUpload = async (req, res) => {
   let qumlData;
   const fileType = req.files.File.mimetype;
   const fileName = req.files.File.name;
-  loggerService.entryLog(req.body, logObject);
+  loggerService.entryLog("Api to upload questions in bulk", logObject);
   //validating the file whether the incoming file is json or not
   if (fileType !== "application/json") {
     rspObj.errMsg = "The File  is not in JSON format!!";
@@ -104,7 +104,7 @@ const bulkUpload = async (req, res) => {
         successArray.push(`${JSON.stringify(qumlData[i])}`);
         //calling the kafka producer here
         KafkaService.sendRecordWithTopic(
-          successArray,
+          qumlData[i],
           envVariables.SUNBIRD_QUESTION_BULKUPLOAD_TOPIC,
           function (err, response) {
             if (err) {
@@ -152,9 +152,7 @@ const bulkUpload = async (req, res) => {
     pId,
   });
   loggerService.exitLog(
-    {
-      message: `Bulk Upload process has started successfully for the process Id : ${pId}`,
-    },
+  `Bulk Upload process has started successfully for the process Id : ${pId}`,
     rspObj
   );
   res
@@ -187,7 +185,7 @@ const qumlSearch = (req, res) => {
     traceId: req.headers["x-request-id"] || "",
     message: programMessages.QUML_BULKSTATUS.INFO,
   };
-  loggerService.entryLog(searchData, logObject);
+  loggerService.entryLog("Api to check the status of bulk upload question", logObject);
   fetch(`${envVariables.baseURL}/action/composite/v3/search`, {
     method: "POST", // or 'PUT'
     headers: {
@@ -209,10 +207,10 @@ const qumlSearch = (req, res) => {
           rspObj,
           data: resData,
         });
-      loggerService.exitLog({
-        message: "Successfully got the Questions",
+      loggerService.exitLog(
+       "Successfully got the Questions",
         rspObj,
-      });
+      );
     })
     .catch((error) => {
       rspObj.errMsg = "Something went wrong while fetching the data";
