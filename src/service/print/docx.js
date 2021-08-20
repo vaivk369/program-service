@@ -159,14 +159,14 @@ const buildDOCXWithCallback = async (id, callback) => {
                   await renderQuestion(question, questionCounter, marks, "VSA"),
                 ];
                 break;
-              // case "MTF":
-              //   questionContent = await renderMTF(
-              //     question,
-              //     questionCounter,
-              //     marks,
-              //     "MTF"
-              //   );
-              //   break;
+              case "MTF":
+                questionContent = await renderMTF(
+                  question,
+                  questionCounter,
+                  marks,
+                  "MTF"
+                );
+                break;
               case "COMPREHENSION":
                 questionContent = [
                   await renderComprehension(
@@ -540,7 +540,7 @@ async function renderMTF(question, questionCounter, marks, Type) {
 
   const heading = questionCounter + ". " + cleanHTML($("p").first().text());
   console.log("MTF:", heading);
-  data.push(getFTB([heading], detectLanguage(heading), marks));
+  data.push(heading, detectLanguage(heading), marks);
   // console.log("MTF:",transposeColumns)
   data.push(
     getMTFHeader(
@@ -561,9 +561,18 @@ async function renderMTF(question, questionCounter, marks, Type) {
     if (r[1].search("img") >= 0) {
       right = await getStack(r[1]);
     } else right = [cleanHTML(r[1])];
-    rows.push(left, right);
+    rows.push({left, right});
+    
   }
-  return data.concat(rows);
+
+  // return data.concat(rows);
+  let mtfData = [{
+    Questions: rows,
+    Marks: marks,
+    type: Type,
+    heading:heading
+  }];
+  return mtfData
 }
 module.exports = {
   buildDOCXWithCallback,

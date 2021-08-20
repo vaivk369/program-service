@@ -89,6 +89,7 @@ function create(data, paperData) {
 
           ...data
             .map((question) => {
+              console.log("Que:",question)
               const arr = [];
 
               if (question !== undefined) {
@@ -197,9 +198,27 @@ function create(data, paperData) {
                       children: [], // Just newline without text
                     })
                   );
+                } else if(question[0].type === "MTF"){
+                  // console.log("MTF")
+                  console.log(question[0].heading)
+
+                  arr.push(Marks(question));
+                  
+                  let count = 0;
+                  arr.push(createSAObject(question[0].heading,count))
+                  arr.push(
+                    new Paragraph({
+                      children: [], // Just newline without text
+                    })
+                  );
+                  arr.push(MTFTabel(question))
+                  arr.push(
+                    new Paragraph({
+                      children: [], // Just newline without text
+                    })
+                  );
                 }
               }
-
               return arr;
             })
             .reduce((prev, curr) => prev.concat(curr), []),
@@ -209,7 +228,73 @@ function create(data, paperData) {
   });
   return doc;
 }
-
+function MTFTabel(question) {
+  const arr = [] 
+  const rowheading = new TableRow({
+    children: [
+      new TableCell({
+        borders: MTFborder,
+        width: {
+          size: 5505,
+          type: WidthType.DXA,
+        },
+        children: [
+          new Paragraph({
+            text:"Column1",
+            bold:true
+          })
+        ],
+      }),
+      new TableCell({
+        borders: MTFborder,
+        width: {
+          size: 5505,
+          type: WidthType.DXA,
+        },
+        children: [
+          new Paragraph({
+            text:"Column2",
+            bold:true
+          })        
+         ],
+      }),
+    ],
+  })
+  arr.push(rowheading)
+  question[0].Questions.map((item) => {
+    arr.push(new TableRow({
+      children: [
+        new TableCell({
+          borders: MTFborder,
+          width: {
+            size: 5505,
+            type: WidthType.DXA,
+          },
+          children: [
+            createSAObject(item.left[0],0)
+          ],
+        }),
+        new TableCell({
+          borders: MTFborder,
+          width: {
+            size: 5505,
+            type: WidthType.DXA,
+          },
+          children: [
+            createSAObject(item.right[0],0)        
+           ],
+        }),
+      ],
+    })
+    );
+  });
+  // console.log("Arr:",arr)
+// 
+  return new Table({
+    columnWidths: [5505, 5505],
+    rows: arr,
+  });
+}
 function Marks(data) {
   if (data[0].Marks !== undefined) {
     return new Paragraph({
@@ -291,7 +376,6 @@ function createSAObject(data, count) {
             })
           );
         }
-        // return arr
       })
       .reduce((prev, curr) => prev.concat(curr), []);
     return new Paragraph({
@@ -315,6 +399,7 @@ function createSAObject(data, count) {
       });
     }
   } else {
+    console.log(data)
     return createFTB(data, count);
   }
 }
@@ -459,6 +544,25 @@ const border = {
   bottom: {
     style: BorderStyle.NIL,
     size: 0,
+  },
+};
+
+const MTFborder = {
+  left: {
+    style: BorderStyle.SINGLE,
+    size: 2,
+  },
+  right: {
+    style: BorderStyle.SINGLE,
+    size: 2,
+  },
+  top: {
+    style: BorderStyle.SINGLE,
+    size: 2,
+  },
+  bottom: {
+    style: BorderStyle.SINGLE,
+    size: 2,
   },
 };
 function headers() {
