@@ -89,7 +89,6 @@ function create(data, paperData) {
 
           ...data
             .map((question) => {
-              console.log("Que:",question)
               const arr = [];
 
               if (question !== undefined) {
@@ -98,29 +97,29 @@ function create(data, paperData) {
                   let count = 0;
                   arr.push(Marks(question));
                   question[0].Questions.map((item) => {
-                    if (item.ol) {
-                      // let count = 0;
-                      item.ol.map((text) => {
-                        count++;
-                        if (typeof text === "object") {
-                          text = count + text.text;
-                          arr.push(
-                            new Paragraph({
-                              text: `${count}.${text}`,
-                            })
-                          );
-                        } else {
-                          arr.push(
-                            new Paragraph({
-                              children: [
-                                new TextRun({
-                                  text: `${count}.${text}`,
-                                }),
-                              ],
-                            })
-                          );
-                        }
-                      });
+                      if (item.ol) {
+                        let count1 = 0;
+                        item.ol.map((text) => {
+                          count1++;
+                          if (typeof text === "object") {
+                            text = count1 + text.text;
+                            arr.push(
+                              new Paragraph({
+                                text: `${count1}.${text}`,
+                              })
+                            );
+                          } else {
+                            arr.push(
+                              new Paragraph({
+                                children: [
+                                  new TextRun({
+                                    text: `${count1}.${text}`,
+                                  }),
+                                ],
+                              })
+                            );
+                          }
+                        });
                     }
                     arr.push(createCOMPREHENSIONObject(item, count++));
                   });
@@ -198,20 +197,17 @@ function create(data, paperData) {
                       children: [], // Just newline without text
                     })
                   );
-                } else if(question[0].type === "MTF"){
-                  // console.log("MTF")
-                  console.log(question[0].heading)
-
+                } else if (question[0].type === "MTF") {
                   arr.push(Marks(question));
-                  
+
                   let count = 0;
-                  arr.push(createSAObject(question[0].heading,count))
+                  arr.push(createSAObject(question[0].heading, count));
                   arr.push(
                     new Paragraph({
                       children: [], // Just newline without text
                     })
                   );
-                  arr.push(MTFTabel(question))
+                  arr.push(MTFTabel(question));
                   arr.push(
                     new Paragraph({
                       children: [], // Just newline without text
@@ -229,7 +225,7 @@ function create(data, paperData) {
   return doc;
 }
 function MTFTabel(question) {
-  const arr = [] 
+  const arr = [];
   const rowheading = new TableRow({
     children: [
       new TableCell({
@@ -240,9 +236,9 @@ function MTFTabel(question) {
         },
         children: [
           new Paragraph({
-            text:"Column1",
-            bold:true
-          })
+            text: "Column1",
+            bold: true,
+          }),
         ],
       }),
       new TableCell({
@@ -253,43 +249,40 @@ function MTFTabel(question) {
         },
         children: [
           new Paragraph({
-            text:"Column2",
-            bold:true
-          })        
-         ],
+            text: "Column2",
+            bold: true,
+          }),
+        ],
       }),
     ],
-  })
-  arr.push(rowheading)
+  });
+  arr.push(rowheading);
   question[0].Questions.map((item) => {
-    arr.push(new TableRow({
-      children: [
-        new TableCell({
-          borders: MTFborder,
-          width: {
-            size: 5505,
-            type: WidthType.DXA,
-          },
-          children: [
-            createSAObject(item.left[0],0)
-          ],
-        }),
-        new TableCell({
-          borders: MTFborder,
-          width: {
-            size: 5505,
-            type: WidthType.DXA,
-          },
-          children: [
-            createSAObject(item.right[0],0)        
-           ],
-        }),
-      ],
-    })
+    arr.push(
+      new TableRow({
+        children: [
+          new TableCell({
+            borders: MTFborder,
+            width: {
+              size: 5505,
+              type: WidthType.DXA,
+            },
+            children: [createSAObject(item.left[0], 0)],
+          }),
+          new TableCell({
+            borders: MTFborder,
+            width: {
+              size: 5505,
+              type: WidthType.DXA,
+            },
+            children: [createSAObject(item.right[0], 0)],
+          }),
+        ],
+      })
     );
   });
   // console.log("Arr:",arr)
-// 
+  //
   return new Table({
     columnWidths: [5505, 5505],
     rows: arr,
@@ -399,7 +392,6 @@ function createSAObject(data, count) {
       });
     }
   } else {
-    console.log(data)
     return createFTB(data, count);
   }
 }
@@ -441,6 +433,36 @@ function createCOMPREHENSIONObject(data, count) {
         ],
       });
     }
+  } else if (data.ol) {
+    // let count1 = 0;
+    // data.ol
+    //   .map((text) => {
+    //     count1++;
+    //     if (typeof text === "object") {
+    //       text = count1 + text.text;
+    //       arr.push(
+    //         new Paragraph({
+    //           text: `${count1}.${text}`,
+    //         })
+    //       );
+    //     } else {
+    //       arr.push(
+    //         new Paragraph({
+    //           // children: [
+    //           //   new TextRun({
+    //               text: `${count1}.${text}`,
+    //           //   }),
+    //           // ],
+    //         })
+    //       );
+    //     }
+    //   })
+    //   .reduce((prev, curr) => prev.concat(curr), []);
+    //   console.log("ol",arr)
+    // return new Paragraph({
+    //   alignment: AlignmentType.LEFT,
+    //   children: arr,
+    // });
   } else {
     return createFTB(data, count);
   }
@@ -501,9 +523,7 @@ function displayOptions(option, height, width) {
   // console.log("image", option);
   if (option.includes("data:image/")) {
     let image = getBufferData(option);
-    console.log("image", option);
-
-    return new Paragraph({
+      return new Paragraph({
       text: option.substr(0, 1),
       children: [
         new ImageRun({
