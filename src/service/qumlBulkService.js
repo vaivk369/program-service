@@ -112,7 +112,6 @@ const bulkUpload = async (req, res) => {
                 {
                   message: "Something Went wrong while producing kafka",
                   errorData: err,
-                  rspObj,
                 },
                 errorCodes.CODE2
               );
@@ -144,7 +143,6 @@ const bulkUpload = async (req, res) => {
       "No of questions getting processed": successArray.length,
       "No of questions With issues": errorArray.length,
       "Questions With wrong message": errorArray,
-      rspObj,
     },
   };
   logger.info({
@@ -156,12 +154,9 @@ const bulkUpload = async (req, res) => {
     rspObj
   );
   res
-    .status(200)
-    .send(
-      {
-        message: `Bulk Upload process has started successfully for the process Id : ${pId}`,
-      },
-      rspObj
+  .status(200)
+  .send(
+    {message: `Bulk Upload process has started successfully for the process Id : ${pId}`,rspObj}
     );
 };
 
@@ -239,4 +234,5 @@ const qumlSearch = (req, res) => {
 module.exports = {
   bulkUpload,
   qumlSearch,
+  readfile
 };
