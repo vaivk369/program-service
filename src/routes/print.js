@@ -1,11 +1,8 @@
 var express = require("express");
 const { buildPDFWithCallback } = require("../service/print/pdf");
-<<<<<<< HEAD
 const { buildCSVWithCallback } = require("../service/print/csv");
 const { buildCSVReportWithCallback } = require('../service/print/csvreport');
-=======
 const { buildDOCXWithCallback } = require('../service/print/docx')
->>>>>>> origin/release-4.2.0-HC
 const requestMiddleware = require("../middlewares/request.middleware");
 // const base64 = require('base64topdf');
 const BASE_URL = "/program/v1";
@@ -13,10 +10,8 @@ const BASE_URL = "/program/v1";
 async function printDocx(req,res){
   const id = req.query.id;
   const format = req.query.format;
-<<<<<<< HEAD
-=======
   // buildDOCXwithCallback(function (binary, error, errorMsg) {
-    buildDOCXWithCallback(id,function (binary, error, errorMsg) {
+    buildDOCXWithCallback(id,function (binary, error, errorMsg,filename) {
     // console.log("Enttere dres")
     var date = new Date();
     if (!error) {
@@ -41,13 +36,13 @@ async function printDocx(req,res){
         res.send(resJSON);
       } else {
         
-        res.setHeader('Content-Disposition', 'attachment; filename=MyDocument.docx');
+        res.setHeader('Content-Disposition', `attachment; filename=${filename}.docx`);
         res.send(Buffer.from(binary, 'base64'));
       }
     } else {
       res.status(404).send({
         error: errorMsg,
-      });
+      }); 
     }
   });
 }
@@ -55,7 +50,6 @@ async function printDocx(req,res){
 async function printPDF(req, res) {
   const id = req.query.id;
   const format = req.query.format;
->>>>>>> origin/release-4.2.0-HC
   buildPDFWithCallback(id, function (binary, error, errorMsg) {
     var date = new Date();
     if (!error) {
@@ -170,14 +164,8 @@ module.exports = function (app) {
     .get(
       requestMiddleware.gzipCompression(),
       requestMiddleware.createAndValidateRequestBody,
+      // printDocx
       printPDF
-    );
-  app
-    .route(BASE_URL + "/print/docx")
-    .get(
-      requestMiddleware.gzipCompression(),
-      requestMiddleware.createAndValidateRequestBody,
-      printDocx
     );
   app
     .route(BASE_URL + "/print/csv")
@@ -192,5 +180,13 @@ module.exports = function (app) {
       requestMiddleware.gzipCompression(),
       requestMiddleware.createAndValidateRequestBody,
       printCSV
+    );
+  app
+    .route(BASE_URL + "/print/docx")
+    .get(
+      requestMiddleware.gzipCompression(),
+      requestMiddleware.createAndValidateRequestBody,
+      printDocx
+      // printPDF
     );
 };
