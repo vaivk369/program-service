@@ -1,3 +1,4 @@
+
 const fetch = require("node-fetch");
 const envVariables = require("../../envVariables");
 
@@ -179,3 +180,4 @@ const getData = async (id) => {
 module.exports = {
   getData,
 };
+
