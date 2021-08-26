@@ -42,7 +42,7 @@ async function printDocx(req,res){
     } else {
       res.status(404).send({
         error: errorMsg,
-      });
+      }); 
     }
   });
 }

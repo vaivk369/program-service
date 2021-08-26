@@ -17,8 +17,8 @@ const buildCSVWithCallback = async (id, callback) => {
           subject = data.paperData.subject[0]
           grade = data.paperData.gradeLevel[0]
         }
-        const examName = data.paperData.name
 
+	const examName = data.paperData.name
         data.sectionData.forEach(d => {
           d.questions.forEach((element, index) => {
             const marks = parseInt(d.section.children[index].marks)
@@ -219,7 +219,8 @@ async function getStack (htmlString, questionCounter) {
     if (index === 0 && questionCounter) {
       if (elem.name === 'p') {
         if (typeof nextLine === 'object')
-          nextLine = { text: `${nextLine.text}` }
+          //nextLine = { text: `${nextLine.text}` }
+	   nextLine = `${nextLine.text}` 
         else nextLine = `${nextLine}`
       } else stack.push(`${nextLine}`)
     }
@@ -257,9 +258,7 @@ async function renderMCQ (
         : [`${cleanHTML(qoBody)}`]
     questionOptions.push(qoData)
   }
-
   let q = question.editorState.question
-
   questionTitle =
     q.search('img') >= 0 ||
     q.search('sub') >= 0 ||
