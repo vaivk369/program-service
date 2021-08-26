@@ -97,29 +97,29 @@ function create(data, paperData) {
                   let count = 0;
                   arr.push(Marks(question));
                   question[0].Questions.map((item) => {
-                      if (item.ol) {
-                        let count1 = 0;
-                        item.ol.map((text) => {
-                          count1++;
-                          if (typeof text === "object") {
-                            text = count1 + text.text;
-                            arr.push(
-                              new Paragraph({
-                                text: `${count1}.${text}`,
-                              })
-                            );
-                          } else {
-                            arr.push(
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: `${count1}.${text}`,
-                                  }),
-                                ],
-                              })
-                            );
-                          }
-                        });
+                    if (item.ol) {
+                      let count1 = 0;
+                      item.ol.map((text) => {
+                        count1++;
+                        if (typeof text === "object") {
+                          text = count1 + text.text;
+                          arr.push(
+                            new Paragraph({
+                              text: `${count1}.${text}`,
+                            })
+                          );
+                        } else {
+                          arr.push(
+                            new Paragraph({
+                              children: [
+                                new TextRun({
+                                  text: `${count1}.${text}`,
+                                }),
+                              ],
+                            })
+                          );
+                        }
+                      });
                     }
                     arr.push(createCOMPREHENSIONObject(item, count++));
                   });
@@ -188,7 +188,7 @@ function create(data, paperData) {
                   arr.push(Marks(question));
                   let count = 0;
                   question[0].Questions.map((item) => {
-                    arr.push(createSAObject(item));
+                    arr.push(createSAObject(item, count));
                   });
 
                   arr.push(optionsTabel(testimage));
@@ -330,7 +330,7 @@ function createFTBObject(data) {
 }
 
 function createFTB(data, count) {
-  // console.log("Data:",data, count)
+  // console.log("Data:", count)
   if (count !== 0) {
     return new Paragraph({
       alignment: AlignmentType.LEFT,
@@ -523,7 +523,7 @@ function displayOptions(option, height, width) {
   // console.log("image", option);
   if (option.includes("data:image/")) {
     let image = getBufferData(option);
-      return new Paragraph({
+    return new Paragraph({
       text: option.substr(0, 1),
       children: [
         new ImageRun({

@@ -197,9 +197,9 @@ const buildDOCXWithCallback = async (id, callback) => {
         const doc = await getDocx.create(questionPaperContent, paperDetails);
 
         const b64string = await Packer.toBase64String(doc);
-        let filename = grade + '_' + subject + '_' + examName
-        filename = filename.replace(/\s/g, '')
-        callback(b64string, null, null,filename);
+        let filename = grade + "_" + subject + "_" + examName;
+        filename = filename.replace(/\s/g, "");
+        callback(b64string, null, null, filename);
       }
     })
     .catch((e) => {
@@ -471,7 +471,6 @@ async function renderMCQ(question, questionCounter, marks) {
     width: imageProperties[0].width,
   };
   return data;
-  
 }
 
 async function renderQuestion(question, questionCounter, marks, Type) {
@@ -489,13 +488,13 @@ async function renderQuestion(question, questionCounter, marks, Type) {
   } else {
     data = [`${questionCounter}. ${cleanHTML(question.editorState.question)}`];
   }
-  
+
   let quedata = {
     Questions: data,
     Marks: marks,
     type: Type,
   };
- 
+
   return quedata;
 }
 
@@ -561,18 +560,19 @@ async function renderMTF(question, questionCounter, marks, Type) {
     if (r[1].search("img") >= 0) {
       right = await getStack(r[1]);
     } else right = [cleanHTML(r[1])];
-    rows.push({left, right});
-    
+    rows.push({ left, right });
   }
 
   // return data.concat(rows);
-  let mtfData = [{
-    Questions: rows,
-    Marks: marks,
-    type: Type,
-    heading:heading
-  }];
-  return mtfData
+  let mtfData = [
+    {
+      Questions: rows,
+      Marks: marks,
+      type: Type,
+      heading: heading,
+    },
+  ];
+  return mtfData;
 }
 module.exports = {
   buildDOCXWithCallback,
