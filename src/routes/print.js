@@ -42,7 +42,7 @@ async function printDocx(req,res){
     } else {
       res.status(404).send({
         error: errorMsg,
-      });
+      }); 
     }
   });
 }
@@ -164,8 +164,8 @@ module.exports = function (app) {
     .get(
       requestMiddleware.gzipCompression(),
       requestMiddleware.createAndValidateRequestBody,
-      printDocx
-      // printPDF
+      // printDocx
+      printPDF
     );
   app
     .route(BASE_URL + "/print/csv")
@@ -186,7 +186,7 @@ module.exports = function (app) {
     .get(
       requestMiddleware.gzipCompression(),
       requestMiddleware.createAndValidateRequestBody,
-      // printDocx
-      printPDF
+      printDocx
+      // printPDF
     );
 };
