@@ -160,7 +160,6 @@ function create(data, paperData) {
                   arr.push(Marks(question));
                   question[0].Questions.map((item) => {
                     // console.log(item)
-
                     arr.push(createSAObject(item, count++));
                   });
                   arr.push(
@@ -306,7 +305,6 @@ function Marks(data) {
     });
   }
 }
-
 function createFTBObject(data) {
   const arr = [];
 
