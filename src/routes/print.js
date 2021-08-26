@@ -31,6 +31,7 @@ async function printDocx(req,res){
           result: {
             content_id: id,
             base64string: binary,
+            filename: filename
           },
         };
         res.send(resJSON);
