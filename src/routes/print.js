@@ -85,14 +85,6 @@ async function printPDF(req, res) {
 }
 module.exports = function (app) {
   app
-    .route(BASE_URL + "/print/pdf")
-    .get(
-      requestMiddleware.gzipCompression(),
-      requestMiddleware.createAndValidateRequestBody,
-      // printDocx
-      printPDF
-    );
-  app
     .route(BASE_URL + "/print/docx")
     .get(
       requestMiddleware.gzipCompression(),

@@ -1,6 +1,5 @@
 const envVariables = {
-    // baseURL: process.env.dock_base_url || 'https://dock.sunbirded.org',
-    QUE_IMG_URL: 'https://dockprodall.blob.core.windows.net/dock-content-prod',
+        
     baseURL: process.env.dock_base_url || 'https://dock.sunbirded.org',
     SUNBIRD_URL: process.env.sunbird_base_url || 'https://dev.sunbirded.org',
     SUNBIRD_PORTAL_API_AUTH_TOKEN: process.env.sunbird_api_auth_token || '',
