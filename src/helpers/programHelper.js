@@ -1150,8 +1150,8 @@ class ProgramServiceHelper {
   }
 
 
-  addBaseUrlIfAbsent(url) {
-    if(url.search("http://") >= 0) return url;
+  addBaseUrlIfAbsent(url) {    
+    if( (url.search("http://") >= 0) || (url.search("https://") >= 0)) return url;
     else return `${envVariables.baseURL}${url}`;
   }
 
