@@ -98,14 +98,14 @@ function create(data, paperData) {
                   arr.push(Marks(question));
                   question[0].Questions.map((item) => {
                     if (item.ol) {
-                      let count = 0;
+                      let count1 = 0;
                       item.ol.map((text) => {
-                        count++;
+                        count1++;
                         if (typeof text === "object") {
-                          text = count + text.text;
+                          text = count1 + text.text;
                           arr.push(
                             new Paragraph({
-                              text: `${count}.${text}`,
+                              text: `${count1}.${text}`,
                             })
                           );
                         } else {
@@ -113,7 +113,7 @@ function create(data, paperData) {
                             new Paragraph({
                               children: [
                                 new TextRun({
-                                  text: `${count}.${text}`,
+                                  text: `${count1}.${text}`,
                                 }),
                               ],
                             })
@@ -121,7 +121,7 @@ function create(data, paperData) {
                         }
                       });
                     }
-                  arr.push(createCOMPREHENSIONObject(item, count++));
+                    arr.push(createCOMPREHENSIONObject(item, count++));
                   });
 
                   arr.push(
@@ -133,7 +133,7 @@ function create(data, paperData) {
                   // console.log("CuriosityQuestion Dta:", question[0].Questions);
                 } else if (question[0].type === "SA") {
                   let count = 0;
-                   arr.push(Marks(question));
+                  arr.push(Marks(question));
                   question[0].Questions.map((item) => {
                     arr.push(createSAObject(item, count++));
                   });
@@ -145,7 +145,7 @@ function create(data, paperData) {
                   );
                 } else if (question[0].type === "LA") {
                   // console.log("LA Dta:", page);
-                  arr.push(Marks(question))
+                  arr.push(Marks(question));
                   question[0].Questions.map((item) => {
                     arr.push(createSAObject(item));
                   });
@@ -160,7 +160,6 @@ function create(data, paperData) {
                   arr.push(Marks(question));
                   question[0].Questions.map((item) => {
                     // console.log(item)
-                    
                     arr.push(createSAObject(item, count++));
                   });
                   arr.push(
@@ -183,22 +182,38 @@ function create(data, paperData) {
                       children: [], // Just newline without text
                     })
                   );
-                } 
-              //   else if (question[0].type === "MCQ") {
-              //     let testimage = formatOptions(question[0]);
-              //     arr.push(Marks(question));
-                
-              //     arr.push(createMCQdata(question));
-                  
-              //     arr.push(optionsTabel(testimage));
-              //     arr.push(
-              //       new Paragraph({
-              //         children: [], // Just newline without text
-              //       })
-              //     );
-              //   }
-              }
+                } else if (question[0].type === "MCQ") {
+                  let testimage = formatOptions(question[0]);
+                  arr.push(Marks(question));
+                  let count = 0;
+                  question[0].Questions.map((item) => {
+                    arr.push(createSAObject(item, count));
+                  });
 
+                  arr.push(optionsTabel(testimage));
+                  arr.push(
+                    new Paragraph({
+                      children: [], // Just newline without text
+                    })
+                  );
+                } else if (question[0].type === "MTF") {
+                  arr.push(Marks(question));
+
+                  let count = 0;
+                  arr.push(createSAObject(question[0].heading, count));
+                  arr.push(
+                    new Paragraph({
+                      children: [], // Just newline without text
+                    })
+                  );
+                  arr.push(MTFTabel(question));
+                  arr.push(
+                    new Paragraph({
+                      children: [], // Just newline without text
+                    })
+                  );
+                }
+              }
               return arr;
             })
             .reduce((prev, curr) => prev.concat(curr), []),
@@ -208,7 +223,70 @@ function create(data, paperData) {
   });
   return doc;
 }
-
+function MTFTabel(question) {
+  const arr = [];
+  const rowheading = new TableRow({
+    children: [
+      new TableCell({
+        borders: MTFborder,
+        width: {
+          size: 5505,
+          type: WidthType.DXA,
+        },
+        children: [
+          new Paragraph({
+            text: "Column1",
+            bold: true,
+          }),
+        ],
+      }),
+      new TableCell({
+        borders: MTFborder,
+        width: {
+          size: 5505,
+          type: WidthType.DXA,
+        },
+        children: [
+          new Paragraph({
+            text: "Column2",
+            bold: true,
+          }),
+        ],
+      }),
+    ],
+  });
+  arr.push(rowheading);
+  question[0].Questions.map((item) => {
+    arr.push(
+      new TableRow({
+        children: [
+          new TableCell({
+            borders: MTFborder,
+            width: {
+              size: 5505,
+              type: WidthType.DXA,
+            },
+            children: [createSAObject(item.left[0], 0)],
+          }),
+          new TableCell({
+            borders: MTFborder,
+            width: {
+              size: 5505,
+              type: WidthType.DXA,
+            },
+            children: [createSAObject(item.right[0], 0)],
+          }),
+        ],
+      })
+    );
+  });
+  // console.log("Arr:",arr)
+  //
+  return new Table({
+    columnWidths: [5505, 5505],
+    rows: arr,
+  });
+}
 function Marks(data) {
   if (data[0].Marks !== undefined) {
     return new Paragraph({
@@ -226,15 +304,6 @@ function Marks(data) {
       children: [],
     });
   }
-}
-function createMCQdata(data) {
-  console.log("Data:", data[0].Questions[0]);
-  return new Paragraph({
-    alignment: AlignmentType.LEFT,
-    children: [
-      new TextRun({text : `${data[0].Questions[0]}`}), 
-    ],
-  });
 }
 function createFTBObject(data) {
   const arr = [];
@@ -259,7 +328,7 @@ function createFTBObject(data) {
 }
 
 function createFTB(data, count) {
-  // console.log("Data:",data, count)
+  // console.log("Data:", count)
   if (count !== 0) {
     return new Paragraph({
       alignment: AlignmentType.LEFT,
@@ -282,48 +351,6 @@ function createFTB(data, count) {
     });
   }
 }
-function createMCWObject(data, count) {
-  // console.log("Item:", data)
-  const arr = [];
-  if (data.text) {
-    data.text
-      .map((text) => {
-        if (typeof text === "object") {
-          arr.push(new TextRun(text));
-        } else {
-          arr.push(
-            new TextRun({
-              text: `${text}`,
-            })
-          );
-        }
-        // return arr
-      })
-      .reduce((prev, curr) => prev.concat(curr), []);
-    return new Paragraph({
-      alignment: AlignmentType.LEFT,
-      children: arr,
-    });
-  } else if (data.image) {
-    if (data.image.includes("data:image/")) {
-      let image = getBufferImg(data.image);
-
-      return new Paragraph({
-        children: [
-          new ImageRun({
-            data: image,
-            transformation: {
-              width: data.width,
-              height: data.height,
-            },
-          }),
-        ],
-      });
-    }
-  } else {
-    return createFTB(data, count);
-  }
-}
 
 function createSAObject(data, count) {
   // console.log("Item:", data)
@@ -340,7 +367,6 @@ function createSAObject(data, count) {
             })
           );
         }
-        // return arr
       })
       .reduce((prev, curr) => prev.concat(curr), []);
     return new Paragraph({
@@ -405,13 +431,40 @@ function createCOMPREHENSIONObject(data, count) {
         ],
       });
     }
-  } 
-  else {
+  } else if (data.ol) {
+    // let count1 = 0;
+    // data.ol
+    //   .map((text) => {
+    //     count1++;
+    //     if (typeof text === "object") {
+    //       text = count1 + text.text;
+    //       arr.push(
+    //         new Paragraph({
+    //           text: `${count1}.${text}`,
+    //         })
+    //       );
+    //     } else {
+    //       arr.push(
+    //         new Paragraph({
+    //           // children: [
+    //           //   new TextRun({
+    //               text: `${count1}.${text}`,
+    //           //   }),
+    //           // ],
+    //         })
+    //       );
+    //     }
+    //   })
+    //   .reduce((prev, curr) => prev.concat(curr), []);
+    //   console.log("ol",arr)
+    // return new Paragraph({
+    //   alignment: AlignmentType.LEFT,
+    //   children: arr,
+    // });
+  } else {
     return createFTB(data, count);
   }
 }
-
-
 
 function imageData(image) {
   let bufferImage;
@@ -432,6 +485,7 @@ function getBufferImg(data) {
   return image;
 }
 function formatOptions(data) {
+  // console.log("Options:",data)
   let optionArr = [];
   let image;
   let testimage = data;
@@ -456,24 +510,25 @@ function formatOptions(data) {
     } else {
       optionArr.push(testimage.Option4);
     }
+    optionArr.push(testimage.height);
+    optionArr.push(testimage.width);
   }
   // console.log("options :",optionArr)
   return optionArr;
 }
 
-function displayOptions(option) {
+function displayOptions(option, height, width) {
+  // console.log("image", option);
   if (option.includes("data:image/")) {
     let image = getBufferData(option);
-    // console.log("image", image);
-
     return new Paragraph({
       text: option.substr(0, 1),
       children: [
         new ImageRun({
           data: image,
           transformation: {
-            width: 150,
-            height: 150,
+            width: width,
+            height: height,
           },
         }),
       ],
@@ -507,6 +562,25 @@ const border = {
   bottom: {
     style: BorderStyle.NIL,
     size: 0,
+  },
+};
+
+const MTFborder = {
+  left: {
+    style: BorderStyle.SINGLE,
+    size: 2,
+  },
+  right: {
+    style: BorderStyle.SINGLE,
+    size: 2,
+  },
+  top: {
+    style: BorderStyle.SINGLE,
+    size: 2,
+  },
+  bottom: {
+    style: BorderStyle.SINGLE,
+    size: 2,
   },
 };
 function headers() {
@@ -596,6 +670,7 @@ function headers() {
 }
 //
 function optionsTabel(testimage) {
+  // console.log(testimage)
   return new Table({
     columnWidths: [5505, 5505],
     rows: [
@@ -607,7 +682,9 @@ function optionsTabel(testimage) {
               size: 5505,
               type: WidthType.DXA,
             },
-            children: [displayOptions(testimage[0])],
+            children: [
+              displayOptions(testimage[0], testimage[4], testimage[5]),
+            ],
           }),
           new TableCell({
             borders: border,
@@ -615,7 +692,9 @@ function optionsTabel(testimage) {
               size: 5505,
               type: WidthType.DXA,
             },
-            children: [displayOptions(testimage[1])],
+            children: [
+              displayOptions(testimage[1], testimage[4], testimage[5]),
+            ],
           }),
         ],
       }),
@@ -627,7 +706,9 @@ function optionsTabel(testimage) {
               size: 5505,
               type: WidthType.DXA,
             },
-            children: [displayOptions(testimage[2])],
+            children: [
+              displayOptions(testimage[2], testimage[4], testimage[5]),
+            ],
           }),
           new TableCell({
             borders: border,
@@ -635,7 +716,9 @@ function optionsTabel(testimage) {
               size: 5505,
               type: WidthType.DXA,
             },
-            children: [displayOptions(testimage[3])],
+            children: [
+              displayOptions(testimage[3], testimage[4], testimage[5]),
+            ],
           }),
         ],
       }),
