@@ -307,8 +307,8 @@ function Marks(data) {
 }
 function createFTBObject(data) {
   const arr = [];
-
-  data.text
+  if(data.text) {
+    data.text
     .map((text) => {
       if (typeof text === "object") {
         arr.push(new TextRun(text));
@@ -321,6 +321,23 @@ function createFTBObject(data) {
       }
     })
     .reduce((prev, curr) => prev.concat(curr), []);
+  }
+  else if(data.image) {
+    if (data.image.includes("data:image/")) {
+    let image = getBufferImg(data.image);
+    return new Paragraph({
+      children: [
+        new ImageRun({
+          data: image,
+          transformation: {
+            width: data.width,
+            height: data.height,
+            },
+          }),
+        ],
+      });
+    }
+  }
   return new Paragraph({
     alignment: AlignmentType.LEFT,
     children: arr,
