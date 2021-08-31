@@ -1,6 +1,17 @@
 const { getData } = require("./dataImporter");
 const docx = require("docx");
-const { Document, Packer, Paragraph, TextRun, AlignmentType, ImageRun ,Table, TableRow, TableCell, WidthType} = docx;
+const {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  AlignmentType,
+  ImageRun,
+  Table,
+  TableRow,
+  TableCell,
+  WidthType,
+} = docx;
 // const getDocx = require("./getDocx");
 const getDocx = require("./getdocxdata");
 const fs = require("fs");
@@ -101,9 +112,11 @@ const buildDOCXWithCallback = async (id, callback) => {
         ];
 
         const questionPaperContent = [];
-        const paperDetails =  {"examName" : examName,
-        "className" : grade,
-        "subject" : subject}
+        const paperDetails = {
+          examName: examName,
+          className: grade,
+          subject: subject,
+        };
         let questionCounter = 0;
 
         for (const d of data.sectionData) {
@@ -128,12 +141,7 @@ const buildDOCXWithCallback = async (id, callback) => {
                 break;
               case "FTB":
                 questionContent = [
-                  await renderQuestion(
-                    question,
-                    questionCounter,
-                    marks,
-                    'FTB'
-                  ),
+                  await renderQuestion(question, questionCounter, marks, "FTB"),
                 ];
                 break;
               case "SA":
@@ -148,25 +156,25 @@ const buildDOCXWithCallback = async (id, callback) => {
                 break;
               case "VSA":
                 questionContent = [
-                  await renderQuestion(
+                  await renderQuestion(question, questionCounter, marks, "VSA"),
+                ];
+                break;
+              case "MTF":
+                questionContent = await renderMTF(
+                  question,
+                  questionCounter,
+                  marks,
+                  "MTF"
+                );
+                break;
+              case "COMPREHENSION":
+                questionContent = [
+                  await renderComprehension(
                     question,
                     questionCounter,
                     marks,
-                    "VSA"
+                    "COMPREHENSION"
                   ),
-                ];
-                break;
-              // case "MTF":
-              //   questionContent = await renderMTF(
-              //     question,
-              //     questionCounter,
-              //     marks,
-              //     "MTF"
-              //   );
-              //   break;
-              case "COMPREHENSION":
-                questionContent = [
-                  await renderComprehension(question, questionCounter, marks,"COMPREHENSION"),
                 ];
                 break;
               case "CuriosityQuestion":
@@ -184,12 +192,14 @@ const buildDOCXWithCallback = async (id, callback) => {
             questionPaperContent.push(questionContent);
           }
         }
-       
+
         // console.log("Contents:",questionPaperContent[1])
-        const doc = await getDocx.create(questionPaperContent,paperDetails);
-        
+        const doc = await getDocx.create(questionPaperContent, paperDetails);
+
         const b64string = await Packer.toBase64String(doc);
-        callback(b64string, null, null);
+        let filename = grade + "_" + subject + "_" + examName;
+        filename = filename.replace(/\s/g, "");
+        callback(b64string, null, null, filename);
       }
     })
     .catch((e) => {
@@ -260,7 +270,7 @@ function createImageElement(src, width) {
   imageElement.image = src;
   let img = Buffer.from(src.split(";base64,").pop(), "base64");
   let dimensions = sizeOf(img);
-  console.log("Dimensions", dimensions)
+  console.log("Dimensions", dimensions);
   let resizedWidth = dimensions.width * width;
   let resizedHeight = dimensions.height * width;
   imageElement.width = resizedWidth > 150 ? 150 : resizedWidth;
@@ -335,7 +345,6 @@ async function getStack(htmlString, questionCounter) {
         if (style) {
           width = parseFloat(style.split(":").pop().slice(0, -2));
           width = width / 100;
-         
         }
         if (elem.children && elem.children.length) {
           let { src } = elem.children[0].attribs;
@@ -391,58 +400,78 @@ async function renderMCQ(question, questionCounter, marks) {
       : [`${questionCounter}. ${cleanHTML(q)}`];
 
   let questionOpt = [];
+  let imageProperties = [];
   if (typeof questionOptions[0][1] === "object") {
-    // console.log("Que:",questionOptions[0][0])
-    questionOpt.push(
-      questionOptions[0][0] + (questionOptions[0][1].image)
-    );
+    // console.log("Que:",questionOptions)
+    questionOpt.push(questionOptions[0][0] + questionOptions[0][1].image);
+    imageProperties.push({
+      width: questionOptions[0][1].width,
+      height: questionOptions[0][1].height,
+    });
   } else {
     questionOpt.push(questionOptions[0][0]);
+    imageProperties.push({
+      width: 0,
+      height: 0,
+    });
   }
 
   if (typeof questionOptions[1][1] === "object") {
-    questionOpt.push(
-      questionOptions[1][0] + (questionOptions[1][1].image)
-    );
+    questionOpt.push(questionOptions[1][0] + questionOptions[1][1].image);
+    imageProperties.push({
+      width: questionOptions[1][1].width,
+      height: questionOptions[1][1].height,
+    });
   } else {
     questionOpt.push(questionOptions[1][0]);
+    imageProperties.push({
+      width: 0,
+      height: 0,
+    });
   }
 
   if (typeof questionOptions[2][1] === "object") {
-    questionOpt.push(
-      questionOptions[2][0] + (questionOptions[2][1].image)
-    );
+    questionOpt.push(questionOptions[2][0] + questionOptions[2][1].image);
+    imageProperties.push({
+      width: questionOptions[2][1].width,
+      height: questionOptions[2][1].height,
+    });
   } else {
     questionOpt.push(questionOptions[2][0]);
+    imageProperties.push({
+      width: 0,
+      height: 0,
+    });
   }
 
   if (typeof questionOptions[3][1] === "object") {
-    questionOpt.push(
-      questionOptions[3][0] + (questionOptions[3][1].image)
-    );
+    questionOpt.push(questionOptions[3][0] + questionOptions[3][1].image);
+    imageProperties.push({
+      width: questionOptions[3][1].width,
+      height: questionOptions[3][1].height,
+    });
   } else {
     questionOpt.push(questionOptions[3][0]);
+    imageProperties.push({
+      width: 0,
+      height: 0,
+    });
   }
 
   let data = {
     Questions: questionTitle,
-    Option1: questionOpt,
-    Option2: questionOpt,
-    Option3: questionOpt,
-    Option4: questionOpt,
+    Option1: questionOpt[0],
+    Option2: questionOpt[1],
+    Option3: questionOpt[2],
+    Option4: questionOpt[3],
     Marks: marks,
     Language: detectLanguage(questionTitle[0]),
-    type:'MCQ'
+    type: "MCQ",
+    height: imageProperties[0].height,
+    width: imageProperties[0].width,
   };
   return data;
-  // return getMCQ(
-  //   questionTitle,
-  //   questionOptions,
-  //   detectLanguage(questionTitle[0]),
-  //   marks
-  // );
 }
-
 
 async function renderQuestion(question, questionCounter, marks, Type) {
   let data;
@@ -459,18 +488,17 @@ async function renderQuestion(question, questionCounter, marks, Type) {
   } else {
     data = [`${questionCounter}. ${cleanHTML(question.editorState.question)}`];
   }
-  // let question;
-  // console.log("data:",typeof data[0],data)
+
   let quedata = {
     Questions: data,
     Marks: marks,
-    type: Type
+    type: Type,
   };
-  // return callback(data, detectLanguage(data[0]), marks);
- return  quedata;
+
+  return quedata;
 }
 
-async function renderComprehension(question, questionCounter, marks,Type) {
+async function renderComprehension(question, questionCounter, marks, Type) {
   let data;
   if (
     (question.media && question.media.length) ||
@@ -480,7 +508,7 @@ async function renderComprehension(question, questionCounter, marks,Type) {
     question.editorState.question.search("ol") >= 0 ||
     question.editorState.question.search("ul") >= 0 ||
     question.editorState.question.match(/<p>/g).length > 1
-  ) { 
+  ) {
     data = await getStack(question.editorState.question, questionCounter);
   } else {
     data = [`${questionCounter}. ${cleanHTML(question.editorState.question)}`];
@@ -488,9 +516,9 @@ async function renderComprehension(question, questionCounter, marks,Type) {
   let quedata = {
     Questions: data,
     Marks: marks,
-    type: Type
+    type: Type,
   };
-  return quedata
+  return quedata;
   // return getComprehension(data, detectLanguage(data[0]), marks);
 }
 
@@ -500,7 +528,7 @@ function renderTF(question, questionCounter, marks) {
   return getTF(questionTitle, detectLanguage(questionTitle[0]), marks);
 }
 
-async function renderMTF(question, questionCounter, marks,Type) {
+async function renderMTF(question, questionCounter, marks, Type) {
   $ = cheerio.load(question.editorState.question);
   cheerioTableparser($);
   var data = [];
@@ -510,8 +538,8 @@ async function renderMTF(question, questionCounter, marks,Type) {
   );
 
   const heading = questionCounter + ". " + cleanHTML($("p").first().text());
-  console.log("MTF:",heading)
-  data.push(getFTB([heading], detectLanguage(heading), marks));
+  console.log("MTF:", heading);
+  data.push(heading, detectLanguage(heading), marks);
   // console.log("MTF:",transposeColumns)
   data.push(
     getMTFHeader(
@@ -532,208 +560,20 @@ async function renderMTF(question, questionCounter, marks,Type) {
     if (r[1].search("img") >= 0) {
       right = await getStack(r[1]);
     } else right = [cleanHTML(r[1])];
-    rows.push(left,right)
-    
+    rows.push({ left, right });
   }
-  return data.concat(rows);
+
+  // return data.concat(rows);
+  let mtfData = [
+    {
+      Questions: rows,
+      Marks: marks,
+      type: Type,
+      heading: heading,
+    },
+  ];
+  return mtfData;
 }
-
-
-async function createDoc(docData) {
-    let data = docData
-    let queNum = 0;
-    // console.log("Doc data:",data)
-    const doc = new Document({
-      sections: [
-        {
-          properties: {},
-          children: [
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              children: [
-                new TextRun({
-                  text: "Mathematics",
-                  bold: true,
-                }),
-              ],
-            }),
-            new Paragraph({
-              children: [], // Just newline without text
-            }),
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              children: [
-                new TextRun({
-                  text: "FUn",
-                  bold: true,
-                }),
-              ],
-            }),
-            ...data
-              .map((question) => {
-                const arr = [];
-                if(question !== undefined)
-                arr.push(createContactInfo(question));
-                return arr;
-              })
-              .reduce((prev, curr) => prev.concat(curr), []),
-          ],
-        },
-      ],
-    });
-    // console.log("final doc:", doc)
-
-    return doc;
-  }
-
-  async function createContactInfo(data) {
-    console.log("Info", data)
-    return new Paragraph({
-      alignment: AlignmentType.LEFT,
-      children: [
-        new TextRun(`${data[0].Questions}`),
-        new Paragraph({
-          children: [], // Just newline without text
-        }),
-        // await createOptions(data[0])
-      ],
-    });
-  }
-  
-  async function imageData(image) {
-      let bufferImage;
-    if (image.includes("data:image/png;base64,")) {
-      return bufferImage = image.replace("data:image/png;base64,", "");
-    } else if (image.includes("data:image/jpg;base64")) {
-      return bufferImage = image.replace("data:image/jpg;base64,", "");
-    } else if (image.includes("data:image/jpeg;base64")) {
-      return bufferImage = image.replace("data:image/jpeg;base64,", "");
-    }
-     
-  } 
-  async function getBufferData(data){
-    let image = await imageData(data)
-    console.log("options", typeof image.substr(2))
-
-    return  image.substr(2)
-
-  }
-  async function formatOptions(data){
-    //   console.log("Format:",data)
-      let optionArr = []
-      let image;
-    let testimage = data
-    if(testimage){
-        if (testimage.Option1.includes("data:image/")) {
-            // image = await imageData(testimage.Option1)
-            optionArr.push(testimage.Option1)
-        }else{
-            optionArr.push(testimage.Option1)
-        }
-        if (testimage.Option2.includes("data:image/")) {
-            // image = await imageData(testimage.Option2)
-            optionArr.push(testimage.Option2)
-        }else{
-            optionArr.push(testimage.Option2)
-        }
-        if (testimage.Option3.includes("data:image/")) {
-            // image = await imageData(testimage.Option3)
-            optionArr.push(testimage.Option3)
-        }else{
-            optionArr.push(testimage.Option3)
-        }
-        if (testimage.Option4.includes("data:image/")) {
-            // image = await imageData(testimage.Option4)
-            optionArr.push(testimage.Option4)
-        }else{
-            optionArr.push(testimage.Option4)
-        }       
-    }
-    return optionArr
-  }
-
-  async function displayOptions(option){
-    if (option.includes("data:image/")){
-        let image = await getBufferData(option)
-       return new Paragraph({
-            text:option.substr(0,1),
-          children: [
-            new ImageRun({
-                data: image ,
-                transformation: {
-                  width: 150,
-                  height: 150,
-                },
-              })            
-          ],
-        })
-        } else {
-           return new Paragraph({
-                alignment: AlignmentType.LEFT,
-                children: [
-                  new TextRun({
-                    text: option,
-                  }),
-                ],
-              })
-        }  
-
-  }
-
-  async function createOptions(data) {
-    let testimage = await formatOptions(data)
-    return new Table({
-      columnWidths: [4505, 4505],
-      rows: [
-        new TableRow({
-          children: [
-            new TableCell({
-              width: {
-                size: 4505,
-                type: WidthType.DXA,
-              },
-              children: [
-                displayOptions(testimage[0])
-              ],
-            }),
-            new TableCell({
-              width: {
-                size: 4505,
-                type: WidthType.DXA,
-              },
-              children: [
-                displayOptions(testimage[1])
-              ],
-            }),
-          ],
-        }),
-        new TableRow({
-            children: [
-              new TableCell({
-                width: {
-                  size: 4505,
-                  type: WidthType.DXA,
-                },
-                children: [
-                  displayOptions(testimage[1])
-                ],
-              }),
-              new TableCell({
-                width: {
-                  size: 4505,
-                  type: WidthType.DXA,
-                },
-                children: [
-                  displayOptions(testimage[3])
-                ],
-              }),
-            ],
-          }),
-      ],
-    });
-  }
-
- 
 module.exports = {
   buildDOCXWithCallback,
 };

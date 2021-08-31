@@ -278,4 +278,5 @@ const updateResponse = (updateData, updateMessage, versionKey) => {
 
 module.exports = {
   qumlConsumer,
+  updateResponse
 };

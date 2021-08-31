@@ -9,7 +9,7 @@ async function printDocx(req,res){
   const id = req.query.id;
   const format = req.query.format;
   // buildDOCXwithCallback(function (binary, error, errorMsg) {
-    buildDOCXWithCallback(id,function (binary, error, errorMsg) {
+    buildDOCXWithCallback(id,function (binary, error, errorMsg,filename) {
     // console.log("Enttere dres")
     var date = new Date();
     if (!error) {
@@ -29,18 +29,19 @@ async function printDocx(req,res){
           result: {
             content_id: id,
             base64string: binary,
+            filename: filename
           },
         };
         res.send(resJSON);
       } else {
         
-        res.setHeader('Content-Disposition', 'attachment; filename=MyDocument.docx');
+        res.setHeader('Content-Disposition', `attachment; filename=${filename}.docx`);
         res.send(Buffer.from(binary, 'base64'));
       }
     } else {
       res.status(404).send({
         error: errorMsg,
-      });
+      }); 
     }
   });
 }
@@ -82,22 +83,13 @@ async function printPDF(req, res) {
     }
   });
 }
-
 module.exports = function (app) {
-  app
-    .route(BASE_URL + "/print/pdf")
-    .get(
-      requestMiddleware.gzipCompression(),
-      requestMiddleware.createAndValidateRequestBody,
-      printDocx
-      // printPDF
-    );
   app
     .route(BASE_URL + "/print/docx")
     .get(
       requestMiddleware.gzipCompression(),
       requestMiddleware.createAndValidateRequestBody,
-      // printDocx
-      printPDF
+      printDocx
+      // printPDF
     );
 };
