@@ -70,7 +70,7 @@ const getQuestionForSection = async (id) => {
     })
     .then((r) => {
       if (status === 200) {
-        if (r.result.content.itemSets.length > 0) {
+        if (r.result.content.itemSets && r.result.content.itemSets.length > 0) {
           const itemset = r.result.content.itemSets[0];
           return getItemsFromItemset(itemset.identifier);
         } else {
@@ -84,8 +84,9 @@ const getQuestionForSection = async (id) => {
     })
     .catch((e) => {
       error = true;
-      if (e.name === "PDFDataImportError") errorMsg = e.message;
+      if (e.name === "PDFDataImportError");
       else e.message = "Uncaught Exception";
+      let errorMsg = e.message
       return {
         error,
         errorMsg,

@@ -239,7 +239,7 @@ class HierarchyService {
         primaryCategory: data.primaryCategory,
         children: _.compact(
           _.map(data.children, function(child) {
-            if (child.mimeType === "application/vnd.ekstep.content-collection")
+            if (child.mimeType === "application/vnd.ekstep.content-collection" && child.visibility === 'Parent')
              {
               return child.identifier;
             }
@@ -249,7 +249,7 @@ class HierarchyService {
       };
     }
     _.forEach(data.children, child => {
-      if (child.mimeType === "application/vnd.ekstep.content-collection") {
+      if (child.mimeType === "application/vnd.ekstep.content-collection" && child.visibility === 'Parent') {
         instance.getFlatHierarchyObj(child, additionalMetaData, children);
       }
     });
@@ -318,7 +318,7 @@ class HierarchyService {
     }
 
     _.forEach(data.children, child => {
-      if (child.mimeType === "application/vnd.ekstep.content-collection") {
+      if (child.mimeType === "application/vnd.ekstep.content-collection" && child.visibility === 'Parent') {
         instance.getFlatNodesModified(child, additionalMetaData, children);
       }
     });
