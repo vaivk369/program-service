@@ -35,7 +35,7 @@ const qumlConsumer = () => {
       .on("message", function (message) {
         const qumlArr = JSON.parse(message.value);
         logger.info({ message: "Entered into the consumer service" });
-        let parsedJsonValue = JSON.parse(qumlArr);
+        let parsedJsonValue = qumlArr;
         let createApiData = {
           request: {
             question: {
@@ -52,29 +52,27 @@ const qumlConsumer = () => {
         };
         //fetch call for creating a question.
         fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/question/v1/create`, {
-          method: "POST", // or 'PUT'
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(createApiData),
-        })
+            method: "POST", // or 'PUT'
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(createApiData),
+          })
           .then((response) => response.json())
           .then((createResponseData) => {
             let updateApiData = createResponseData;
-            parsedJsonValue.question["versionKey"] =
-              updateApiData.result.versionKey;
             delete parsedJsonValue.question.mimeType;
             delete parsedJsonValue.question.code;
             delete parsedJsonValue.question.processId;
             delete parsedJsonValue.question.questionId;
             let updateData = { request: parsedJsonValue };
-            //if success fetch call for updating question.
+            //if success fetch call for updating question.            
             if (
               createResponseData.responseCode.toLowerCase() ===
               "OK".toLowerCase()
             ) {
               fetch(
-                `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/question/v1/update/${updateApiData.result.identifier}`,
+                `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/question/v1/update/${createResponseData.result.identifier}`,
                 {
                   method: "PATCH", // or 'PUT'
                   headers: {
@@ -127,18 +125,7 @@ const qumlConsumer = () => {
                               ) {
                                 updateResponse(
                                   updateApiData.result.identifier,
-                                  `Successfully uploaded the question for the identifier:${updateApiData.result.identifier}`,
-                                  createResponseData.result.versionKey
-                                );
-                              } else {
-                                logger.error({
-                                  message:
-                                    "Something went wrong while Publishing the question",
-                                });
-                                updateResponse(
-                                  updateApiData.result.identifier,
-                                  `Something went wrong while Publishing the question`,
-                                  createResponseData.result.versionKey
+                                  `Successfully uploaded the question for the identifier:${updateApiData.result.identifier}`
                                 );
                               }
                             })
@@ -146,21 +133,10 @@ const qumlConsumer = () => {
                               console.error("Error:", error);
                               updateResponse(
                                 updateApiData.result.identifier,
-                                `Something went wrong while Publishing the question`,
-                                createResponseData.result.versionKey
+                                `Something went wrong while Publishing the question`
                               );
                             });
-                        } else {
-                          logger.error({
-                            message:
-                              "Something Went wrong while reviewing the questions",
-                          });
-                          updateResponse(
-                            updateApiData.result.identifier,
-                            `Something Went wrong while reviewing the questions`,
-                            createResponseData.result.versionKey
-                          );
-                        }
+                        } 
                       })
                       .catch((error) => {
                         console.error("Error:", error);
@@ -170,20 +146,9 @@ const qumlConsumer = () => {
                         });
                         updateResponse(
                           updateApiData.result.identifier,
-                          `Something Went wrong while reviewing the questions: ${error}`,
-                          createResponseData.result.versionKey
+                          `Something Went wrong while reviewing the questions: ${error}`
                         );
                       });
-                  } else {
-                    logger.error({
-                      message:
-                        "Something Went Wrong While Updating the question",
-                    });
-                    updateResponse(
-                      updateApiData.result.identifier,
-                      `Something Went Wrong While Updating the question:`,
-                      createResponseData.result.versionKey
-                    );
                   }
                 })
                 .catch((error) => {
@@ -193,41 +158,26 @@ const qumlConsumer = () => {
                   });
                   updateResponse(
                     updateApiData.result.identifier,
-                    `Something Went Wrong While Updating the question: ${error}`,
-                    createResponseData.result.versionKey
+                    `Something Went Wrong While Updating the question: ${error}`
                   );
                 });
-            } else {
-              logger.error({
-                message: "Something Went Wrong While Creating the question",
-              });
-              updateResponse(
-                updateApiData.result.identifier,
-                `Something Went Wrong While Creating the question:`,
-                createResponseData.result.versionKey
-              );
             }
           })
           .catch((error) => {
             console.error("Error:", error);
             logger.error({
-              message: "Something Went Wrong While Creating the question",
+              message: `Something Went Wrong While Creating the question ${error}`,
             });
-            updateResponse(
-              updateApiData.result.identifier,
-              `Something Went Wrong While Creating the question: ${error}`,
-              createResponseData.result.versionKey
-            );
           });
-      })
+      
+        })
       .on("error", function (message) {
-        consumer.close();
         client.close();
       });
   } catch (error) {
     logger.error(
       {
-        message: "Something Went Wrong While Creating the question",
+        message: `Something Went Wrong While Creating the question ${error}`,
       },
       error
     );
@@ -235,22 +185,21 @@ const qumlConsumer = () => {
 };
 
 //function to update the status of all other fetch calls mentioned above using question update.
-const updateResponse = (updateData, updateMessage, versionKey) => {
+const updateResponse = (updateData, updateMessage) => {
   const updateNewData = {
     request: {
       question: {
-        versionKey: versionKey,
         questionUploadStatus: updateMessage,
       },
     },
   };
   fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/question/v1/update/${updateData}`, {
-    method: "POST", // or 'PUT'
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(updateNewData),
-  })
+      method: "PATCH", // or 'PUT'
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updateNewData),
+    })
     .then((response) => response.json())
     .then((updateResult) => {
       rspObj.responseCode = "OK";
