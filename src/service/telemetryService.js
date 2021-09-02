@@ -16,27 +16,8 @@ function initTelemetry() {
     telemetryInstance.init(config);
 }
 
-function generateAuditEvent(DBinstance, model, action) {
-    const event = {};
-        event['context'] = {
-           pdata: telemetryEventConfig.pdata,
-           env: model.name,
-           channel: ''
-        }
-        event['edata'] = {
-            state: DBinstance.status || '',
-            prevstate: action === 'create' ? '' : DBinstance.previous().status || DBinstance.status,
-            props: _.keys(DBinstance.previous())
-        }
-        event['object'] = {
-           id: DBinstance[model.primaryKeyAttributes[0]] || '',
-           type: model.name
-        }
-        logger.info({ msg: 'Audit Event', event})
-    telemetryInstance.audit(event);
-}
-function sourcingProjectAuditTelemetry(object, edata) {
-    const data = {
+function generateAuditEvent(DBinstance, model, action, properties = {}) {
+    const event = {
         "eid": "AUDIT",
         "ets": 1592803822,
         "ver": "3.0",
@@ -44,79 +25,60 @@ function sourcingProjectAuditTelemetry(object, edata) {
         "actor": {
             "id": "System",
             "type": "User"
-        },
-        "context": {
-            "channel": envVariables.DOCK_CHANNEL || "sunbird",
-            "pdata": {
-                "id": "org.sunbird.sourcing",
-                "pid": "program-service",
-                "ver": 1.0
-            },
-            "env": "program",
-            "cdata": []
-        },
-        "object": object,
-        "edata": edata
+        }
+    };
+    event['context'] = {
+        pdata: telemetryEventConfig.pdata,
+        env: (properties && _.get(properties, 'context')) ? _.get(properties, 'context.env') : model.name,
+        channel: envVariables.DOCK_CHANNEL || "sunbird",
     }
-    telemetryInstance.audit(data);
+    if (properties && _.get(properties, 'edata')) {
+        event['edata'] = _.get(properties, 'edata')
+    } else {
+        event['edata'] = {
+            state: DBinstance.status || '',
+            prevstate: action === 'create' ? '' : DBinstance.previous().status || DBinstance.status,
+            props: _.keys(DBinstance.previous())
+        }
+    }
+    if (properties && _.get(properties, 'object')) {
+        event['object'] = _.get(properties, 'object')
+    } else {
+        event['object'] = {
+            id: DBinstance[model.primaryKeyAttributes[0]] || '',
+            type: model.name
+        }
+    }
+    logger.info({ msg: 'Audit Event', event })
+    telemetryInstance.audit(event);
 }
-function createProjectAuditTelemetry(insertObj) {
-    const properties = getPropertiesData(insertObj);
-    const edata = {
-        "type": "create",
-        "state": "Draft",
-        "prevstate": "",
-        "props": _.get(properties, 'propsArry')
-    }
-    sourcingProjectAuditTelemetry(_.get(properties, 'object'), edata);
+function createProjectAuditTelemetry(data) {
+    const properties = getPropertiesData(data, 'Program', 'create', 'Draft', '');
+    generateAuditEvent(undefined, undefined, undefined, properties);
 }
 function updateProjectAuditTelemetry(data) {
-    const properties = getPropertiesData(data);
-    const edata = {
-        "type": "update",
-        "state": "Draft",
-        "prevstate": "Draft",
-        "props": _.get(properties, 'propsArry')
-    }
-    sourcingProjectAuditTelemetry(_.get(properties, 'object'), edata);
+    const properties = getPropertiesData(data, 'Program', 'update', 'Draft', 'Draft');
+    generateAuditEvent(undefined, undefined, undefined, properties);
 }
 function publishProjectAuditTelemetry(data) {
-    const properties = getPropertiesData(data);
-    const edata = {
-        "type": "publish",
-        "state": "Live",
-        "prevstate": "Draft",
-        "props": _.get(properties, 'propsArry')
-    }
-    sourcingProjectAuditTelemetry(_.get(properties, 'object'), edata);
+    const properties = getPropertiesData(data, 'Program', 'publish', 'Live', 'Draft');
+    generateAuditEvent(undefined, undefined, undefined, properties);
 }
 function nominationCreateAuditTelemetry(data) {
-    const properties = getPropertiesData(data);
-    const edata = {
-        "type": "create",
-        "state": "Initiated",
-        "prevstate": "",
-        "props": _.get(properties, 'propsArry')
-    }
-    sourcingProjectAuditTelemetry(_.get(properties, 'object'), edata);
+    const properties = getPropertiesData(data, 'nomination', 'create', 'Initiated', '');
+    generateAuditEvent(undefined, undefined, undefined, properties);
 }
 function nominationUpdateAuditTelemetry(data) {
-    const properties = getPropertiesData(data, 'nomination');
-    const edata = {
-        "type": "update",
-        "state": "Pending",
-        "prevstate": "Initiated",
-        "props": _.get(properties, 'propsArry')
-    }
-    sourcingProjectAuditTelemetry(_.get(properties, 'object'), edata);
+    const properties = getPropertiesData(data, 'nomination', 'update', 'Pending', 'Initiated');
+    generateAuditEvent(undefined, undefined, undefined, properties);
 }
-function getPropertiesData(data, objectType) {
+function getPropertiesData(data, objectType, type, state, prevstate) {
     const properties = {};
     const propsArry = [];
     _.forOwn(data, (value, key) => {
         if (key === 'rolemapping') {
-            _.forOwn(value, (roleIdArray, roleType) => {
-                propsArry.push({ [key + '.' + roleType]: roleIdArray[0] ? roleIdArray[0] : '' });
+            _.forOwn(value, (userIdArray, roleType) => {
+                propsArry.push({ [key + '.' + roleType]: userIdArray[0] ? userIdArray[0] : '' });
             })
         } else if (key && key !== 'config') {
             propsArry.push({ [key]: value });
@@ -127,8 +89,19 @@ function getPropertiesData(data, objectType) {
         "type": objectType,
         "rollup": {}
     }
+    const context = {
+        "env": objectType
+    }
+    const edata = {
+        "type": type,
+        "state": state,
+        "prevstate": prevstate,
+        "props": propsArry
+    }
     properties.object = object;
-    properties.propsArry = propsArry;
+    properties.context = context;
+    properties.edata = edata;
+    console.log(properties, 'properties>>>>>>>>>');
     return properties;
 }
 
@@ -140,4 +113,3 @@ module.exports.publishProjectAuditTelemetry = publishProjectAuditTelemetry
 module.exports.nominationCreateAuditTelemetry = nominationCreateAuditTelemetry
 module.exports.nominationUpdateAuditTelemetry = nominationUpdateAuditTelemetry
 module.exports.getPropertiesData = getPropertiesData
-module.exports.sourcingProjectAuditTelemetry = sourcingProjectAuditTelemetry
