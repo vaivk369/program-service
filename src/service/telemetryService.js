@@ -16,7 +16,7 @@ function initTelemetry() {
     telemetryInstance.init(config);
 }
 
-function generateAuditEvent(DBinstance, model, action, properties = {}) {
+function generateAuditEvent(DBinstance, model, action, telemetryData = {}) {
     const event = {
         "eid": "AUDIT",
         "ets": 1592803822,
@@ -29,11 +29,11 @@ function generateAuditEvent(DBinstance, model, action, properties = {}) {
     };
     event['context'] = {
         pdata: telemetryEventConfig.pdata,
-        env: (properties && _.get(properties, 'context')) ? _.get(properties, 'context.env') : model.name,
+        env: (telemetryData && _.get(telemetryData, 'context')) ? _.get(telemetryData, 'context.env') : model.name,
         channel: envVariables.DOCK_CHANNEL || "sunbird",
     }
-    if (properties && _.get(properties, 'edata')) {
-        event['edata'] = _.get(properties, 'edata')
+    if (telemetryData && _.get(telemetryData, 'edata')) {
+        event['edata'] = _.get(telemetryData, 'edata')
     } else {
         event['edata'] = {
             state: DBinstance.status || '',
@@ -41,8 +41,8 @@ function generateAuditEvent(DBinstance, model, action, properties = {}) {
             props: _.keys(DBinstance.previous())
         }
     }
-    if (properties && _.get(properties, 'object')) {
-        event['object'] = _.get(properties, 'object')
+    if (telemetryData && _.get(telemetryData, 'object')) {
+        event['object'] = _.get(telemetryData, 'object')
     } else {
         event['object'] = {
             id: DBinstance[model.primaryKeyAttributes[0]] || '',
