@@ -52,27 +52,7 @@ function generateAuditEvent(DBinstance, model, action, properties = {}) {
     logger.info({ msg: 'Audit Event', event })
     telemetryInstance.audit(event);
 }
-function createProjectAuditTelemetry(data) {
-    const properties = getPropertiesData(data, 'Program', 'create', 'Draft', '');
-    generateAuditEvent(undefined, undefined, undefined, properties);
-}
-function updateProjectAuditTelemetry(data) {
-    const properties = getPropertiesData(data, 'Program', 'update', 'Draft', 'Draft');
-    generateAuditEvent(undefined, undefined, undefined, properties);
-}
-function publishProjectAuditTelemetry(data) {
-    const properties = getPropertiesData(data, 'Program', 'publish', 'Live', 'Draft');
-    generateAuditEvent(undefined, undefined, undefined, properties);
-}
-function nominationCreateAuditTelemetry(data) {
-    const properties = getPropertiesData(data, 'nomination', 'create', 'Initiated', '');
-    generateAuditEvent(undefined, undefined, undefined, properties);
-}
-function nominationUpdateAuditTelemetry(data) {
-    const properties = getPropertiesData(data, 'nomination', 'update', 'Pending', 'Initiated');
-    generateAuditEvent(undefined, undefined, undefined, properties);
-}
-function getPropertiesData(data, objectType, type, state, prevstate) {
+function generateProjectAuditTelemetryData(data, objectType, type, state, prevstate) {
     const properties = {};
     const propsArry = [];
     _.forOwn(data, (value, key) => {
@@ -80,14 +60,22 @@ function getPropertiesData(data, objectType, type, state, prevstate) {
             _.forOwn(value, (userIdArray, roleType) => {
                 propsArry.push({ [key + '.' + roleType]: userIdArray[0] ? userIdArray[0] : '' });
             })
-        } else if (key && key !== 'config') {
+        } else if (key === 'config') {
+            const config = {};
+            _.forOwn(value, (value1, key1) => {
+                if (_.includes(['board', 'medium', 'gradeLevel', 'subject'], key1)) {
+                    config[key1] = value1;
+                }
+            });
+            propsArry.push({ [key]: config });
+        } else {
             propsArry.push({ [key]: value });
         }
     });
     const object = {
         "id": _.get(data, 'program_id'),
         "type": objectType,
-        "rollup": {}
+        "rollup": _.get(data, 'rollup') || {}
     }
     const context = {
         "env": objectType
@@ -101,14 +89,9 @@ function getPropertiesData(data, objectType, type, state, prevstate) {
     properties.object = object;
     properties.context = context;
     properties.edata = edata;
-    return properties;
+    generateAuditEvent(undefined, undefined, undefined, properties);
 }
 
 module.exports.initializeTelemetryService = initTelemetry
 module.exports.generateAuditEvent = generateAuditEvent
-module.exports.createProjectAuditTelemetry = createProjectAuditTelemetry
-module.exports.updateProjectAuditTelemetry = updateProjectAuditTelemetry
-module.exports.publishProjectAuditTelemetry = publishProjectAuditTelemetry
-module.exports.nominationCreateAuditTelemetry = nominationCreateAuditTelemetry
-module.exports.nominationUpdateAuditTelemetry = nominationUpdateAuditTelemetry
-module.exports.getPropertiesData = getPropertiesData
+module.exports.generateProjectAuditTelemetryData = generateProjectAuditTelemetryData
