@@ -101,7 +101,6 @@ function getPropertiesData(data, objectType, type, state, prevstate) {
     properties.object = object;
     properties.context = context;
     properties.edata = edata;
-    console.log(properties, 'properties>>>>>>>>>');
     return properties;
 }
 
