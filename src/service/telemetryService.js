@@ -58,7 +58,13 @@ function generateProjectAuditTelemetryData(data, objectType, type, state, prevst
     _.forOwn(data, (value, key) => {
         if (key === 'rolemapping') {
             _.forOwn(value, (userIdArray, roleType) => {
-                propsArry.push({ [key + '.' + roleType]: userIdArray[0] ? userIdArray[0] : '' });
+                if (!_.isEmpty(userIdArray) && _.isArray(userIdArray)) {
+                    _.forEach(userIdArray, userId => {
+                        propsArry.push({ [key + '.' + roleType]: userId });
+                    })
+                } else {
+                    propsArry.push({ [key + '.' + roleType]: '' });
+                }
             })
         } else if (key === 'config') {
             const config = {};
