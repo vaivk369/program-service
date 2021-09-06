@@ -10,6 +10,7 @@ const programMessages = messageUtils.PROGRAM;
 const errorCodes = messageUtils.ERRORCODES;
 const envVariables = require("../envVariables");
 const rspObj = {};
+const csv = require("express-csv");
 
 const bulkUpload = async (req, res) => {
   const logObject = {
@@ -175,7 +176,17 @@ const readfile = (filename) => {
 
 //question search API function;
 const qumlSearch = (req, res) => {
-  const searchData = req.body;
+  const searchData =  {
+    "request": { 
+        "filters":{
+            "objectType":"Question",
+            "status":[],
+            "processId":req.body.processId
+        },
+        "fields":["identifier","processId","author","name","status","primaryCategory","questionUploadStatus","code","questionFileRefId"],
+        "limit":1000
+    }
+}
   const logObject = {
     traceId: req.headers["x-request-id"] || "",
     message: programMessages.QUML_BULKSTATUS.INFO,
@@ -189,23 +200,17 @@ const qumlSearch = (req, res) => {
     body: JSON.stringify(searchData),
   })
     .then((response) => response.json())
-    .then((resData) => {
+    .then(async(resData) => {
       rspObj.responseCode = "OK";
       rspObj.result = {
         questionStatus: `Successfully fetched the data for the given request: ${searchData}`,
       };
       logger.info({ message: "Successfully Fetched the data", rspObj });
-      res
-        .status(200)
-        .send({
-          message: "Successfully got the Questions",
-          rspObj,
-          data: resData,
-        });
-      loggerService.exitLog(
-       "Successfully got the Questions",
-        rspObj,
-      );
+      res.csv(resData.result.Question)
+    loggerService.exitLog(
+     "Successfully got the Questions",
+      rspObj,
+    );    
     })
     .catch((error) => {
       rspObj.errMsg = "Something went wrong while fetching the data";
