@@ -6,7 +6,6 @@ const messageUtils = require('./messageUtil');
 const Sequelize = require('sequelize');
 const moment = require('moment');
 const loggerService = require('./loggerService');
-const telemetryService = require('./telemetryService');
 const Op = Sequelize.Op;
 const responseCode = messageUtils.RESPONSE_CODE;
 const programMessages = messageUtils.PROGRAM;
@@ -303,7 +302,6 @@ const publishCallback = function(errObj, req, response, program, copyCollectionR
             'program_id': updateQuery.where.program_id,
             afterPublishResponse
           };
-          telemetryService.generateProjectAuditTelemetryData(req.body.request, 'program', 'publish', 'Live', 'Draft');
           asyncOnAfterPublish(req, updateQuery.where.program_id);
           return response.status(200).send(successResponse(req.rspObj));
         }
