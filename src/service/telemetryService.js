@@ -16,7 +16,7 @@ function initTelemetry() {
     telemetryInstance.init(config);
 }
 
-function generateAuditEvent(DBinstance, model, action, telemetryData = {}) {
+function generateAuditEvent(DBinstance, model, action) {
     const event = {
         "eid": "AUDIT",
         "ets": 1592803822,
@@ -29,75 +29,23 @@ function generateAuditEvent(DBinstance, model, action, telemetryData = {}) {
     };
     event['context'] = {
         pdata: telemetryEventConfig.pdata,
-        env: (telemetryData && _.get(telemetryData, 'context')) ? _.get(telemetryData, 'context.env') : model.name,
+        env:  model.name,
         channel: envVariables.DOCK_CHANNEL || "sunbird",
     }
-    if (telemetryData && _.get(telemetryData, 'edata')) {
-        event['edata'] = _.get(telemetryData, 'edata')
-    } else {
         event['edata'] = {
+            type: action,
             state: DBinstance.status || '',
             prevstate: action === 'create' ? '' : DBinstance.previous().status || DBinstance.status,
             props: _.keys(DBinstance.previous())
         }
-    }
-    if (telemetryData && _.get(telemetryData, 'object')) {
-        event['object'] = _.get(telemetryData, 'object')
-    } else {
         event['object'] = {
             id: DBinstance[model.primaryKeyAttributes[0]] || '',
-            type: model.name
+            type: model.name,
+            rollup: {}
         }
-    }
     logger.info({ msg: 'Audit Event', event })
     telemetryInstance.audit(event);
-}
-function generateProjectAuditTelemetryData(data, objectType, type, state, prevstate) {
-    const properties = {};
-    const propsArry = [];
-    _.forOwn(data, (value, key) => {
-        if (key === 'rolemapping') {
-            _.forOwn(value, (userIdArray, roleType) => {
-                if (!_.isEmpty(userIdArray) && _.isArray(userIdArray)) {
-                    _.forEach(userIdArray, userId => {
-                        propsArry.push({ [key + '.' + roleType]: userId });
-                    })
-                } else {
-                    propsArry.push({ [key + '.' + roleType]: '' });
-                }
-            })
-        } else if (key === 'config') {
-            const config = {};
-            _.forOwn(value, (value1, key1) => {
-                if (_.includes(['board', 'medium', 'gradeLevel', 'subject'], key1)) {
-                    config[key1] = value1;
-                }
-            });
-            propsArry.push({ [key]: config });
-        } else {
-            propsArry.push({ [key]: value });
-        }
-    });
-    const object = {
-        "id": _.get(data, 'program_id'),
-        "type": objectType,
-        "rollup": _.get(data, 'rollup') || {}
-    }
-    const context = {
-        "env": objectType
-    }
-    const edata = {
-        "type": type,
-        "state": state,
-        "prevstate": prevstate,
-        "props": propsArry
-    }
-    properties.object = object;
-    properties.context = context;
-    properties.edata = edata;
-    generateAuditEvent(undefined, undefined, undefined, properties);
 }
 
 module.exports.initializeTelemetryService = initTelemetry
 module.exports.generateAuditEvent = generateAuditEvent
-module.exports.generateProjectAuditTelemetryData = generateProjectAuditTelemetryData

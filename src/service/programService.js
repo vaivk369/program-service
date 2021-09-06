@@ -106,7 +106,6 @@ async function createProgram(req, response) {
   }
 
   model.program.create(insertObj).then(sc => {
-    telemetryService.generateProjectAuditTelemetryData(insertObj, 'program', 'create', 'Draft', '')
     loggerService.exitLog({responseCode: 'OK'}, logObject);
     return response.status(200).send(successResponse({
       apiId: 'api.program.create',
@@ -177,7 +176,6 @@ function updateProgram(req, response) {
       },errCode+errorCodes.CODE2));
     }
     loggerService.exitLog({responseCode: 'OK'}, logObject);
-    telemetryService.generateProjectAuditTelemetryData(updateValue, 'program', 'update', 'Draft', 'Draft');
     asyncOnAfterPublish(req, data.request.program_id);
     return response.status(200).send(successResponse({
       apiId: 'api.program.update',
@@ -1215,7 +1213,6 @@ function addNomination(req, response) {
   model.nomination.create(insertObj).then(res => {
     programServiceHelper.onAfterAddNomination(insertObj.program_id, insertObj.user_id);
     loggerService.exitLog({'program_id': insertObj.program_id}, logObject);
-    telemetryService.generateProjectAuditTelemetryData(data.request, 'nomination', 'create', 'Initiated', '');
     return response.status(200).send(successResponse({
       apiId: 'api.nomination.add',
       ver: '1.0',
@@ -1307,7 +1304,6 @@ function updateNomination(req, response) {
       successRes.organisation_id = updateQuery.where.organisation_id
     }
     loggerService.exitLog({responseCode: 'OK'}, logObject);
-    telemetryService.generateProjectAuditTelemetryData(data.request, 'nomination', 'update', 'Pending', 'Initiated');
     return response.status(200).send(successResponse({
       apiId: 'api.nomination.update',
       ver: '1.0',
