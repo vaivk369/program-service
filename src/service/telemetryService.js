@@ -29,20 +29,20 @@ function generateAuditEvent(DBinstance, model, action) {
     };
     event['context'] = {
         pdata: telemetryEventConfig.pdata,
-        env:  model.name,
+        env: model.name,
         channel: envVariables.DOCK_CHANNEL || "sunbird",
     }
-        event['edata'] = {
-            type: action,
-            state: DBinstance.status || '',
-            prevstate: action === 'create' ? '' : DBinstance.previous().status || DBinstance.status,
-            props: _.keys(DBinstance.previous())
-        }
-        event['object'] = {
-            id: DBinstance[model.primaryKeyAttributes[0]] || '',
-            type: model.name,
-            rollup: {}
-        }
+    event['edata'] = {
+        type: action,
+        state: DBinstance.status || '',
+        prevstate: action === 'create' ? '' : DBinstance.previous().status || DBinstance.status,
+        props: _.keys(DBinstance.previous())
+    }
+    event['object'] = {
+        id: _.get(DBinstance, 'dataValues.program_id') || DBinstance[model.primaryKeyAttributes[0]] || '',
+        type: model.name,
+        rollup: {}
+    }
     logger.info({ msg: 'Audit Event', event })
     telemetryInstance.audit(event);
 }
