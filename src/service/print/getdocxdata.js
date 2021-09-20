@@ -3,7 +3,6 @@ const { text } = require("express");
 const fs = require("fs");
 const {
   Document,
-  Packer,
   BorderStyle,
   Paragraph,
   TextRun,
@@ -17,8 +16,8 @@ const {
 } = docx;
 
 function create(data, paperData) {
-  // console.log("Data:", data)
   let queNum = 0;
+ 
   const doc = new Document({
     sections: [
       {
@@ -130,7 +129,17 @@ function create(data, paperData) {
                     })
                   );
                 } else if (question[0].type === "CuriosityQuestion") {
-                  // console.log("CuriosityQuestion Dta:", question[0].Questions);
+                  let count = 0;
+                  arr.push(Marks(question));
+                  question[0].Questions.map((item) => {
+                    arr.push(createSAObject(item, count++));
+                  });
+
+                  arr.push(
+                    new Paragraph({
+                      children: [], // Just newline without text
+                    })
+                  );
                 } else if (question[0].type === "SA") {
                   let count = 0;
                   arr.push(Marks(question));
@@ -144,10 +153,10 @@ function create(data, paperData) {
                     })
                   );
                 } else if (question[0].type === "LA") {
-                  // console.log("LA Dta:", page);
+                  let count = 0;
                   arr.push(Marks(question));
                   question[0].Questions.map((item) => {
-                    arr.push(createSAObject(item));
+                    arr.push(createSAObject(item,count));
                   });
                   arr.push(
                     new Paragraph({
@@ -155,13 +164,10 @@ function create(data, paperData) {
                     })
                   );
                 } else if (question[0].type === "VSA") {
-                  // console.log("VSA Dta:", question[0].Questions[0]);
                   let count = 0;
                   arr.push(Marks(question));
                   question[0].Questions.map((item) => {
-                    // console.log(item)
-
-                    arr.push(createSAObject(item, count++));
+                    arr.push(createSAObject(item, count));
                   });
                   arr.push(
                     new Paragraph({
@@ -231,8 +237,8 @@ function MTFTabel(question) {
       new TableCell({
         borders: MTFborder,
         width: {
-          size: 5505,
-          type: WidthType.DXA,
+          size: 100/2,
+          type: WidthType.PERCENTAGE,
         },
         children: [
           new Paragraph({
@@ -244,8 +250,8 @@ function MTFTabel(question) {
       new TableCell({
         borders: MTFborder,
         width: {
-          size: 5505,
-          type: WidthType.DXA,
+          size: 100/2,
+          type: WidthType.PERCENTAGE,
         },
         children: [
           new Paragraph({
@@ -264,16 +270,16 @@ function MTFTabel(question) {
           new TableCell({
             borders: MTFborder,
             width: {
-              size: 5505,
-              type: WidthType.DXA,
+              size: 100/2,
+              type: WidthType.PERCENTAGE,
             },
             children: [createSAObject(item.left[0], 0)],
           }),
           new TableCell({
             borders: MTFborder,
             width: {
-              size: 5505,
-              type: WidthType.DXA,
+              size: 100/2,
+              type: WidthType.PERCENTAGE,
             },
             children: [createSAObject(item.right[0], 0)],
           }),
@@ -281,10 +287,8 @@ function MTFTabel(question) {
       })
     );
   });
-  // console.log("Arr:",arr)
-  //
   return new Table({
-    columnWidths: [5505, 5505],
+    columnWidths: [4505, 4505],
     rows: arr,
   });
 }
@@ -330,8 +334,7 @@ function createFTBObject(data) {
 }
 
 function createFTB(data, count) {
-  // console.log("Data:", count)
-  if (count !== 0) {
+ if (count !== 0) {
     return new Paragraph({
       alignment: AlignmentType.LEFT,
       children: [
@@ -355,7 +358,6 @@ function createFTB(data, count) {
 }
 
 function createSAObject(data, count) {
-  // console.log("Item:", data)
   const arr = [];
   if (data.text) {
     data.text
@@ -397,7 +399,6 @@ function createSAObject(data, count) {
 }
 
 function createCOMPREHENSIONObject(data, count) {
-  // console.log("Data:",data)
   const arr = [];
   if (data.text) {
     data.text
@@ -434,35 +435,7 @@ function createCOMPREHENSIONObject(data, count) {
       });
     }
   } else if (data.ol) {
-    // let count1 = 0;
-    // data.ol
-    //   .map((text) => {
-    //     count1++;
-    //     if (typeof text === "object") {
-    //       text = count1 + text.text;
-    //       arr.push(
-    //         new Paragraph({
-    //           text: `${count1}.${text}`,
-    //         })
-    //       );
-    //     } else {
-    //       arr.push(
-    //         new Paragraph({
-    //           // children: [
-    //           //   new TextRun({
-    //               text: `${count1}.${text}`,
-    //           //   }),
-    //           // ],
-    //         })
-    //       );
-    //     }
-    //   })
-    //   .reduce((prev, curr) => prev.concat(curr), []);
-    //   console.log("ol",arr)
-    // return new Paragraph({
-    //   alignment: AlignmentType.LEFT,
-    //   children: arr,
-    // });
+    
   } else {
     return createFTB(data, count);
   }
@@ -479,15 +452,17 @@ function imageData(image) {
   }
 }
 function getBufferData(data) {
+
   let image = imageData(data);
   return image.substr(2);
 }
+
 function getBufferImg(data) {
-  let image = imageData(data);
+
+let image = imageData(data);
   return image;
 }
 function formatOptions(data) {
-  // console.log("Options:",data)
   let optionArr = [];
   let image;
   let testimage = data;
@@ -512,19 +487,23 @@ function formatOptions(data) {
     } else {
       optionArr.push(testimage.Option4);
     }
-    optionArr.push(testimage.height);
-    optionArr.push(testimage.width);
+    optionArr.push(testimage.height1);
+    optionArr.push(testimage.width1);
+    optionArr.push(testimage.height2);
+    optionArr.push(testimage.width2);
+    optionArr.push(testimage.height3);
+    optionArr.push(testimage.width3);
+    optionArr.push(testimage.height4);
+    optionArr.push(testimage.width4);
   }
-  // console.log("options :",optionArr)
   return optionArr;
 }
 
 function displayOptions(option, height, width) {
-  // console.log("image", option);
   if (option.includes("data:image/")) {
     let image = getBufferData(option);
     return new Paragraph({
-      text: option.substr(0, 1),
+      text: option.substr(0, 2)+" ",
       children: [
         new ImageRun({
           data: image,
@@ -536,7 +515,6 @@ function displayOptions(option, height, width) {
       ],
     });
   } else {
-    // console.log("Text")
     return new Paragraph({
       alignment: AlignmentType.LEFT,
       children: [
@@ -601,7 +579,6 @@ function headers() {
               new Paragraph({
                 text: "Student Name:.........................",
                 bold: true,
-                // heading: HeadingLevel.HEADING_1,
               }),
             ],
           }),
@@ -616,7 +593,6 @@ function headers() {
               new Paragraph({
                 text: "Roll Number:.............................",
                 bold: true,
-                // heading: HeadingLevel.HEADING_1,
               }),
             ],
           }),
@@ -646,7 +622,6 @@ function headers() {
               new Paragraph({
                 text: "Teacher's Name:......................",
                 bold: true,
-                // heading: HeadingLevel.HEADING_1,
               }),
             ],
           }),
@@ -661,7 +636,6 @@ function headers() {
               new Paragraph({
                 text: "Teacher's Sign:...........................",
                 bold: true,
-                // heading: HeadingLevel.HEADING_1,
               }),
             ],
           }),
@@ -670,19 +644,18 @@ function headers() {
     ],
   });
 }
-//
+
 function optionsTabel(testimage) {
-  // console.log(testimage)
   return new Table({
-    columnWidths: [5505, 5505],
+    columnWidths: [4505, 4505],
     rows: [
       new TableRow({
         children: [
           new TableCell({
             borders: border,
             width: {
-              size: 5505,
-              type: WidthType.DXA,
+              size: 4505,
+          type: WidthType.DXA,
             },
             children: [
               displayOptions(testimage[0], testimage[4], testimage[5]),
@@ -691,11 +664,11 @@ function optionsTabel(testimage) {
           new TableCell({
             borders: border,
             width: {
-              size: 5505,
+              size: 4505,
               type: WidthType.DXA,
             },
             children: [
-              displayOptions(testimage[1], testimage[4], testimage[5]),
+              displayOptions(testimage[1], testimage[6], testimage[7]),
             ],
           }),
         ],
@@ -705,21 +678,21 @@ function optionsTabel(testimage) {
           new TableCell({
             borders: border,
             width: {
-              size: 5505,
+              size: 4505,
               type: WidthType.DXA,
             },
             children: [
-              displayOptions(testimage[2], testimage[4], testimage[5]),
+              displayOptions(testimage[2], testimage[8], testimage[9]),
             ],
           }),
           new TableCell({
             borders: border,
             width: {
-              size: 5505,
+              size: 4505,
               type: WidthType.DXA,
             },
             children: [
-              displayOptions(testimage[3], testimage[4], testimage[5]),
+              displayOptions(testimage[3], testimage[10], testimage[11]),
             ],
           }),
         ],
@@ -730,5 +703,4 @@ function optionsTabel(testimage) {
 
 module.exports = {
   create,
-  // buildDOCXwithCallback,
 };
