@@ -1,7 +1,5 @@
 const envVariables = {
-    // baseURL: process.env.dock_base_url || 'https://dock.sunbirded.org',
-    QUE_IMG_URL: 'https://dockprodall.blob.core.windows.net/dock-content-prod',
-    baseURL: process.env.dock_base_url || 'https://vdn.diksha.gov.in',
+    baseURL: process.env.dock_base_url || 'https://dock.sunbirded.org',
     SUNBIRD_URL: process.env.sunbird_base_url || 'https://dev.sunbirded.org',
     SUNBIRD_PORTAL_API_AUTH_TOKEN: process.env.sunbird_api_auth_token || '',
     DOCK_CHANNEL: process.env.dock_channel || 'sunbird',
@@ -16,6 +14,9 @@ const envVariables = {
     DOCK_REDIS_HOST: process.env.dock_redis_host,
     DOCK_REDIS_PORT: process.env.dock_redis_port || 6379,
     SUNBIRD_AUTO_CREATION_TOPIC: process.env.sunbird_auto_creation_topic,
+    SUNBIRD_QUESTION_BULKUPLOAD_TOPIC: process.env.sunbird_question_bulkupload_topic,
+    SUNBIRD_KAFKA_BULKUPLOAD_CONSUMER_GROUP_ID:process.env.sunbird_kafka_bulkupload_consumer_group_id,
+    SUNBIRD_ASSESSMENT_SERVICE_BASE_URL : process.env.sunbird_assessment_service_base_url,
     CORE_INGRESS_GATEWAY_IP: process.env.CORE_INGRESS_GATEWAY_IP,
     config: {
         user: process.env.sunbird_program_db_user || "postgres",
