@@ -10,8 +10,11 @@ const {
   Table,
   TableRow,
   TableCell,
+  VerticalAlign,
   WidthType,
   HeadingLevel,
+  ITableCellMarginOptions,
+  convertInchesToTwip,
 } = docx;
 
 function create(data, paperData) {
@@ -153,7 +156,7 @@ function create(data, paperData) {
                   let count = 0;
                   arr.push(Marks(question));
                   question[0].Questions.map((item) => {
-                    arr.push(createSAObject(item,count));
+                    arr.push(createSAObject(item, count));
                   });
                   arr.push(
                     new Paragraph({
@@ -165,7 +168,6 @@ function create(data, paperData) {
                   arr.push(Marks(question));
                   question[0].Questions.map((item) => {
                     arr.push(createSAObject(item, count));
-
                   });
                   arr.push(
                     new Paragraph({
@@ -228,60 +230,57 @@ function create(data, paperData) {
   });
   return doc;
 }
+function displayMTFHeader(data) {
+  return new TableCell({
+    borders: MTFborder,
+    width: {
+      size: 100 / 2,
+      type: WidthType.PERCENTAGE,
+    },
+    margins: {
+      top: convertInchesToTwip(0.0693701),
+      bottom: convertInchesToTwip(0.0693701),
+      left: convertInchesToTwip(0.0693701),
+      right: convertInchesToTwip(0.0693701),
+    },
+    verticalAlign: VerticalAlign.CENTER,
+    children: [
+      new Paragraph({
+        text: data,
+        bold: true,
+      }),
+    ],
+  });
+}
+
+function displayMTFData(data) {
+  return new TableCell({
+    borders: MTFborder,
+    width: {
+      size: 100 / 2,
+      type: WidthType.PERCENTAGE,
+    },
+    margins: {
+      top: convertInchesToTwip(0.0693701),
+      bottom: convertInchesToTwip(0.0693701),
+      left: convertInchesToTwip(0.0693701),
+      right: convertInchesToTwip(0.0693701),
+    },
+    verticalAlign: VerticalAlign.CENTER,
+    children: [createSAObject(data, 0)],
+  });
+}
+
 function MTFTabel(question) {
   const arr = [];
   const rowheading = new TableRow({
-    children: [
-      new TableCell({
-        borders: MTFborder,
-        width: {
-          size: 100/2,
-          type: WidthType.PERCENTAGE,
-        },
-        children: [
-          new Paragraph({
-            text: "Column1",
-            bold: true,
-          }),
-        ],
-      }),
-      new TableCell({
-        borders: MTFborder,
-        width: {
-          size: 100/2,
-          type: WidthType.PERCENTAGE,
-        },
-        children: [
-          new Paragraph({
-            text: "Column2",
-            bold: true,
-          }),
-        ],
-      }),
-    ],
+    children: [displayMTFHeader("Column1"), displayMTFHeader("Column2")],
   });
   arr.push(rowheading);
   question[0].Questions.map((item) => {
     arr.push(
       new TableRow({
-        children: [
-          new TableCell({
-            borders: MTFborder,
-            width: {
-              size: 100/2,
-              type: WidthType.PERCENTAGE,
-            },
-            children: [createSAObject(item.left[0], 0)],
-          }),
-          new TableCell({
-            borders: MTFborder,
-            width: {
-              size: 100/2,
-              type: WidthType.PERCENTAGE,
-            },
-            children: [createSAObject(item.right[0], 0)],
-          }),
-        ],
+        children: [displayMTFData(item.left[0]), displayMTFData(item.right[0])],
       })
     );
   });
@@ -310,31 +309,30 @@ function Marks(data) {
 }
 function createFTBObject(data) {
   const arr = [];
-  if(data.text) {
+  if (data.text) {
     data.text
-    .map((text) => {
-      if (typeof text === "object") {
-        arr.push(new TextRun(text));
-      } else {
-        arr.push(
-          new TextRun({
-            text: `${text}`,
-          })
-        );
-      }
-    })
-    .reduce((prev, curr) => prev.concat(curr), []);
-  }
-  else if(data.image) {
+      .map((text) => {
+        if (typeof text === "object") {
+          arr.push(new TextRun(text));
+        } else {
+          arr.push(
+            new TextRun({
+              text: `${text}`,
+            })
+          );
+        }
+      })
+      .reduce((prev, curr) => prev.concat(curr), []);
+  } else if (data.image) {
     if (data.image.includes("data:image/")) {
-    let image = getBufferImg(data.image);
-    return new Paragraph({
-      children: [
-        new ImageRun({
-          data: image,
-          transformation: {
-            width: data.width,
-            height: data.height,
+      let image = getBufferImg(data.image);
+      return new Paragraph({
+        children: [
+          new ImageRun({
+            data: image,
+            transformation: {
+              width: data.width,
+              height: data.height,
             },
           }),
         ],
@@ -348,7 +346,7 @@ function createFTBObject(data) {
 }
 
 function createFTB(data, count) {
- if (count !== 0) {
+  if (count !== 0) {
     return new Paragraph({
       alignment: AlignmentType.LEFT,
       children: [
@@ -449,7 +447,6 @@ function createCOMPREHENSIONObject(data, count) {
       });
     }
   } else if (data.ol) {
-    
   } else {
     return createFTB(data, count);
   }
@@ -466,14 +463,12 @@ function imageData(image) {
   }
 }
 function getBufferData(data) {
-
   let image = imageData(data);
   return image.substr(2);
 }
 
 function getBufferImg(data) {
-
-let image = imageData(data);
+  let image = imageData(data);
   return image;
 }
 function formatOptions(data) {
@@ -511,33 +506,6 @@ function formatOptions(data) {
     optionArr.push(testimage.width4);
   }
   return optionArr;
-}
-
-function displayOptions(option, height, width) {
-  if (option.includes("data:image/")) {
-    let image = getBufferData(option);
-    return new Paragraph({
-      text: option.substr(0, 2)+" ",
-      children: [
-        new ImageRun({
-          data: image,
-          transformation: {
-            width: width,
-            height: height,
-          },
-        }),
-      ],
-    });
-  } else {
-    return new Paragraph({
-      alignment: AlignmentType.LEFT,
-      children: [
-        new TextRun({
-          text: option,
-        }),
-      ],
-    });
-  }
 }
 
 const border = {
@@ -579,18 +547,19 @@ const MTFborder = {
 };
 function headers() {
   return new Table({
-    columnWidths: [6505, 6505],
+    columnWidths: [4505, 4505],
     rows: [
       new TableRow({
         children: [
           new TableCell({
             borders: border,
             width: {
-              size: 5505,
-              type: WidthType.DXA,
+              size: 100 / 2,
+              type: WidthType.PERCENTAGE,
             },
             children: [
               new Paragraph({
+                alignment: AlignmentType.LEFT,
                 text: "Student Name:.........................",
                 bold: true,
               }),
@@ -599,12 +568,12 @@ function headers() {
           new TableCell({
             borders: border,
             width: {
-              size: 5505,
-              type: WidthType.DXA,
+              size: 100 / 2,
+              type: WidthType.PERCENTAGE,
             },
-            alignment: AlignmentType.RIGHT,
             children: [
               new Paragraph({
+                alignment: AlignmentType.RIGHT,
                 text: "Roll Number:.............................",
                 bold: true,
               }),
@@ -617,8 +586,8 @@ function headers() {
           new TableCell({
             borders: border,
             width: {
-              size: 5505,
-              type: WidthType.DXA,
+              size: 100 / 2,
+              type: WidthType.PERCENTAGE,
             },
             children: [],
           }),
@@ -629,11 +598,12 @@ function headers() {
           new TableCell({
             borders: border,
             width: {
-              size: 5505,
-              type: WidthType.DXA,
+              size: 100 / 2,
+              type: WidthType.PERCENTAGE,
             },
             children: [
               new Paragraph({
+                alignment: AlignmentType.LEFT,
                 text: "Teacher's Name:......................",
                 bold: true,
               }),
@@ -642,12 +612,12 @@ function headers() {
           new TableCell({
             borders: border,
             width: {
-              size: 5505,
-              type: WidthType.DXA,
+              size: 100 / 2,
+              type: WidthType.PERCENTAGE,
             },
-            alignment: AlignmentType.RIGHT,
             children: [
               new Paragraph({
+                alignment: AlignmentType.RIGHT,
                 text: "Teacher's Sign:...........................",
                 bold: true,
               }),
@@ -659,56 +629,109 @@ function headers() {
   });
 }
 
+function displayNumber(data) {
+  return new TableCell({
+    borders: MTFborder,
+    width: {
+      size: 300,
+      type: WidthType.DXA,
+    },
+    margins: {
+      top: convertInchesToTwip(0.0693701),
+      bottom: convertInchesToTwip(0.0693701),
+      left: convertInchesToTwip(0.0693701),
+      right: convertInchesToTwip(0.0693701),
+    },
+    verticalAlign: VerticalAlign.CENTER,
+    children: [
+      new Paragraph({
+        text: data.substr(0, 1),
+      }),
+    ],
+  });
+}
+
+function displayOptions(option, height, width) {
+  if (option.includes("data:image/")) {
+    let image = getBufferData(option);
+    return new TableCell({
+      borders: MTFborder,
+      width: {
+        size: 4505,
+        type: WidthType.DXA,
+      },
+      margins: {
+        top: convertInchesToTwip(0.0693701),
+        bottom: convertInchesToTwip(0.0693701),
+        left: convertInchesToTwip(0.0693701),
+        right: convertInchesToTwip(0.0693701),
+      },
+      verticalAlign: VerticalAlign.CENTER,
+      children: [
+        new Paragraph({
+          children: [
+            new ImageRun({
+              data: image,
+              transformation: {
+                width: width,
+                height: height,
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+  } else {
+    return new TableCell({
+      borders: MTFborder,
+      width: {
+        size: 4505,
+        type: WidthType.DXA,
+      },
+      margins: {
+        top: convertInchesToTwip(0.0693701),
+        bottom: convertInchesToTwip(0.0693701),
+        left: convertInchesToTwip(0.0693701),
+        right: convertInchesToTwip(0.0693701),
+      },
+      verticalAlign: VerticalAlign.CENTER,
+      children: [
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: option.substr(2),
+            }),
+          ],
+        }),
+      ],
+    });
+  }
+}
+
 function optionsTabel(testimage) {
   return new Table({
     columnWidths: [4505, 4505],
     rows: [
       new TableRow({
         children: [
-          new TableCell({
-            borders: border,
-            width: {
-              size: 4505,
-          type: WidthType.DXA,
-            },
-            children: [
-              displayOptions(testimage[0], testimage[4], testimage[5]),
-            ],
-          }),
-          new TableCell({
-            borders: border,
-            width: {
-              size: 4505,
-              type: WidthType.DXA,
-            },
-            children: [
-              displayOptions(testimage[1], testimage[6], testimage[7]),
-            ],
-          }),
+          displayNumber(testimage[0]),
+
+          displayOptions(testimage[0], testimage[4], testimage[5]),
+
+          displayNumber(testimage[1]),
+
+          displayOptions(testimage[1], testimage[6], testimage[7]),
         ],
       }),
       new TableRow({
         children: [
-          new TableCell({
-            borders: border,
-            width: {
-              size: 4505,
-              type: WidthType.DXA,
-            },
-            children: [
-              displayOptions(testimage[2], testimage[8], testimage[9]),
-            ],
-          }),
-          new TableCell({
-            borders: border,
-            width: {
-              size: 4505,
-              type: WidthType.DXA,
-            },
-            children: [
-              displayOptions(testimage[3], testimage[10], testimage[11]),
-            ],
-          }),
+          displayNumber(testimage[2]),
+
+          displayOptions(testimage[2], testimage[8], testimage[9]),
+
+          displayNumber(testimage[3]),
+
+          displayOptions(testimage[3], testimage[10], testimage[11]),
         ],
       }),
     ],
