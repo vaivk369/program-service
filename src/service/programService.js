@@ -966,10 +966,10 @@ function getProgramCountsByOrg(req, response) {
         return response.status(200).send(successResponse(rspObj));
       }, (error) => {
         rspObj.responseCode = responseCode.SERVER_ERROR
-        rspObj.errCode = programMessages.PROGRAMCOUNTS_BYORG.ORGSEARCH.FAILED_CODE
-        rspObj.errMsg = programMessages.PROGRAMCOUNTS_BYORG.ORGSEARCH.FAILED_MESSAGE
+        rspObj.errCode = programMessages.PROGRAMCOUNTS_BYORG.ORGSEARCH_FETCH.FAILED_CODE
+        rspObj.errMsg = programMessages.PROGRAMCOUNTS_BYORG.ORGSEARCH_FETCH.FAILED_MESSAGE
         loggerError('',rspObj,errCode+errorCodes.CODE1);
-        rspObj.result = err;
+        rspObj.result = error;
         loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
         return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1));
       })
