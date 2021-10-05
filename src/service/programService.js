@@ -211,7 +211,7 @@ function publishProgram(req, response) {
     req.rspObj.errCode = programMessages.PUBLISH.MISSING_CODE
     req.rspObj.errMsg = programMessages.PUBLISH.MISSING_MESSAGE
     req.rspObj.responseCode = responseCode.CLIENT_ERROR
-    loggerError('',req.rspObj,errCode+errorCodes.CODE1);
+    loggerError('',req.rspObj,req.rspObj.errCode+errorCodes.CODE1);
     loggerService.exitLog({responseCode: req.rspObj.responseCode, errCode: req.rspObj.errCode+errorCodes.CODE1}, logObject);
     return response.status(400).send(errorResponse(req.rspObj,req.rspObj.errCode+errorCodes.CODE1))
   }
@@ -419,7 +419,7 @@ function onAfterPublishProgram(programDetails, reqHeaders, afterPublishCallback)
   onPublishResult['nomination']= {};
   onPublishResult['userMapping']= {};
   getUserRegistryDetails(programDetails.createdby).then((userRegData) => {
-    getOsOrgForRootOrgId(programDetails.rootorg_id, userRegData, reqHeaders).then((osOrgforRootOrgRes) => {
+    getOsOrgForRootOrgId(programDetails.rootorg_id, userRegData, reqHeaders).then(async (osOrgforRootOrgRes) => {
       const iforgFoundInRegData = osOrgforRootOrgRes.orgFoundInRegData;
       const osOrgforRootOrg = osOrgforRootOrgRes.osOrgforRootOrg;
       const userOsid = _.get(userRegData, 'User.osid');
@@ -545,11 +545,11 @@ function onAfterPublishProgram(programDetails, reqHeaders, afterPublishCallback)
             afterPublishCallback(onPublishResult);
           }
         }
+        const dikshaUserProfilesApiResp = await userService.getDikshaUserProfiles({'headers': reqHeaders}, programDetails.createdby);
+        let orgUsersDetails = _.get(dikshaUserProfilesApiResp.data, 'result.response.content');
         // create a registry for the user adn then an org and create mapping for the org as a admin
-        programServiceHelper.getUserDetails(programDetails.createdby, reqHeaders)
-        .subscribe((res)=> {
-          if (res.data.responseCode == "OK" && !_.isEmpty(_.get(res.data, 'result.response.content'))) {
-            const userDetails = _.first(_.get(res.data, 'result.response.content'));
+          if (orgUsersDetails) {
+            const userDetails = _.first(orgUsersDetails);
             if (!userOsid && !_.isEmpty(osOrgforRootOrg)) {
               // if user for created by is not present but org for rootOrg id exists
               createUserMappingInRegistry(userDetails, osOrgforRootOrg, regMethodCallback);
@@ -564,10 +564,6 @@ function onAfterPublishProgram(programDetails, reqHeaders, afterPublishCallback)
             onPublishResult['error'] = {msg: "error while getting users details from Diksha"};
             afterPublishCallback(onPublishResult);
           }
-        },(error)=> {
-          onPublishResult['error'] = {msg: "error while getting users details from Diksha " + error.message};
-          afterPublishCallback(onPublishResult);
-        });
       }
     })
     .catch((error) => {
@@ -966,10 +962,10 @@ function getProgramCountsByOrg(req, response) {
         return response.status(200).send(successResponse(rspObj));
       }, (error) => {
         rspObj.responseCode = responseCode.SERVER_ERROR
-        rspObj.errCode = programMessages.PROGRAMCOUNTS_BYORG.ORGSEARCH.FAILED_CODE
-        rspObj.errMsg = programMessages.PROGRAMCOUNTS_BYORG.ORGSEARCH.FAILED_MESSAGE
+        rspObj.errCode = programMessages.PROGRAMCOUNTS_BYORG.ORGSEARCH_FETCH.FAILED_CODE
+        rspObj.errMsg = programMessages.PROGRAMCOUNTS_BYORG.ORGSEARCH_FETCH.FAILED_MESSAGE
         loggerError('',rspObj,errCode+errorCodes.CODE1);
-        rspObj.result = err;
+        rspObj.result = error;
         loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
         return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1));
       })
@@ -2676,7 +2672,7 @@ function addorUpdateUserOrgMapping(userProfile, filterRootOrg, orgOsid, userOsid
         sourcingOrgs.push(mappingObj.orgId);
       }
 
-      if (mappingObj.orgId == orgOsid) {
+      if (mappingObj.orgId === orgOsid) {
         updateOsid = mappingObj.osid;
         if (userOrgRoles.includes('ORG_ADMIN')) {
           uRoles.push('admin');
