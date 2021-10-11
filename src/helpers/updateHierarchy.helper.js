@@ -125,11 +125,14 @@ class HierarchyService {
 
   getHierarchy(collectionIds, reqHeaders) {
     const collectiveRequest = _.map(collectionIds, id => {
-      const url = `${envVariables.SUNBIRD_URL}/action/content/v3/hierarchy/${id}?mode=edit`;
+      const url = `${envVariables.LEARNER_URL}/collection/v1/hierarchy/${id}?mode=edit`;
       const option = {
         url: url,
         method: "get",
-        headers: reqHeaders
+        headers: {
+          ...reqHeaders,
+          'Authorization': `Bearer ${envVariables.SUNBIRD_PORTAL_API_AUTH_TOKEN}`
+        }
       };
       return axios(option);
     });
