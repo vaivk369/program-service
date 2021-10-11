@@ -125,7 +125,7 @@ class HierarchyService {
 
   getHierarchy(collectionIds, reqHeaders) {
     const collectiveRequest = _.map(collectionIds, id => {
-      const url = `${envVariables.LEARNER_URL}/collection/v1/hierarchy/${id}?mode=edit`;
+      const url = `${envVariables.SUNBIRD_URL}/api/collection/v1/hierarchy/${id}?mode=edit`;
       const option = {
         url: url,
         method: "get",
