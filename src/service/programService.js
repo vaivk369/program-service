@@ -1511,16 +1511,26 @@ async function downloadProgramDetails(req, res) {
   });
 
   if (filteredPrograms.length) {
-  promiseRequests =  _.map(filteredPrograms, (program) => {
-    return [programServiceHelper.getCollectionWithProgramId(program, req), programServiceHelper.getSampleContentWithOrgId(program, req),programServiceHelper.getSampleContentWithCreatedBy(program, req),
-      programServiceHelper.getContributionWithProgramId(program, req), programServiceHelper.getNominationWithProgramId(program),
-      programServiceHelper.getOveralNominationData(program)];
-  });
+    if (data.request.filters.targetType  && data.request.filters.targetType === 'searchCriteria') { 
+      await _.forEach(programArr, (programId) => {
+        programServiceHelper.getProgramDetails(programId).then((program)=> {
+          programObjs[programId] = program;
+        });
+      });
+    }
+    promiseRequests =  _.map(filteredPrograms, (program) => {
+      if (!data.request.filters.targetType  || data.request.filters.targetType === 'collections') {
+        return [programServiceHelper.getCollectionWithProgramId(program, req), programServiceHelper.getSampleContentWithOrgId(program, req),programServiceHelper.getSampleContentWithCreatedBy(program, req), programServiceHelper.getContributionWithProgramId(program, req), programServiceHelper.getNominationWithProgramId(program), programServiceHelper.getOveralNominationData(program)];
+      } else if(data.request.filters.targetType === 'searchCriteria') {
+        return[programServiceHelper.getContentContributionsWithProgramId(program, req)];
+      }
+    });
 
     forkJoin(..._.flatMapDeep(promiseRequests)).subscribe((responseData) => {
     try{
-    const combainedRes = _.chunk(responseData, 6);
-    const programDetailsArray = programServiceHelper.handleMultiProgramDetails(combainedRes);
+    const chunkNumber = (!data.request.filters.targetType  || data.request.filters.targetType === 'collections') ? 6 : 1;
+    const combainedRes = _.chunk(responseData, chunkNumber);
+    const programDetailsArray = programServiceHelper.handleMultiProgramDetails(combainedRes, programObjs, data.request.filters.targetType);
     const tableData  = _.reduce(programDetailsArray, (final, data, index) => {
     final.push({program_id: filteredPrograms[index], values: data});
     return final;
