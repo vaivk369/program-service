@@ -1144,7 +1144,6 @@ async function programList(req, response) {
               ...filters,
               ...data.request.filters
             },
-
             attributes: data.request.fields || {
               include : [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium'], [Sequelize.json('config.frameworkObj'), 'frameworkObj']],
               exclude: ['config', 'description']
@@ -1552,11 +1551,13 @@ async function downloadProgramDetails(req, res) {
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return res.status(200).send(successResponse(rspObj));
   } catch (err) {
+    console.log(JSON.stringify(err));
     loggerError('Error due to unhandled exception',rspObj,errCode+errorCodes.CODE2);
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return res.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
   }
     }, (err) => {
+      console.log(JSON.stringify(err));
       loggerError('Error http requests or nomination table query promise failure',rspObj,errCode+errorCodes.CODE3);
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       return res.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE3));
