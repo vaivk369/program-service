@@ -289,9 +289,9 @@ class ProgramServiceHelper {
               result['Creator'] = content.creator || '';
               result['Status'] = null;
               if (content.status === 'Live') {
-                if (program.acceptedContents  && _.includes(program.acceptedContents || [], content.identifier)) {
+                if (program.acceptedcontents  && _.includes(program.acceptedcontents || [], content.identifier)) {
                   result['Status']  = 'Approved';
-                } else if (program.rejectedContents  && _.includes(program.rejectedContents || [], content.identifier)) {
+                } else if (program.rejectedcontents  && _.includes(program.rejectedcontents || [], content.identifier)) {
                   result['Status'] = 'Rejected';
                 } else {
                   result['Status'] = 'Approval Pending';
