@@ -234,7 +234,7 @@ class HierarchyService {
   getFlatHierarchyObj(data, additionalMetaData, children) {
     let instance = this;
     if (data) {
-      if (additionalMetaData.isFirstTime && _.includes(additionalMetaData.projCollectionCategories, data.primaryCategory) && data.visibility === 'Default') {
+      if (additionalMetaData.isFirstTime && _.includes(_.lowerCase(additionalMetaData.projCollectionCategories), _.lowerCase(data.primaryCategory)) && data.visibility === 'Default') {
         data.identifier = additionalMetaData.identifier;
       }
       instance.hierarchy[data.identifier] = {
@@ -248,7 +248,7 @@ class HierarchyService {
             }
           })
         ),
-        root: _.includes(additionalMetaData.projCollectionCategories, data.primaryCategory) && data.visibility === 'Default' ? true : false
+        root: _.includes(_.lowerCase(additionalMetaData.projCollectionCategories), _.lowerCase(data.primaryCategory)) && data.visibility === 'Default' ? true : false
       };
     }
     _.forEach(data.children, child => {
@@ -263,7 +263,7 @@ class HierarchyService {
     let instance = this;
     let nodeId;
     if (data) {
-      if (additionalMetaData.isFirstTime && _.includes(additionalMetaData.projCollectionCategories, data.primaryCategory) && data.visibility === 'Default') {
+      if (additionalMetaData.isFirstTime && _.includes(_.lowerCase(additionalMetaData.projCollectionCategories), _.lowerCase(data.primaryCategory)) && data.visibility === 'Default') {
         nodeId = additionalMetaData.identifier;
       } else {
         nodeId = data.identifier;
@@ -271,7 +271,7 @@ class HierarchyService {
 
       instance.nodeModified[nodeId] = {
         isNew: true,
-        root: _.includes(additionalMetaData.projCollectionCategories, data.primaryCategory) && data.visibility === 'Default' ? true : false,
+        root: _.includes(_.lowerCase(additionalMetaData.projCollectionCategories), _.lowerCase(data.primaryCategory)) && data.visibility === 'Default' ? true : false,
         metadata: {
           ..._.omit(data, [
             "children",
@@ -303,7 +303,7 @@ class HierarchyService {
             "mimeTypesCount",
             "contentTypesCount"
           ]),
-          ...(_.includes(additionalMetaData.projCollectionCategories, data.primaryCategory) && data.visibility === 'Default' && {
+          ...(_.includes(_.lowerCase(additionalMetaData.projCollectionCategories), _.lowerCase(data.primaryCategory) && data.visibility === 'Default' && {
             chapterCount : data.children ? data.children.length : 0
           }),
           programId: additionalMetaData.programId,
@@ -315,7 +315,7 @@ class HierarchyService {
           }
         }
       };
-      if(!(_.includes(additionalMetaData.projCollectionCategories, data.primaryCategory) && data.visibility === 'Default') && instance.nodeModified[nodeId].metadata && instance.nodeModified[nodeId].metadata.audience) {
+      if(!(_.includes(_.lowerCase(additionalMetaData.projCollectionCategories), _.lowerCase(data.primaryCategory)) && data.visibility === 'Default') && instance.nodeModified[nodeId].metadata && instance.nodeModified[nodeId].metadata.audience) {
         delete instance.nodeModified[nodeId].metadata.audience;
       }
     }
