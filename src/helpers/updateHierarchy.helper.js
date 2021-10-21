@@ -303,7 +303,7 @@ class HierarchyService {
             "mimeTypesCount",
             "contentTypesCount"
           ]),
-          ...(_.includes(_.lowerCase(additionalMetaData.projCollectionCategories), _.lowerCase(data.primaryCategory) && data.visibility === 'Default' && {
+          ...(_.includes(_.lowerCase(additionalMetaData.projCollectionCategories), _.lowerCase(data.primaryCategory)) && data.visibility === 'Default' && {
             chapterCount : data.children ? data.children.length : 0
           }),
           programId: additionalMetaData.programId,
