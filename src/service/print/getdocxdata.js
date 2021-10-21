@@ -476,26 +476,12 @@ function formatOptions(data) {
   let image;
   let testimage = data;
   if (testimage) {
-    if (testimage.Option1.includes("data:image/")) {
-      optionArr.push(testimage.Option1);
-    } else {
-      optionArr.push(testimage.Option1);
-    }
-    if (testimage.Option2.includes("data:image/")) {
-      optionArr.push(testimage.Option2);
-    } else {
-      optionArr.push(testimage.Option2);
-    }
-    if (testimage.Option3.includes("data:image/")) {
-      optionArr.push(testimage.Option3);
-    } else {
-      optionArr.push(testimage.Option3);
-    }
-    if (testimage.Option4.includes("data:image/")) {
-      optionArr.push(testimage.Option4);
-    } else {
-      optionArr.push(testimage.Option4);
-    }
+    console.log("Optiona:", testimage);
+    optionArr.push(testimage.Option1);
+    optionArr.push(testimage.Option2);
+    optionArr.push(testimage.Option3);
+    optionArr.push(testimage.Option4);
+    
     optionArr.push(testimage.height1);
     optionArr.push(testimage.width1);
     optionArr.push(testimage.height2);
@@ -630,29 +616,91 @@ function headers() {
 }
 
 function displayNumber(data) {
-  return new TableCell({
-    borders: MTFborder,
-    width: {
-      size: 300,
-      type: WidthType.DXA,
-    },
-    margins: {
-      top: convertInchesToTwip(0.0693701),
-      bottom: convertInchesToTwip(0.0693701),
-      left: convertInchesToTwip(0.0693701),
-      right: convertInchesToTwip(0.0693701),
-    },
-    verticalAlign: VerticalAlign.CENTER,
-    children: [
-      new Paragraph({
-        text: data.substr(0, 1),
-      }),
-    ],
-  });
+  if (typeof data === "object") {
+    return new TableCell({
+      borders: MTFborder,
+      width: {
+        size: 300,
+        type: WidthType.DXA,
+      },
+      margins: {
+        top: convertInchesToTwip(0.0693701),
+        bottom: convertInchesToTwip(0.0693701),
+        left: convertInchesToTwip(0.0693701),
+        right: convertInchesToTwip(0.0693701),
+      },
+      verticalAlign: VerticalAlign.CENTER,
+      children: [
+        new Paragraph({
+          text: data.text[0],
+        }),
+      ],
+    });
+  } else {
+    return new TableCell({
+      borders: MTFborder,
+      width: {
+        size: 300,
+        type: WidthType.DXA,
+      },
+      margins: {
+        top: convertInchesToTwip(0.0693701),
+        bottom: convertInchesToTwip(0.0693701),
+        left: convertInchesToTwip(0.0693701),
+        right: convertInchesToTwip(0.0693701),
+      },
+      verticalAlign: VerticalAlign.CENTER,
+      children: [
+        new Paragraph({
+          text: data.substr(0, 1),
+        }),
+      ],
+    });
+  }
 }
 
+function displayOptionsObject(data, count) {
+  const arr = [];
+  if (data.text) {
+    data.text
+      .map((text) => {
+        console.log("Object text:", text);
+        if (typeof text === "object") {
+          arr.push(new TextRun(text));
+        } else {
+          arr.push(
+            new TextRun({
+              text: `${text}`,
+            })
+          );
+        }
+      })
+      .reduce((prev, curr) => prev.concat(curr), []);
+    return new TableCell({
+      borders: MTFborder,
+      width: {
+        size: 4505,
+        type: WidthType.DXA,
+      },
+      margins: {
+        top: convertInchesToTwip(0.0693701),
+        bottom: convertInchesToTwip(0.0693701),
+        left: convertInchesToTwip(0.0693701),
+        right: convertInchesToTwip(0.0693701),
+      },
+      verticalAlign: VerticalAlign.CENTER,
+      children: [
+        new Paragraph({
+          children: arr,
+        }),
+      ],
+    });
+  }
+}
 function displayOptions(option, height, width) {
-  if (option.includes("data:image/")) {
+  if (typeof option === "object") {
+    return displayOptionsObject(option);
+  } else if (option.includes("data:image/")) {
     let image = getBufferData(option);
     return new TableCell({
       borders: MTFborder,
