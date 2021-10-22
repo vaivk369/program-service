@@ -1487,6 +1487,7 @@ async function downloadProgramDetails(req, res) {
   loggerService.entryLog(data, logObject);
   const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.GENERATE_DETAILS.EXCEPTION_CODE
   let programArr = [], promiseRequests = [], cacheData = [], filteredPrograms = [];
+  let programObjs = {};
   rspObj.errCode = programMessages.GENERATE_DETAILS.FAILED_CODE
   rspObj.errMsg = programMessages.GENERATE_DETAILS.FAILED_MESSAGE
   rspObj.responseCode = responseCode.SERVER_ERROR
