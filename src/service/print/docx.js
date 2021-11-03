@@ -17,7 +17,8 @@ const sizeOf = require("image-size");
 
 const programServiceHelper = new ProgramServiceHelper();
 
-const { size, create } = require("lodash");
+const { size, create, compact, result } = require("lodash");
+const { async } = require("rxjs/internal/scheduler/async");
 
 const buildDOCXWithCallback = async (id, callback) => {
   let error = false;
@@ -250,6 +251,25 @@ function extractTextFromElement(elem) {
   return rollUp;
 }
 
+function getStyleEle(el) {
+  let value = "";
+  if (
+    el.children[0].name &&
+    (el.children[0].name === "i" ||
+      el.children[0].name === "b" ||
+      el.children[0].name === "u")
+  ) {
+    return getStyleEle(el.children[0]);
+  } else {
+    if (el.children[0].data !== undefined) {
+      return (
+        el.children[0] &&
+        (el.children[0].data ||
+          (el.children[0].children[0] && el.children[0].children[0].data))
+      );
+    }
+  }
+}
 async function getStack(htmlString, questionCounter) {
   const stack = [];
   $ = cheerio.load(htmlString);
@@ -265,22 +285,16 @@ async function getStack(htmlString, questionCounter) {
         break;
       case "ol":
         nextLine = {
-          ol: elem.children.map(
-            (el) =>
-              el.children[0] &&
-              (el.children[0].data ||
-                (el.children[0].children[0] && el.children[0].children[0].data))
-          ),
+          ol: elem.children.map((el) => {
+            return getStyleEle(el);
+          }),
         };
         break;
       case "ul":
         nextLine = {
-          ul: elem.children.map(
-            (el) =>
-              el.children[0] &&
-              (el.children[0].data ||
-                (el.children[0].children[0] && el.children[0].children[0].data))
-          ),
+          ul: elem.children.map((el) => {
+            return getStyleEle(el);
+          }),
         };
         break;
       case "figure":
@@ -340,8 +354,8 @@ async function renderMCQ(question, questionCounter, marks) {
     q.search("img") >= 0 ||
     q.search("sub") >= 0 ||
     q.search("sup") >= 0 ||
-    (q.match(/<p>/g) && q.match(/<p>/g).length > 1) ||
-    (q.match(/<ol>/g) && q.match(/<ol>/g).length > 1)
+    (q.match(/<p>/g) && q.match(/<p>/g).length >= 1) ||
+    (q.match(/<ol>/g) && q.match(/<ol>/g).length >= 1)
       ? await getStack(q, questionCounter)
       : [`${questionCounter}. ${cleanHTML(q)}`];
 
@@ -421,7 +435,6 @@ async function renderMCQ(question, questionCounter, marks) {
     height4: imageProperties[3].height,
     width4: imageProperties[3].width,
   };
-
   return data;
 }
 
@@ -432,10 +445,12 @@ async function renderQuestion(question, questionCounter, marks, Type) {
     question.editorState.question.search("img") >= 0 ||
     question.editorState.question.search("sub") >= 0 ||
     question.editorState.question.search("sup") >= 0 ||
-    question.editorState.question.search("ol") >= 0 ||
+    // question.editorState.question.search("ol") >= 0 ||
     question.editorState.question.search("ul") >= 0 ||
-    (question.editorState.question.match(/<p>/g) && question.editorState.question.match(/<p>/g).length > 1) ||
-    (question.editorState.question.match(/<ol>/g) && question.editorState.question.match(/<ol>/g).length > 1)
+    (question.editorState.question.match(/<p>/g) &&
+      question.editorState.question.match(/<p>/g).length >= 1) ||
+    (question.editorState.question.match(/<ol>/g) &&
+      question.editorState.question.match(/<ol>/g).length >= 1)
   ) {
     data = await getStack(question.editorState.question, questionCounter);
   } else {
@@ -447,7 +462,6 @@ async function renderQuestion(question, questionCounter, marks, Type) {
     Marks: marks,
     type: Type,
   };
-
   return quedata;
 }
 
@@ -460,9 +474,11 @@ async function renderComprehension(question, questionCounter, marks, Type) {
     question.editorState.question.search("sup") >= 0 ||
     question.editorState.question.search("ol") >= 0 ||
     question.editorState.question.search("ul") >= 0 ||
-    (question.editorState.question.match(/<p>/g) && question.editorState.question.match(/<p>/g).length > 1)||
-    (question.editorState.question.match(/<ol>/g) && question.editorState.question.match(/<ol>/g).length > 1)
-      ) {
+    (question.editorState.question.match(/<p>/g) &&
+      question.editorState.question.match(/<p>/g).length >= 1) ||
+    (question.editorState.question.match(/<ol>/g) &&
+      question.editorState.question.match(/<ol>/g).length >= 1)
+  ) {
     data = await getStack(question.editorState.question, questionCounter);
   } else {
     data = [`${questionCounter}. ${cleanHTML(question.editorState.question)}`];

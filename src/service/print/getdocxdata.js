@@ -168,6 +168,7 @@ function create(data, paperData) {
                   arr.push(Marks(question));
                   question[0].Questions.map((item) => {
                     arr.push(createSAObject(item, count));
+                    
                   });
                   arr.push(
                     new Paragraph({
@@ -194,6 +195,8 @@ function create(data, paperData) {
                   arr.push(Marks(question));
                   let count = 0;
                   question[0].Questions.map((item) => {
+                    console.log("MCQ:",item)
+
                     arr.push(createSAObject(item, count));
                   });
 
@@ -228,6 +231,7 @@ function create(data, paperData) {
       },
     ],
   });
+  
   return doc;
 }
 function displayMTFHeader(data) {
@@ -338,6 +342,32 @@ function createFTBObject(data) {
         ],
       });
     }
+  } else if(data.ol){
+    let count1 = 0;
+      data.ol.map((text) => {
+        count1++;
+        if (typeof text === "object") {
+          text = count1 + text.text;
+          arr.push(
+            new TextRun({
+              text: `${count1}.${text}`,
+            })
+          );
+        } else {
+          arr.push(
+                new TextRun({
+                  text: `${count1}.${text}`,
+                  break: 2,
+                }),
+          ); 
+        }
+    
+      })
+      .reduce((prev, curr) => prev.concat(curr), []);
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      children: arr,
+    });
   }
   return new Paragraph({
     alignment: AlignmentType.LEFT,
@@ -371,6 +401,7 @@ function createFTB(data, count) {
 
 function createSAObject(data, count) {
   const arr = [];
+
   if (data.text) {
     data.text
       .map((text) => {
@@ -390,6 +421,7 @@ function createSAObject(data, count) {
       children: arr,
     });
   } else if (data.image) {
+    console.log("Immage,")
     if (data.image.includes("data:image/")) {
       let image = getBufferImg(data.image);
 
@@ -405,10 +437,68 @@ function createSAObject(data, count) {
         ],
       });
     }
-  } else {
+  }  else if(data.ol){
+    let count1 = 0;
+      data.ol.map((text) => {
+        count1++;
+        if (typeof text === "object") {
+          text = count1 + text.text;
+          arr.push(
+            new TextRun({
+              text: `${count1}.${text}`,
+            })
+          );
+        } else {
+          arr.push(
+                new TextRun({
+                  text: `${count1}.${text}`,
+                  break: 0.5,
+                }),
+          );
+          // arr.push(new Paragraph({})) 
+        }
+    
+      })
+      .reduce((prev, curr) => prev.concat(curr), []);
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      children: arr,
+    });
+  }else{
+    console.log("TextFTB,")
     return createFTB(data, count);
   }
 }
+function handleOL(item){
+  const arr = []
+  console.log("OL TAg")
+    let count1 = 0;
+      item.map((text) => {
+        count1++;
+        if (typeof text === "object") {
+          text = count1 + text.text;
+          arr.push(
+            new Paragraph({
+              text: `${count1}.${text}`,
+            })
+          );
+        } else {
+          arr.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `${count1}.${text}`,
+                }),
+              ],
+            })
+          );
+        }
+      })
+      .reduce((prev, curr) => prev.concat(curr), []);
+      console.log("Array:",arr)
+    return arr
+}
+
 
 function createCOMPREHENSIONObject(data, count) {
   const arr = [];
@@ -476,7 +566,6 @@ function formatOptions(data) {
   let image;
   let testimage = data;
   if (testimage) {
-    console.log("Optiona:", testimage);
     optionArr.push(testimage.Option1);
     optionArr.push(testimage.Option2);
     optionArr.push(testimage.Option3);
