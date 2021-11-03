@@ -34,6 +34,10 @@ const envVariables = {
         host: process.env.telemetry_service_host,
         endpoint: process.env.telemetry_service_endpoint,
         method: 'POST'
+    },
+    SUNBIRD_GOOGLE_SERVICE_ACCOUNT_CREDENTIAL: {
+        client_email: process.env.sunbird_google_oauth_client_email,
+        private_key: process.env.sunbird_google_oauth_private_key
     }
 }
 module.exports = envVariables;
