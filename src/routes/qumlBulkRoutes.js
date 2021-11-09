@@ -9,7 +9,7 @@ module.exports = function (app) {
     requestMiddleware.checkChannelID,
     qumlRequestMiddleware.qumlBulkUploadValidator(),qumlRequestMiddleware.validate, qumlBulkUpload.bulkUpload);
   
-    app.route(BASE_URL + '/bulkupload/status')
+    app.route(BASE_URL + '/bulkuploadstatus')
       .post(requestMiddleware.gzipCompression(), requestMiddleware.createAndValidateRequestBody,
       qumlBulkUpload.qumlSearch);
   }
