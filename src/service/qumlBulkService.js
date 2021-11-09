@@ -68,7 +68,7 @@ const bulkUpload = async (req, res) => {
       });
       logger.info({ message: "Bulk Upload process has started successfully for the process Id", pId});
       rspObj.responseCode = responseCode.SUCCESS;
-      rspObj.result = { processId: pId};
+      rspObj.result = { processId: pId, count: qumlData.length};
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       return res.status(200).send(successResponse(rspObj))
     }).catch(err => {
@@ -230,6 +230,7 @@ const qumlSearch = (req, res) => {
     message: programMessages.QUML_BULKSTATUS.INFO,
   };
   loggerService.entryLog("Api to check the status of bulk upload question", logObject);
+  const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.QUML_BULKSTATUS.EXCEPTION_CODE
   fetch(`${envVariables.baseURL}/action/composite/v3/search`, {
     method: "POST", // or 'PUT'
     headers: {
@@ -239,11 +240,9 @@ const qumlSearch = (req, res) => {
   })
     .then((response) => response.json())
     .then(async(resData) => {
-      console.log(resData);
       rspObj.responseCode = resData.responseCode || responseCode.SUCCESS;
       rspObj.result = { ...resData.result  }
       logger.info({ message: "Successfully Fetched the data", rspObj });
-      // res.csv(resData.result.Question)
       loggerService.exitLog(
       "Successfully got the Questions",
         rspObj,
@@ -251,26 +250,13 @@ const qumlSearch = (req, res) => {
       return res.status(200).send(successResponse(rspObj))
     })
     .catch((error) => {
-      rspObj.errMsg = "Something went wrong while fetching the data";
+      console.log('Error while fetching the question :: ', JSON.stringify(error));
+      rspObj.errCode = programMessages.QUML_BULKSTATUS.FAILED_CODE;
+      rspObj.errMsg = programMessages.QUML_BULKSTATUS.FAILED_MESSAGE;
       rspObj.responseCode = responseCode.SERVER_ERROR;
-      logger.error(
-        {
-          message: "Something went wrong while fetching the data",
-          errorData: error,
-          rspObj,
-        },
-        errorCodes.CODE2
-      );
-      res
-        .status(400)
-        .send(
-          {
-            message: "Something went wrong while fetching the data",
-            errorData: error,
-            rspObj,
-          },
-          errorCodes.CODE2
-        );
+      loggerError(rspObj,errCode+errorCodes.CODE1);
+      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+      return res.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1));
     });
 };
 
