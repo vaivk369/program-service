@@ -7,9 +7,6 @@ const envVariables = require("../envVariables");
 
 class GoogleOauth {
   constructor() {
-    this.auth = null;
-  }
-  constructor() {
     this.auth = new google.auth.GoogleAuth({
       credentials: {
         "private_key": envVariables.SUNBIRD_GOOGLE_SERVICE_ACCOUNT_CREDENTIAL.private_key,
