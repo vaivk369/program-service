@@ -6,7 +6,9 @@ const path = require('path');
 const envVariables = require("../envVariables");
 
 class GoogleOauth {
-  auth = null;
+  constructor() {
+    this.auth = null;
+  }
   constructor() {
     this.auth = new google.auth.GoogleAuth({
       credentials: {
