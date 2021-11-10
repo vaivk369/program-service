@@ -2,12 +2,12 @@ const _ = require("lodash");
 const Papa = require("papaparse");
 global.XMLHttpRequest = require('xhr2');
 class CSVFileValidator {
-    csvFile = null;
-    csvData = null;
-    config = null;
-    allowedDynamicColumns = null;
-    flattenHierarchyObj = null;
-    response = null;
+    // csvFile = null;
+    // csvData = null;
+    // config = null;
+    // allowedDynamicColumns = null;
+    // flattenHierarchyObj = null;
+    // response = null;
 
     /**
      * @param {Object} config
