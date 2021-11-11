@@ -18,6 +18,16 @@ const templateClassMap = {
   "3" : 'mcq-horizontal'
 }
 const total_options = 4;
+const API_URL = {
+  ASSET_CREATE: "/asset/v1/create",
+  ASSET_UPLOAD: "/asset/v1/upload/",
+  QUESTION_CREATE: "/question/v4/create",
+  QUESTION_REVIEW: "/question/v4/review/",
+  QUESTION_PUBLISH: "/question/v4/publish/",
+  QUESTION_UPDATE: "/question/v4/update/",
+  QUESTIONSET_ADD: "/questionset/v4/add",
+  
+}
 const rspObj = {};
 
 const qumlConsumer = () => {
@@ -147,7 +157,7 @@ const createAssest = (question, data, callback) => {
       }
   };
   console.log("createAssest request Body =====>", reqBody);
-  fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/asset/v1/create`, {
+  fetch(`${envVariables.baseURL}${API_URL.ASSET_CREATE}`, {
       method: "POST", // or 'PUT'
       headers: {
         "X-Channel-ID": question.channel,
@@ -158,6 +168,7 @@ const createAssest = (question, data, callback) => {
     })
     .then((response) => response.json())
     .then((assetResponseData) => {
+      console.log("createAssest response =====>", assetResponseData);
       if (assetResponseData.responseCode && _.toLower(assetResponseData.responseCode) === "ok") {
         data['identifier'] = assetResponseData.result.identifier;
         callback(null, data);
@@ -179,7 +190,7 @@ const uploadAsset = (data, callback) => {
   console.log("uploadAsset : ==> ", data);
   var formdata = new FormData();
   formdata.append("file", fs.createReadStream(data.filePath), data.name);
-  fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/asset/v1/upload/${data.identifier}`, {
+  fetch(`${envVariables.baseURL}${API_URL.ASSET_UPLOAD}${data.identifier}`, {
       method: "POST", // or 'PUT'
       headers: {
         "Authorization" : `Bearer ${envVariables.SUNBIRD_PORTAL_API_AUTH_TOKEN}`
@@ -333,7 +344,7 @@ const createQuestion = (questionBody, callback) => {
   };
   //fetch call for creating a question.
   console.log('createQuestionBody::' , JSON.stringify(createApiData));
-  fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/question/v1/create`, {
+  fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}${API_URL.QUESTION_CREATE}`, {
       method: "POST", // or 'PUT'
       headers: {
         "Content-Type": "application/json",
@@ -365,7 +376,7 @@ const reviewQuestion = (status, questionRes, callback) => {
   }
 
   let reviewData = { request: { question: {} } };
-  fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/question/v1/review/${questionRes.result.identifier}`,
+  fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}${API_URL.QUESTION_REVIEW}${questionRes.result.identifier}`,
     {
       method: "POST", // or 'PUT'
       headers: {
@@ -402,7 +413,7 @@ const publishQuestion = (status, questionRes, callback) => {
   }
   let publishApiData = { request: { question: {} } };
   fetch(
-    `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/question/v1/publish/${questionRes.result.identifier}`,
+    `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}${API_URL.QUESTION_PUBLISH}${questionRes.result.identifier}`,
     {
       method: "POST", // or 'PUT'
       headers: {
@@ -444,7 +455,7 @@ const linkQuestionToQuestionSet = (questionData, questionRes, callback) => {
         "children": [questionRes.result.identifier] } }
   };
   fetch(
-    `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/questionset/v1/add`,
+    `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}${API_URL.QUESTIONSET_ADD}`,
     {
       method: "PATCH", // or 'PUT'
       headers: {
@@ -495,7 +506,7 @@ const updateResponse = (updateData, updateMessage) => {
     }
   };
   console.log("updateResponse :: request Body::", updateNewData);
-  fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/question/v1/update/${updateData}`, {
+  fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}${API_URL.QUESTION_UPDATE}${updateData}`, {
       method: "PATCH", // or 'PUT'
       headers: {
         "Content-Type": "application/json",

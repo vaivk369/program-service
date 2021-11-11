@@ -20,7 +20,7 @@ const bulkUploadConfig = {
 };
 const max_options_limit = 4;
 let uploadCsvConfig;
-
+const QS_HIERARCHY_READ_URL = `${envVariables.baseURL}/questionset/v4/hierarchy/`;
 const bulkUpload = async (req, res) => {
   bulkUploadErrorMsgs = []
   const rspObj = req.rspObj
@@ -263,7 +263,7 @@ const qumlSearch = (req, res) => {
 //Read QuestionSet Hierarchy function;
 const getQuestionSetHierarchy = (questionSetId,reqHeaders,  callback) => {
   if (_.isEmpty(questionSetId)) { return callback(null, {}); }
-  fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/questionset/v1/hierarchy/${questionSetId}?mode=edit`, {
+  fetch(`${QS_HIERARCHY_READ_URL}${questionSetId}?mode=edit`, {
     method: "GET",
     headers: reqHeaders
   })
