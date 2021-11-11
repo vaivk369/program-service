@@ -26,6 +26,7 @@ const API_URL = {
   QUESTION_PUBLISH: "/question/v4/publish/",
   QUESTION_UPDATE: "/question/v4/update/",
   QUESTIONSET_ADD: "/questionset/v4/add",
+  
 }
 const rspObj = {};
 
@@ -34,7 +35,7 @@ const qumlConsumer = () => {
     Consumer = kafka.Consumer;
     ConsumerGroup = kafka.ConsumerGroup;
     client = new kafka.KafkaClient({
-      kafkaHost: "11.2.3.9:9092",
+      kafkaHost: envVariables.SUNBIRD_KAFKA_HOST,
     });
     payload = [
       {
@@ -44,7 +45,7 @@ const qumlConsumer = () => {
     ];
 
     var options = {
-      kafkaHost: "11.2.3.9:9092",
+      kafkaHost: envVariables.SUNBIRD_KAFKA_HOST,
       groupId: envVariables.SUNBIRD_KAFKA_BULKUPLOAD_CONSUMER_GROUP_ID,
       fromOffset: "latest",
     };
