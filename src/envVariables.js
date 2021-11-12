@@ -11,6 +11,7 @@ const envVariables = {
     CONTENT_SERVICE_URL: process.env.content_service_url || 'https://dock.sunbirded.org/action/',
     OPENSABER_SERVICE_URL: process.env.opensaber_service_url || 'https://dock.sunbirded.org/content/reg',
     SUNBIRD_KAFKA_HOST: process.env.sunbird_kafka_host,
+    DOCK_KAFKA_HOST: process.env.dock_kafka_host,
     DOCK_REDIS_HOST: process.env.dock_redis_host,
     DOCK_REDIS_PORT: process.env.dock_redis_port || 6379,
     SUNBIRD_AUTO_CREATION_TOPIC: process.env.sunbird_auto_creation_topic,
