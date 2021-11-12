@@ -34,7 +34,7 @@ const qumlConsumer = () => {
     Consumer = kafka.Consumer;
     ConsumerGroup = kafka.ConsumerGroup;
     client = new kafka.KafkaClient({
-      kafkaHost: "15.2.1.7:9092",
+      kafkaHost: envVariables.SUNBIRD_KAFKA_HOST,
     });
     payload = [
       {
@@ -44,7 +44,7 @@ const qumlConsumer = () => {
     ];
 
     var options = {
-      kafkaHost: "15.2.1.7:9092",
+      kafkaHost: envVariables.SUNBIRD_KAFKA_HOST,
       groupId: envVariables.SUNBIRD_KAFKA_BULKUPLOAD_CONSUMER_GROUP_ID,
       fromOffset: "latest",
     };
