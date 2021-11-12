@@ -20,7 +20,7 @@ const bulkUploadConfig = {
 };
 const max_options_limit = 4;
 let uploadCsvConfig;
-const QS_HIERARCHY_READ_URL = `${envVariables.baseURL}/questionset/v4/hierarchy/`;
+const QS_HIERARCHY_READ_URL = `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/questionset/v4/hierarchy/`;
 const bulkUpload = async (req, res) => {
   bulkUploadErrorMsgs = []
   const rspObj = req.rspObj
