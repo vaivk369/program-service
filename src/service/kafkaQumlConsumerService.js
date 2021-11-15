@@ -19,8 +19,8 @@ const templateClassMap = {
 }
 const total_options = 4;
 const API_URL = {
-  ASSET_CREATE: "/asset/v4/create",
-  ASSET_UPLOAD: "/asset/v4/upload/",
+  ASSET_CREATE: "asset/v4/create",
+  ASSET_UPLOAD: "asset/v4/upload/",
   QUESTION_CREATE: "/question/v4/create",
   QUESTION_REVIEW: "/question/v4/review/",
   QUESTION_PUBLISH: "/question/v4/publish/",
