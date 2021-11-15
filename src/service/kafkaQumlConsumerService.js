@@ -19,8 +19,8 @@ const templateClassMap = {
 }
 const total_options = 4;
 const API_URL = {
-  ASSET_CREATE: "/api/asset/v1/create",
-  ASSET_UPLOAD: "/api/asset/v1/upload/",
+  ASSET_CREATE: "/asset/v4/create",
+  ASSET_UPLOAD: "/asset/v4/upload/",
   QUESTION_CREATE: "/question/v4/create",
   QUESTION_REVIEW: "/question/v4/review/",
   QUESTION_PUBLISH: "/question/v4/publish/",
@@ -157,12 +157,11 @@ const createAssest = (question, data, callback) => {
       }
   };
   console.log("createAssest request Body =====> ", JSON.stringify(reqBody));
-  fetch(`${envVariables.baseURL}${API_URL.ASSET_CREATE}`, {
+  fetch(`${envVariables.CONTENT_SERVICE_URL}${API_URL.ASSET_CREATE}`, {
       method: "POST", // or 'PUT'
       headers: {
         "X-Channel-ID": question.channel,
-        "Content-Type": "application/json",
-        "Authorization" : `Bearer ${envVariables.SUNBIRD_PORTAL_API_AUTH_TOKEN}`
+        "Content-Type": "application/json"
       },
       body: JSON.stringify(reqBody),
     })
@@ -189,11 +188,8 @@ const uploadAsset = (data, callback) => {
   console.log("uploadAsset : =====> ", JSON.stringify(data));
   var formdata = new FormData();
   formdata.append("file", fs.createReadStream(data.filePath), data.name);
-  fetch(`${envVariables.baseURL}${API_URL.ASSET_UPLOAD}${data.identifier}`, {
+  fetch(`${envVariables.CONTENT_SERVICE_URL}${API_URL.ASSET_UPLOAD}${data.identifier}`, {
       method: "POST", // or 'PUT'
-      headers: {
-        "Authorization" : `Bearer ${envVariables.SUNBIRD_PORTAL_API_AUTH_TOKEN}`
-      },
       body: formdata,
     })
     .then((response) => response.json())

@@ -4,8 +4,6 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const envVariables = require("../envVariables");
-const utf8 = require('utf8');
-const _ = require("lodash");
 
 class GoogleOauth {
   constructor() {
