@@ -38,7 +38,7 @@ const bulkUpload = async (req, res) => {
   logger.info({ message: "Qeustionset ID ===>", questionSetID: _.get(req, 'body.request.questionSetId', null)});
   getQuestionSetHierarchy(_.get(req, 'body.request.questionSetId'), reqHeaders, (err, data) => {
     if(err) {
-      console.log('Error fetching hierarchy for questionSet', JSON.stringify(err));
+      console.log('Error fetching hierarchy for questionSet ======> ', JSON.stringify(err));
       rspObj.errCode = _.get(err, 'params.err') || programMessages.QUML_BULKUPLOAD.HIERARCHY_FAILED_CODE;
       rspObj.errMsg = _.get(err, 'params.errmsg') || programMessages.QUML_BULKUPLOAD.HIERARCHY_FAILED_MESSAGE;
       rspObj.responseCode = _.get(err, 'responseCode') || responseCode.SERVER_ERROR;
@@ -63,7 +63,7 @@ const bulkUpload = async (req, res) => {
         question = prepareQuestionData(question, req);
         question['questionSetSectionId'] = flattenHierarchyObj[question.level1];
         question["processId"] = pId;
-        console.log("Prepared Question body : =====>", question)
+        console.log("Prepared Question body : =====>", JSON.stringify(question))
         sendRecordToKafkaTopic(question);
       });
       logger.info({ message: "Bulk Upload process has started successfully for the process Id", pId});
@@ -72,7 +72,7 @@ const bulkUpload = async (req, res) => {
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       return res.status(200).send(successResponse(rspObj))
     }).catch(err => {
-      console.log('Error while validating the CSV file :: ', JSON.stringify(err));
+      console.log('Error while validating the CSV file =====> ', JSON.stringify(err));
       rspObj.errCode = programMessages.QUML_BULKUPLOAD.FAILED_CODE;
       rspObj.errMsg = programMessages.QUML_BULKUPLOAD.FAILED_MESSAGE;
       rspObj.responseCode = responseCode.SERVER_ERROR;
@@ -250,7 +250,7 @@ const qumlSearch = (req, res) => {
       return res.status(200).send(successResponse(rspObj))
     })
     .catch((error) => {
-      console.log('Error while fetching the question :: ', JSON.stringify(error));
+      console.log('Error while fetching the question :: =====> ', JSON.stringify(error));
       rspObj.errCode = programMessages.QUML_BULKSTATUS.FAILED_CODE;
       rspObj.errMsg = programMessages.QUML_BULKSTATUS.FAILED_MESSAGE;
       rspObj.responseCode = responseCode.SERVER_ERROR;
