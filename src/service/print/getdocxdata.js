@@ -96,31 +96,8 @@ function create(data, paperData) {
                   let count = 0;
                   arr.push(Marks(question));
                   question[0].Questions.map((item) => {
-                    if (item.ol) {
-                      let count1 = 0;
-                      item.ol.map((text) => {
-                        count1++;
-                        if (typeof text === "object") {
-                          text = count1 + text.text;
-                          arr.push(
-                            new Paragraph({
-                              text: `${count1}.${text}`,
-                            })
-                          );
-                        } else {
-                          arr.push(
-                            new Paragraph({
-                              children: [
-                                new TextRun({
-                                  text: `${count1}.${text}`,
-                                }),
-                              ],
-                            })
-                          );
-                        }
-                      });
-                    }
-                    arr.push(createCOMPREHENSIONObject(item, count++));
+                  
+                    arr.push(createSAObject(item, count++));
                   });
 
                   arr.push(
@@ -195,8 +172,6 @@ function create(data, paperData) {
                   arr.push(Marks(question));
                   let count = 0;
                   question[0].Questions.map((item) => {
-                    console.log("MCQ:",item)
-
                     arr.push(createSAObject(item, count));
                   });
 
@@ -406,7 +381,14 @@ function createSAObject(data, count) {
     data.text
       .map((text) => {
         if (typeof text === "object") {
-          arr.push(new TextRun(text));
+          if(text.br === "break"){
+            arr.push(new TextRun({
+              break: 0.5,
+            }))
+          }else{
+            arr.push(new TextRun(text));
+          }
+          
         } else {
           arr.push(
             new TextRun({
@@ -421,7 +403,6 @@ function createSAObject(data, count) {
       children: arr,
     });
   } else if (data.image) {
-    console.log("Immage,")
     if (data.image.includes("data:image/")) {
       let image = getBufferImg(data.image);
 
@@ -465,13 +446,11 @@ function createSAObject(data, count) {
       children: arr,
     });
   }else{
-    console.log("TextFTB,")
     return createFTB(data, count);
   }
 }
 function handleOL(item){
   const arr = []
-  console.log("OL TAg")
     let count1 = 0;
       item.map((text) => {
         count1++;
@@ -495,7 +474,6 @@ function handleOL(item){
         }
       })
       .reduce((prev, curr) => prev.concat(curr), []);
-      console.log("Array:",arr)
     return arr
 }
 
@@ -753,7 +731,6 @@ function displayOptionsObject(data, count) {
   if (data.text) {
     data.text
       .map((text) => {
-        console.log("Object text:", text);
         if (typeof text === "object") {
           arr.push(new TextRun(text));
         } else {

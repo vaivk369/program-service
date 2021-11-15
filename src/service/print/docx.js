@@ -226,12 +226,14 @@ function createImageElement(src, width) {
 
 function extractTextFromElement(elem) {
   let rollUp = "";
-  if (cheerio.text(elem)) return cheerio.text(elem);
+    if (cheerio.text(elem)) return cheerio.text(elem);
+  // if ()
   else if (elem.name === "sup")
     return { text: elem.children[0].data, superScript: true };
   else if (elem.name === "sub")
     return { text: elem.children[0].data, subScript: true };
   else if (elem.type === "text" && elem.data) return elem.data;
+  else if (elem.name === "br") return {br : "break"}
   else {
     if (elem.children && elem.children.length) {
       for (const nestedElem of elem.children) {
@@ -276,14 +278,16 @@ async function getStack(htmlString, questionCounter) {
   const elems = $("body").children().toArray();
   for (const [index, elem] of elems.entries()) {
     let nextLine = "";
+    
     switch (elem.name) {
       case "p":
         let extractedText = extractTextFromElement(elem);
         // Returns array if superscript/subscript inside
         if (Array.isArray(extractedText)) nextLine = { text: extractedText };
         else nextLine += extractedText;
-        break;
-      case "ol":
+        break;         
+      case "ol": 
+        
         nextLine = {
           ol: elem.children.map((el) => {
             return getStyleEle(el);
