@@ -55,7 +55,7 @@ const qumlConsumer = () => {
     consumerGroup.on("message", function (message) {
         logger.info({ message: "Entered into the consumer service" });
         let parsedJsonValue = JSON.parse(message.value);;
-        console.log("Kafka consumer :: ", parsedJsonValue);
+        console.log("Kafka consumer :: =====> ", JSON.stringify(parsedJsonValue));
         initQuestionCreateProcess(parsedJsonValue);
       }).on("error", function (message) {
         client.close();
@@ -88,7 +88,7 @@ const initQuestionCreateProcess = (questionData) => {
           err
         ); 
       }
-      console.log('initQuestionCreateProcess :: SUCCESS ::', JSON.stringify(result));
+      console.log('initQuestionCreateProcess :: SUCCESS :: =====> ', JSON.stringify(result));
   });
 };
 
@@ -102,7 +102,7 @@ const startDownloadFileProcess = (question, outerCallback) => {
     const fileId = getIdFromUrl(data);
     if(_.has(downloadedFiles,fileId)) {
       question[key] = _.get(downloadedFiles,fileId);
-      console.log(key, " :: File already downloaded :: ", data)
+      console.log(key, " :: File already downloaded :: =====> ", JSON.stringify(data))
       callback(null, 'File');
     } else {
       async.waterfall([
@@ -134,7 +134,7 @@ const downloadFile = (data, callback) => {
   const googleAuth =  new GoogleOauth();
   const fileId = getIdFromUrl(data);
   googleAuth.downloadFile(fileId).then((result) => {
-    console.log("RESULT ::", result);
+    console.log("RESULT :: =====> ", JSON.stringify(result));
     callback(null, result);
   }).catch((error) => {
     callback(error);
@@ -156,7 +156,7 @@ const createAssest = (question, data, callback) => {
           }
       }
   };
-  console.log("createAssest request Body =====>", reqBody);
+  console.log("createAssest request Body =====> ", JSON.stringify(reqBody));
   fetch(`${envVariables.baseURL}${API_URL.ASSET_CREATE}`, {
       method: "POST", // or 'PUT'
       headers: {
@@ -168,26 +168,25 @@ const createAssest = (question, data, callback) => {
     })
     .then((response) => response.json())
     .then((assetResponseData) => {
-      console.log("createAssest response =====>", assetResponseData);
+      console.log("createAssest response =====> ", JSON.stringify(assetResponseData));
       if (assetResponseData.responseCode && _.toLower(assetResponseData.responseCode) === "ok") {
         data['identifier'] = assetResponseData.result.identifier;
         callback(null, data);
       } else {
-        console.log("assetResponseData", assetResponseData);
         callback(assetResponseData);
       }
     })
     .catch((error) => {
       console.log("catchcatch", error);
       logger.error({
-        message: `Error while creating the assest ::  ${JSON.stringify(error)}`,
+        message: `Error while creating the assest :: =====>  ${JSON.stringify(error)}`,
       });
       callback(error);
     });
 } 
 
 const uploadAsset = (data, callback) => {
-  console.log("uploadAsset : ==> ", data);
+  console.log("uploadAsset : =====> ", JSON.stringify(data));
   var formdata = new FormData();
   formdata.append("file", fs.createReadStream(data.filePath), data.name);
   fetch(`${envVariables.baseURL}${API_URL.ASSET_UPLOAD}${data.identifier}`, {
@@ -199,7 +198,7 @@ const uploadAsset = (data, callback) => {
     })
     .then((response) => response.json())
     .then((uploadResponseData) => {
-      console.log("uploadResponseData ::: ==> ", JSON.stringify(uploadResponseData));
+      console.log("uploadResponseData ::: =====> ", JSON.stringify(uploadResponseData));
       if (uploadResponseData.responseCode && _.toLower(uploadResponseData.responseCode) === "ok") {
         data['artifactUrl'] = uploadResponseData.result.artifactUrl;
         callback(null, data);
@@ -216,7 +215,7 @@ const uploadAsset = (data, callback) => {
 } 
 
 const deleteFileFromTemp = (data, callback) => {
-  console.log("deleteFileFromTemp :: ===>", data);
+  console.log("deleteFileFromTemp :: =====> ", data);
   fs.unlink(data.filePath, function(err) {
     if(err && err.code == 'ENOENT') {
         console.info("File doesn't exist, won't remove it. :: ", data.filePath);
@@ -260,7 +259,7 @@ const prepareQuestionBody = (question, callback) => {
   'channel', 'framework', 'topic', 'createdBy', 'questionFileRefId', 'processId']));
   metadata.editorState.question = mergeQuestionTextAndImage(question.questionText, question.questionImage);
   metadata = _.omitBy(metadata, _.isEmpty);
-  console.log("prepareQuestionBody :: => ", metadata);
+  console.log("prepareQuestionBody :: => ", JSON.stringify(metadata));
   callback(null, metadata);
 }
 
@@ -343,7 +342,7 @@ const createQuestion = (questionBody, callback) => {
     }
   };
   //fetch call for creating a question.
-  console.log('createQuestionBody::' , JSON.stringify(createApiData));
+  console.log('createQuestionBody:: =====> ' , JSON.stringify(createApiData));
   fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}${API_URL.QUESTION_CREATE}`, {
       method: "POST", // or 'PUT'
       headers: {
@@ -388,7 +387,7 @@ const reviewQuestion = (status, questionRes, callback) => {
   )
     .then((response) => response.json())
     .then((reviewResponseData) => {
-      console.log("reviewQuestion response:: ", reviewResponseData);
+      console.log("reviewQuestion response:: =====> ", JSON.stringify(reviewResponseData));
       if (reviewResponseData.responseCode && _.toLower(reviewResponseData.responseCode) === "ok") {
         callback(null, reviewResponseData);
       } else {
@@ -424,7 +423,7 @@ const publishQuestion = (status, questionRes, callback) => {
     })
     .then((response) => response.json())
     .then((publishResponseData) => {
-      console.log("reviewQuestion response:: ", publishResponseData);
+      console.log("reviewQuestion response:: =====> ", JSON.stringify(publishResponseData));
       if (publishResponseData.responseCode && _.toLower(publishResponseData.responseCode) === "ok") {
         callback(null, publishResponseData);
       } else {
@@ -505,7 +504,7 @@ const updateResponse = (updateData, updateMessage) => {
       }
     }
   };
-  console.log("updateResponse :: request Body::", updateNewData);
+  console.log("updateResponse :: request Body:: =====> ", JSON.stringify(updateNewData));
   fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}${API_URL.QUESTION_UPDATE}${updateData}`, {
       method: "PATCH", // or 'PUT'
       headers: {
@@ -516,7 +515,7 @@ const updateResponse = (updateData, updateMessage) => {
     })
     .then((response) => response.json())
     .then((updateResult) => {
-      console.log("updateResult :: ======> ", updateResult);
+      console.log("updateResult :: ======> ", JSON.stringify(updateResult));
       rspObj.responseCode = "OK";
       rspObj.result = {
         questionStatus: `Successfully updated the question data for the identifier: ${updateData}`,
