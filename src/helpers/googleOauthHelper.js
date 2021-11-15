@@ -9,11 +9,9 @@ const _ = require("lodash");
 
 class GoogleOauth {
   constructor() {
-    this.googleApiKey = _.replace(envVariables.SUNBIRD_GOOGLE_SERVICE_ACCOUNT_CREDENTIAL.private_key, new RegExp("\\n", "\g"), "\n")
-    console.log('NEW KEY =======>', utf8.encode(this.googleApiKey));
     this.auth = new google.auth.GoogleAuth({
       credentials: {
-        "private_key": utf8.encode(this.googleApiKey),
+        "private_key": envVariables.SUNBIRD_GOOGLE_SERVICE_ACCOUNT_CREDENTIAL.private_key.replace(/\\n/g, '\n'),
         "client_email": envVariables.SUNBIRD_GOOGLE_SERVICE_ACCOUNT_CREDENTIAL.client_email
       },
       scopes: [
