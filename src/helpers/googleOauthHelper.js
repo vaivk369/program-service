@@ -5,13 +5,15 @@ const os = require('os');
 const path = require('path');
 const envVariables = require("../envVariables");
 const utf8 = require('utf8');
+const _ = require("lodash");
 
 class GoogleOauth {
   constructor() {
-    console.log('KEY =======>', utf8.encode(envVariables.SUNBIRD_GOOGLE_SERVICE_ACCOUNT_CREDENTIAL.private_key));
+    this.googleApiKey = _.replace(envVariables.SUNBIRD_GOOGLE_SERVICE_ACCOUNT_CREDENTIAL.private_key, new RegExp("\\n", "\g"), "\n")
+    console.log('NEW KEY =======>', utf8.encode(this.googleApiKey));
     this.auth = new google.auth.GoogleAuth({
       credentials: {
-        "private_key": utf8.encode(envVariables.SUNBIRD_GOOGLE_SERVICE_ACCOUNT_CREDENTIAL.private_key),
+        "private_key": utf8.encode(this.googleApiKey),
         "client_email": envVariables.SUNBIRD_GOOGLE_SERVICE_ACCOUNT_CREDENTIAL.client_email
       },
       scopes: [
