@@ -4,12 +4,14 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const envVariables = require("../envVariables");
+const utf8 = require('utf8');
 
 class GoogleOauth {
   constructor() {
+    console.log('KEY =======>', utf8.encode(envVariables.SUNBIRD_GOOGLE_SERVICE_ACCOUNT_CREDENTIAL.private_key));
     this.auth = new google.auth.GoogleAuth({
       credentials: {
-        "private_key": envVariables.SUNBIRD_GOOGLE_SERVICE_ACCOUNT_CREDENTIAL.private_key,
+        "private_key": utf8.encode(envVariables.SUNBIRD_GOOGLE_SERVICE_ACCOUNT_CREDENTIAL.private_key),
         "client_email": envVariables.SUNBIRD_GOOGLE_SERVICE_ACCOUNT_CREDENTIAL.client_email
       },
       scopes: [
