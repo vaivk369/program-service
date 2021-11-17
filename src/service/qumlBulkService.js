@@ -201,10 +201,13 @@ const setError = (message) => {
 
 const prepareQuestionData = (questionMetadata, req) => {
   const requestedProperties = ['additionalCategories', 'board', 'medium', 'gradeLevel', 'subject', 'audience',
-                  'license', 'framework', 'topic', 'author','status', 'createdBy', 'questionType', 'questionSetId'];
+                  'license', 'framework', 'topic','status', 'createdBy', 'questionType', 'questionSetId'];
   questionMetadata['questionFileRefId'] = uuidv4();
   questionMetadata['channel'] = req.get('x-channel-id');
   questionMetadata = _.merge({}, questionMetadata, _.pick(req.body.request, requestedProperties));
+  if(_.isEmpty(questionMetadata, 'author')) {
+    questionMetadata['author'] =  _.get(req.body.request, 'author');
+  }
   if(!_.has(questionMetadata, 'status')) {
     questionMetadata['status'] = 'Live';
   }
@@ -221,7 +224,12 @@ const qumlSearch = (req, res) => {
             "status":[],
             "processId":req.body.request.processId
         },
-        "fields":["identifier","processId","author","name","status","primaryCategory","questionUploadStatus","code","questionFileRefId"],
+        "fields":[
+          "identifier","processId","author","name","status","primaryCategory","questionUploadStatus","code","questionFileRefId",
+          'additionalCategories', 'board', 'medium', 'gradeLevel', 
+          'subject', 'topic', 'learningOutcome','skill','keywords','audience','copyright', 'license', 'attributions',
+          'channel', 'framework', 'createdBy', 'createdOn', 'qType'
+        ],
         "limit":1000
     }
 }
