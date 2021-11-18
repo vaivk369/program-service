@@ -350,8 +350,10 @@ const createQuestion = (questionBody, callback) => {
     .then((response) => response.json())
     .then((createResponseData) => {
       if (createResponseData.responseCode && _.toLower(createResponseData.responseCode) === "ok") {
+        console.log('createResponseData OK IF:: =====> ' , JSON.stringify(createResponseData));
         callback(null, createResponseData);
       } else {
+        console.log('createResponseData ELSE:: =====> ' , JSON.stringify(createResponseData));
         callback(createResponseData);
       }
     })
