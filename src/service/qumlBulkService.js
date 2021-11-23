@@ -117,6 +117,11 @@ const setBulkUploadCsvConfig = () => {
   const urlError = (headerName, rowNumber, columnNumber, value) => {
     setError(`${headerName} has invalid url value at row: ${rowNumber}`);
   };
+
+  const specialCharError = (headerName, rowNumber, columnNumber, value) => {
+    setError(`${headerName} has special character value at row: ${rowNumber}`);
+  };
+
   const maxLengthError = (headerName, rowNumber, columnNumber, maxLength, length) => {
     setError(`Length of ${headerName} exceeds ${maxLength}. Please give a shorter ${headerName} at row: ${rowNumber}`);
   };
@@ -132,7 +137,7 @@ const setBulkUploadCsvConfig = () => {
   };
 
   const headers = [
-    { name: 'Name of the Question', inputName: 'name', maxLength: 120, required: true, requiredError, headerError, maxLengthError },
+    { name: 'Name of the Question', inputName: 'name', isSpecialChar: true, maxLength: 120, required: true, requiredError, headerError, maxLengthError, specialCharError },
     { name: 'QuestionText', inputName: 'questionText', headerError, maxLength: 1000, maxLengthError },
     { name: 'QuestionImage', inputName: 'questionImage', headerError, isUrl: true, urlError},
     { name: 'Option Layout', inputName: 'optionLayout', required: true, requiredError, headerError, in: ['1', '2', '3'], inError },
@@ -146,10 +151,10 @@ const setBulkUploadCsvConfig = () => {
     { name: 'Option4Image', inputName: 'option4Image', headerError},
     { name: 'AnswerNo', inputName: 'answerNo', required: true, requiredError, headerError },
     { name: 'Level 1 Question Set Section', inputName: 'level1', headerError },
-    { name: 'Keywords', inputName: 'keywords', isArray: true, headerError },
-    { name: 'Author', inputName: 'author',headerError, maxLength: 300, maxLengthError },
-    { name: 'Copyright', inputName: 'copyright',headerError, maxLength: 300, maxLengthError },
-    { name: 'Attributions', inputName: 'attributions', isArray: true, headerError, maxLength: 300, maxLengthError }
+    { name: 'Keywords', inputName: 'keywords', isSpecialChar: true, isArray: true, headerError, specialCharError },
+    { name: 'Author', inputName: 'author',isSpecialChar: true, headerError, maxLength: 300, maxLengthError, specialCharError },
+    { name: 'Copyright', inputName: 'copyright',isSpecialChar: true, headerError, maxLength: 300, maxLengthError, specialCharError },
+    { name: 'Attributions', inputName: 'attributions',isSpecialChar: true, isArray: true, headerError, maxLength: 300, maxLengthError, specialCharError }
   ];
 
   const validateRow = (row, rowIndex, flattenHierarchyObj) => {
