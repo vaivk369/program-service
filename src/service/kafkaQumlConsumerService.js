@@ -508,6 +508,7 @@ const linkQuestionToQuestionSet = (questionData, questionRes, callback) => {
         ...(!_.isEmpty(questionData.questionSetSectionId) && { collectionId: questionData.questionSetSectionId}),
         "children": [questionRes.result.identifier] } }
   };
+  console.log('linkQuestionToQuestionSet:: =====> ' , JSON.stringify(publishApiData));
   fetch(
     `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}${API_URL.QUESTIONSET_ADD}`,
     {
@@ -525,6 +526,7 @@ const linkQuestionToQuestionSet = (questionData, questionRes, callback) => {
         //   questionRes.result.identifier,
         //   `Successfully linked the question for the identifier:${questionRes.result.identifier}`
         // );
+        console.log('Successfully linkQuestionToQuestionSet:: =====> ' , JSON.stringify(linkResponseData));
         callback(null, linkResponseData);
       } else {
         logger.error({
