@@ -17,6 +17,7 @@ const templateClassMap = {
   "2" : 'mcq-vertical-split',
   "3" : 'mcq-horizontal'
 }
+const allowedMimeType = ['image/jpeg', 'image/png'];
 const total_options = 4;
 const API_URL = {
   ASSET_CREATE: "asset/v4/create",
@@ -25,8 +26,11 @@ const API_URL = {
   QUESTION_REVIEW: "/question/v4/review/",
   QUESTION_PUBLISH: "/question/v4/publish/",
   QUESTION_UPDATE: "/question/v4/update/",
+  QUESTION_RETIRE: "/question/v4/retire/",
   QUESTIONSET_ADD: "/questionset/v4/add",
-  
+}
+const questionTypeMap = {
+  'mcq': "Multiple Choice Question"
 }
 const rspObj = {};
 
@@ -73,9 +77,10 @@ const qumlConsumer = () => {
 const initQuestionCreateProcess = (questionData) => {
   logger.info({ message: "Question creating process started" });
   async.waterfall([
+    async.apply(createQuestion, questionData),
     async.apply(startDownloadFileProcess, questionData),
     async.apply(prepareQuestionBody),
-    async.apply(createQuestion),
+    async.apply(updateQuestion),
     async.apply(reviewQuestion, questionData.status),
     async.apply(publishQuestion, questionData.status),
     async.apply(linkQuestionToQuestionSet, questionData)
@@ -92,10 +97,51 @@ const initQuestionCreateProcess = (questionData) => {
   });
 };
 
-const startDownloadFileProcess = (question, outerCallback) => {
+const createQuestion = (questionData, callback) => {
+  const questionType  = questionData.questionType.toLowerCase();
+  let createApiData = {
+    "request": {
+        "question": {
+          "code" : uuidv4(),
+          "name": questionData.name ? questionData.name : questionTypeMap[questionType],
+          "mimeType": 'application/vnd.sunbird.question',
+          "primaryCategory": questionTypeMap[questionType],
+          "questionFileRefId": questionData.questionFileRefId,
+          "processId": questionData.processId
+      }
+    }
+  };
+  console.log('createQuestionBody:: =====> ' , JSON.stringify(createApiData));
+  fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}${API_URL.QUESTION_CREATE}`, {
+      method: "POST", // or 'PUT'
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization" : `Bearer ${envVariables.SUNBIRD_PORTAL_API_AUTH_TOKEN}`
+      },
+      body: JSON.stringify(createApiData),
+    })
+    .then((response) => response.json())
+    .then((createResponseData) => {
+      console.log('createQuestion response :: =====> ' , JSON.stringify(createApiData));
+      if (createResponseData.responseCode && _.toLower(createResponseData.responseCode) === "ok") {
+        callback(null, createResponseData);
+      } else {
+        callback(createResponseData);
+      }
+    })
+    .catch((error) => {
+      logger.error({
+        message: `Error while creating the question ::  ${JSON.stringify(error)}`,
+      });
+      callback(error);
+  });
+
+}
+
+const startDownloadFileProcess = (question, createQuestionRes, outerCallback) => {
   const filesToDownload = _.omitBy(_.pick(question, ['questionImage','option1Image', 'option2Image', 'option3Image', 'option4Image']), _.isEmpty);
   if(_.isEmpty(filesToDownload)) {
-    return outerCallback(null, question);
+    return outerCallback(null, question, createQuestionRes);
   }
   const downloadedFiles = {};
   async.eachOfSeries(filesToDownload, function (data, key, callback) {
@@ -107,6 +153,7 @@ const startDownloadFileProcess = (question, outerCallback) => {
     } else {
       async.waterfall([
         async.apply(downloadFile, data),
+        async.apply(validateFileType),
         async.apply(createAssest, question),
         async.apply(uploadAsset),
         async.apply(deleteFileFromTemp),
@@ -120,15 +167,18 @@ const startDownloadFileProcess = (question, outerCallback) => {
       });
     }
   }, function (error) {
-    console.log("===================error", error);
+    console.log(" startDownloadFileProcess :: error ::", JSON.stringify(error));
     if (error) {
+      updateResponse(
+        createQuestionRes.result.identifier,
+        `Something went wrong while downloading the files from google drive: ${JSON.stringify(error)}`
+      );
       outerCallback(error);
     } else {
-      outerCallback(null, question);
+      outerCallback(null, question, createQuestionRes);
     }
   });
 }
-
 
 const downloadFile = (data, callback) => {
   const googleAuth =  new GoogleOauth();
@@ -137,8 +187,21 @@ const downloadFile = (data, callback) => {
     console.log("RESULT :: =====> ", JSON.stringify(result));
     callback(null, result);
   }).catch((error) => {
-    callback(error);
+    console.log("downloadFile Func error: ", JSON.stringify(error));
+    if(error.errors || error.response) {
+      callback(error.errors || _.pick(error.response, ['status', 'statusText', 'request']));
+    } else {
+      callback(error);
+    }
   })
+}
+
+const validateFileType = (data, callback) => {
+  if(allowedMimeType.includes(data.mimeType)) {
+    callback(null, data);
+  } else {
+    callback(`Images mimetype should be one of: [${allowedMimeType}]'`);
+  }
 }
 
 const createAssest = (question, data, callback) => {
@@ -201,8 +264,7 @@ const uploadAsset = (data, callback) => {
       } else {
         callback(uploadResponseData);
       }
-    })
-    .catch((error) => {
+    }).catch((error) => {
       logger.error({
         message: `Error while uploading the assest ::  ${JSON.stringify(error)}`,
       });
@@ -238,10 +300,8 @@ const getIdFromUrl = (url) => {
   }
 }
 
-const prepareQuestionBody = (question, callback) => {
+const prepareQuestionBody = (question, createQuestionRes, callback) => {
   let metadata = {
-    code : uuidv4(),
-    mimeType: 'application/vnd.sunbird.question',
     editorState: {},
     body: mergeQuestionTextAndImage(question.questionText, question.questionImage)
   };
@@ -256,7 +316,7 @@ const prepareQuestionBody = (question, callback) => {
   metadata.editorState.question = mergeQuestionTextAndImage(question.questionText, question.questionImage);
   metadata = _.omitBy(metadata, _.isEmpty);
   console.log("prepareQuestionBody :: => ", JSON.stringify(metadata));
-  callback(null, metadata);
+  callback(null, metadata, createQuestionRes);
 }
 
 const mergeQuestionTextAndImage = (questionText, questionImage) => {
@@ -331,39 +391,36 @@ const getResponseDeclaration = (question) => {
   return responseDeclaration;
 }
 
-const createQuestion = (questionBody, callback) => {
-  let createApiData = {
-    "request": {
-        "question": questionBody
+const updateQuestion = (questionBody, createQuestionRes, callback) => {
+  const updateNewData = {
+    request: {
+      question: questionBody
     }
   };
   //fetch call for creating a question.
-  console.log('createQuestionBody:: =====> ' , JSON.stringify(createApiData));
-  fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}${API_URL.QUESTION_CREATE}`, {
-      method: "POST", // or 'PUT'
+  console.log('updateQuestionBody:: =====> ' , JSON.stringify(updateNewData));
+  fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}${API_URL.QUESTION_UPDATE}${createQuestionRes.result.identifier}`, {
+      method: "PATCH", // or 'PUT'
       headers: {
         "Content-Type": "application/json",
         "Authorization" : `Bearer ${envVariables.SUNBIRD_PORTAL_API_AUTH_TOKEN}`
       },
-      body: JSON.stringify(createApiData),
+      body: JSON.stringify(updateNewData),
     })
     .then((response) => response.json())
-    .then((createResponseData) => {
-      if (createResponseData.responseCode && _.toLower(createResponseData.responseCode) === "ok") {
-        console.log('createResponseData OK IF:: =====> ' , JSON.stringify(createResponseData));
-        callback(null, createResponseData);
+    .then((updateResponseData) => {
+      if (updateResponseData.responseCode && _.toLower(updateResponseData.responseCode) === "ok") {
+        callback(null, updateResponseData);
       } else {
-        console.log('createResponseData ELSE:: =====> ' , JSON.stringify(createResponseData));
-        callback(createResponseData);
+        callback(updateResponseData);
       }
     })
     .catch((error) => {
       logger.error({
-        message: `Error while creating the question ::  ${JSON.stringify(error)}`,
+        message: `Error while updating the question ::  ${JSON.stringify(error)}`,
       });
       callback(error);
   });
-
 }
 
 const reviewQuestion = (status, questionRes, callback) => {
@@ -494,9 +551,48 @@ const linkQuestionToQuestionSet = (questionData, questionRes, callback) => {
     });
 }
 
+const retireQuestion = (identifier) => {
+  const reqBody = {
+    "request": {
+      "question": {}
+    }
+  };
+  console.log("retireQuestion :: request Body:: =====> ", JSON.stringify(reqBody));
+  fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}${API_URL.QUESTION_RETIRE}${identifier}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization" : `Bearer ${envVariables.SUNBIRD_PORTAL_API_AUTH_TOKEN}`
+      },
+      body: JSON.stringify(reqBody),
+    })
+    .then((response) => response.json())
+    .then((response) => {
+      rspObj.responseCode = "OK";
+      rspObj.result = {
+        questionStatus: `Successfully retire the question for the identifier: ${identifier}`,
+      };
+      logger.info({
+        message: "Successfully retire the question",
+        rspObj,
+      });
+    })
+    .catch((error) => {
+      rspObj.errMsg = `Something Went wrong while retiring question :: ${identifier} `;
+      rspObj.responseCode = responseCode.SERVER_ERROR;
+      logger.error(
+        {
+          message: "Something Went wrong while retiring question",
+          errorData: error,
+          rspObj,
+        },
+        errorCodes.CODE2
+      );
+    });
+};
 
 //function to update the status of all other fetch calls mentioned above using question update.
-const updateResponse = (updateData, updateMessage) => {
+const updateResponse = (identifier, updateMessage) => {
   const updateNewData = {
     request: {
       question: {
@@ -505,7 +601,7 @@ const updateResponse = (updateData, updateMessage) => {
     }
   };
   console.log("updateResponse :: request Body:: =====> ", JSON.stringify(updateNewData));
-  fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}${API_URL.QUESTION_UPDATE}${updateData}`, {
+  fetch(`${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}${API_URL.QUESTION_UPDATE}${identifier}`, {
       method: "PATCH", // or 'PUT'
       headers: {
         "Content-Type": "application/json",
@@ -516,21 +612,23 @@ const updateResponse = (updateData, updateMessage) => {
     .then((response) => response.json())
     .then((updateResult) => {
       console.log("updateResult :: ======> ", JSON.stringify(updateResult));
+      retireQuestion(identifier);
       rspObj.responseCode = "OK";
       rspObj.result = {
-        questionStatus: `Successfully updated the question data for the identifier: ${updateData}`,
+        questionStatus: `Successfully updated the question error data for the identifier: ${identifier}`,
       };
       logger.info({
-        message: "Successfully updated the question data",
+        message: "Successfully updated the question error data",
         rspObj,
       });
     })
     .catch((error) => {
-      rspObj.errMsg = "Something Went wrong while updating question data";
+      retireQuestion(identifier);
+      rspObj.errMsg = `Something Went wrong while updating question error data :: ${identifier}`;
       rspObj.responseCode = responseCode.SERVER_ERROR;
       logger.error(
         {
-          message: "Something Went wrong while updating question data",
+          message: "Something Went wrong while updating question error data",
           errorData: error,
           rspObj,
         },

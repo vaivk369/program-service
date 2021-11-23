@@ -33,7 +33,7 @@ class CSVFileValidator {
             this.response.inValidMessages.push(message);
         }
         return this.response;
-    }
+    }    
 
     /**
      * @private
@@ -180,6 +180,19 @@ class CSVFileValidator {
                         return;
                     }
                 }
+
+                // speacial character validation
+                if (valueConfig.isSpecialChar && !_.isEmpty(columnValue)) {
+                    const specialChars = "!`~@#$^*+=[]\\\'{}|\"<>%/";
+                    const isSpecialCharsPresent = specialChars.split('').some(char => 
+                        columnValue.includes(char));
+                    if (isSpecialCharsPresent) {
+                        this.handleError(valueConfig, 'specialCharError', `${valueConfig.name} has special character at (${rowIndex + 1}) row / (${columnIndex + 1}) column`, [valueConfig.name, rowIndex + 1, columnIndex + 1, columnValue]);
+                        hasError = true;
+                        return;
+                    }
+                }
+
                 // Array validation
                 if (valueConfig.isArray) {
                     rowData[valueConfig.inputName] = _.isEmpty(columnValue) ? [] : columnValue.split(',')
