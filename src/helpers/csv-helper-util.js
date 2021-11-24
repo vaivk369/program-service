@@ -214,13 +214,13 @@ class CSVFileValidator {
                 }
             });
 
-            if (hasError) {
-                return;
-            }
-
             // Custom row validation
             if (_.isFunction(this.config.validateRow)) {
                 this.config.validateRow(rowData, rowIndex + 1, this.flattenHierarchyObj);
+            }
+
+            if (hasError) {
+                return;
             }
 
             // Push the rowData
