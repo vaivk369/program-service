@@ -200,7 +200,7 @@ const validateFileType = (data, callback) => {
   if(allowedMimeType.includes(data.mimeType)) {
     callback(null, data);
   } else {
-    callback(`Images mimetype should be one of: [${allowedMimeType}]'`);
+    callback('Invalid image format! Image format must be JPG or PNG');
   }
 }
 
