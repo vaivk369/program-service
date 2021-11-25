@@ -19,6 +19,7 @@ const programServiceHelper = new ProgramServiceHelper();
 
 const { size, create, compact, result } = require("lodash");
 const { async } = require("rxjs/internal/scheduler/async");
+const { body } = require("express-validator");
 
 const buildDOCXWithCallback = async (id, callback) => {
   let error = false;
@@ -29,7 +30,7 @@ const buildDOCXWithCallback = async (id, callback) => {
       if (data.error) {
         callback(null, data.error, data.errorMsg);
       } else {
-        let subject, grade, examName, instructions, language;
+        let subject, grade, examName, instructions, language, description;
         if (data.paperData) {
           subject = data.paperData.subject && data.paperData.subject[0];
           grade = data.paperData.gradeLevel && data.paperData.gradeLevel[0];
@@ -49,6 +50,7 @@ const buildDOCXWithCallback = async (id, callback) => {
           examName: examName,
           className: grade,
           subject: subject,
+          instructions: instructions.split(/\n/),
         };
         let questionCounter = 0;
 
@@ -57,12 +59,14 @@ const buildDOCXWithCallback = async (id, callback) => {
             d.section.name,
             detectLanguage(d.section.name)
           );
-          const section = d.section;
+          const section = d.section.name;
+          let questionContent;
+          questionContent = [{ sectionHeader: section, type: "section" }];
+          questionPaperContent.push(questionContent);
 
           for (const [index, question] of d.questions.entries()) {
             questionCounter += 1;
 
-            let questionContent;
             switch (question.category) {
               case "MCQ":
                 questionContent = [
@@ -226,14 +230,22 @@ function createImageElement(src, width) {
 
 function extractTextFromElement(elem) {
   let rollUp = "";
-    if (cheerio.text(elem)) return cheerio.text(elem);
+  if (cheerio.text(elem)) return cheerio.text(elem);
   // if ()
   else if (elem.name === "sup")
     return { text: elem.children[0].data, superScript: true };
   else if (elem.name === "sub")
     return { text: elem.children[0].data, subScript: true };
+  else if (elem.name === "br") return { br: "break" };
+  else if (elem.name === "strong")
+    return { text: elem.children[0].data, bold: true };
+  else if (elem.name === "br") return { br: "break" };
+  else if (elem.name === "i")
+    return { text: elem.children[0].data, italics: true };
+  else if (elem.name === "br") return { br: "break" };
+  else if (elem.name === "u")
+    return { text: elem.children[0].data, underline: true };
   else if (elem.type === "text" && elem.data) return elem.data;
-  else if (elem.name === "br") return {br : "break"}
   else {
     if (elem.children && elem.children.length) {
       for (const nestedElem of elem.children) {
@@ -258,17 +270,19 @@ function getStyleEle(el) {
   if (
     el.children[0].name &&
     (el.children[0].name === "i" ||
-      el.children[0].name === "b" ||
+      el.children[0].name === "strong" ||
       el.children[0].name === "u")
   ) {
     return getStyleEle(el.children[0]);
   } else {
     if (el.children[0].data !== undefined) {
-      return (
-        el.children[0] &&
-        (el.children[0].data ||
-          (el.children[0].children[0] && el.children[0].children[0].data))
-      );
+      {
+        return (
+          el.children[0] &&
+          (el.children[0].data ||
+            (el.children[0].children[0] && el.children[0].children[0].data))
+        );
+      }
     }
   }
 }
@@ -278,21 +292,21 @@ async function getStack(htmlString, questionCounter) {
   const elems = $("body").children().toArray();
   for (const [index, elem] of elems.entries()) {
     let nextLine = "";
-    
+
     switch (elem.name) {
       case "p":
         let extractedText = extractTextFromElement(elem);
         // Returns array if superscript/subscript inside
         if (Array.isArray(extractedText)) nextLine = { text: extractedText };
         else nextLine += extractedText;
-        break;         
-      case "ol": 
-        
+        break;
+      case "ol":
         nextLine = {
           ol: elem.children.map((el) => {
             return getStyleEle(el);
           }),
         };
+        console.log("ol", nextLine);
         break;
       case "ul":
         nextLine = {
@@ -487,6 +501,7 @@ async function renderComprehension(question, questionCounter, marks, Type) {
   } else {
     data = [`${questionCounter}. ${cleanHTML(question.editorState.question)}`];
   }
+  console.log("Comp data:", data);
   let quedata = {
     Questions: data,
     Marks: marks,

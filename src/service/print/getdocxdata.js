@@ -1,5 +1,6 @@
 const docx = require("docx");
 const { text } = require("express");
+const { functions } = require("lodash");
 const {
   Document,
   BorderStyle,
@@ -23,7 +24,10 @@ function create(data, paperData) {
       {
         properties: {},
         children: [
-          headers(),
+          headers(
+            "Student Name:..............................................................",
+            "Roll Number:............................."
+          ),
           new Paragraph({
             children: [], // Just newline without text
           }),
@@ -64,6 +68,7 @@ function create(data, paperData) {
           new Paragraph({
             children: [], // Just newline without text
           }),
+          headers("Time:............", "Marks:............"),
           new Paragraph({
             alignment: AlignmentType.CENTER,
             children: [
@@ -78,8 +83,17 @@ function create(data, paperData) {
             alignment: AlignmentType.LEFT,
             children: [
               new TextRun({
-                text: "List of questions",
-                italics: true,
+                text: `Instructions:`,
+                bold: true,
+              }),
+            ],
+          }),
+          instructions(paperData.instructions),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [
+              new TextRun({
+                text: "__________________________________________________________________________________________",
                 bold: true,
                 thematicBreak: true,
               }),
@@ -96,7 +110,6 @@ function create(data, paperData) {
                   let count = 0;
                   arr.push(Marks(question));
                   question[0].Questions.map((item) => {
-                  
                     arr.push(createSAObject(item, count++));
                   });
 
@@ -145,7 +158,6 @@ function create(data, paperData) {
                   arr.push(Marks(question));
                   question[0].Questions.map((item) => {
                     arr.push(createSAObject(item, count));
-                    
                   });
                   arr.push(
                     new Paragraph({
@@ -174,7 +186,11 @@ function create(data, paperData) {
                   question[0].Questions.map((item) => {
                     arr.push(createSAObject(item, count));
                   });
-
+                  arr.push(
+                    new Paragraph({
+                      children: [], // Just newline without text
+                    })
+                  );
                   arr.push(optionsTabel(testimage));
                   arr.push(
                     new Paragraph({
@@ -197,6 +213,22 @@ function create(data, paperData) {
                       children: [], // Just newline without text
                     })
                   );
+                } else if (question[0].type === "section") {
+                  arr.push(
+                    new Paragraph({
+                      alignment: AlignmentType.LEFT,
+                      children: [
+                        new TextRun({
+                          text: `${question[0].sectionHeader}`,
+                          heading: HeadingLevel.TITLE,
+                          bold: true,
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      children: [], // Just newline without text
+                    })
+                  );
                 }
               }
               return arr;
@@ -206,8 +238,30 @@ function create(data, paperData) {
       },
     ],
   });
-  
+
   return doc;
+}
+
+function instructions(data) {
+  const arr = [];
+  data
+    .map((text) => {
+      arr.push(
+        new TextRun({
+          text: `${text}`,
+          break: 1,
+          bold: true,
+        })
+      );
+    })
+    .reduce((prev, curr) => prev.concat(curr), []);
+  return new Paragraph({
+    alignment: AlignmentType.LEFT,
+    indent: {
+      left: 720,
+    },
+    children: arr,
+  });
 }
 function displayMTFHeader(data) {
   return new TableCell({
@@ -317,9 +371,10 @@ function createFTBObject(data) {
         ],
       });
     }
-  } else if(data.ol){
+  } else if (data.ol) {
     let count1 = 0;
-      data.ol.map((text) => {
+    data.ol
+      .map((text) => {
         count1++;
         if (typeof text === "object") {
           text = count1 + text.text;
@@ -330,17 +385,19 @@ function createFTBObject(data) {
           );
         } else {
           arr.push(
-                new TextRun({
-                  text: `${count1}.${text}`,
-                  break: 2,
-                }),
-          ); 
+            new TextRun({
+              text: `${count1}.${text}`,
+              break: 2,
+            })
+          );
         }
-    
       })
       .reduce((prev, curr) => prev.concat(curr), []);
     return new Paragraph({
       alignment: AlignmentType.LEFT,
+      indent: {
+        left: 200,
+      },
       children: arr,
     });
   }
@@ -376,115 +433,19 @@ function createFTB(data, count) {
 
 function createSAObject(data, count) {
   const arr = [];
-
   if (data.text) {
     data.text
       .map((text) => {
         if (typeof text === "object") {
-          if(text.br === "break"){
-            arr.push(new TextRun({
-              break: 0.5,
-            }))
-          }else{
+          if (text.br === "break") {
+            arr.push(
+              new TextRun({
+                break: 0.5,
+              })
+            );
+          } else {
             arr.push(new TextRun(text));
           }
-          
-        } else {
-          arr.push(
-            new TextRun({
-              text: `${text}`,
-            })
-          );
-        }
-      })
-      .reduce((prev, curr) => prev.concat(curr), []);
-    return new Paragraph({
-      alignment: AlignmentType.LEFT,
-      children: arr,
-    });
-  } else if (data.image) {
-    if (data.image.includes("data:image/")) {
-      let image = getBufferImg(data.image);
-
-      return new Paragraph({
-        children: [
-          new ImageRun({
-            data: image,
-            transformation: {
-              width: data.width,
-              height: data.height,
-            },
-          }),
-        ],
-      });
-    }
-  }  else if(data.ol){
-    let count1 = 0;
-      data.ol.map((text) => {
-        count1++;
-        if (typeof text === "object") {
-          text = count1 + text.text;
-          arr.push(
-            new TextRun({
-              text: `${count1}.${text}`,
-            })
-          );
-        } else {
-          arr.push(
-                new TextRun({
-                  text: `${count1}.${text}`,
-                  break: 0.5,
-                }),
-          );
-          // arr.push(new Paragraph({})) 
-        }
-    
-      })
-      .reduce((prev, curr) => prev.concat(curr), []);
-    return new Paragraph({
-      alignment: AlignmentType.LEFT,
-      children: arr,
-    });
-  }else{
-    return createFTB(data, count);
-  }
-}
-function handleOL(item){
-  const arr = []
-    let count1 = 0;
-      item.map((text) => {
-        count1++;
-        if (typeof text === "object") {
-          text = count1 + text.text;
-          arr.push(
-            new Paragraph({
-              text: `${count1}.${text}`,
-            })
-          );
-        } else {
-          arr.push(
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: `${count1}.${text}`,
-                }),
-              ],
-            })
-          );
-        }
-      })
-      .reduce((prev, curr) => prev.concat(curr), []);
-    return arr
-}
-
-
-function createCOMPREHENSIONObject(data, count) {
-  const arr = [];
-  if (data.text) {
-    data.text
-      .map((text) => {
-        if (typeof text === "object") {
-          arr.push(new TextRun(text));
         } else {
           arr.push(
             new TextRun({
@@ -515,6 +476,35 @@ function createCOMPREHENSIONObject(data, count) {
       });
     }
   } else if (data.ol) {
+    let count1 = 0;
+    data.ol
+      .map((text) => {
+        count1++;
+        if (typeof text === "object") {
+          text = count1 + text.text;
+          arr.push(
+            new TextRun({
+              text: `${count1}.${text}`,
+            })
+          );
+        } else {
+          arr.push(
+            new TextRun({
+              text: `${count1}.${text}`,
+              break: 0.5,
+            })
+          );
+          // arr.push(new Paragraph({}))
+        }
+      })
+      .reduce((prev, curr) => prev.concat(curr), []);
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      indent: {
+        left: 200,
+      },
+      children: arr,
+    });
   } else {
     return createFTB(data, count);
   }
@@ -548,7 +538,7 @@ function formatOptions(data) {
     optionArr.push(testimage.Option2);
     optionArr.push(testimage.Option3);
     optionArr.push(testimage.Option4);
-    
+
     optionArr.push(testimage.height1);
     optionArr.push(testimage.width1);
     optionArr.push(testimage.height2);
@@ -598,7 +588,7 @@ const MTFborder = {
     size: 2,
   },
 };
-function headers() {
+function headers(text1, text2) {
   return new Table({
     columnWidths: [4505, 4505],
     rows: [
@@ -613,8 +603,12 @@ function headers() {
             children: [
               new Paragraph({
                 alignment: AlignmentType.LEFT,
-                text: "Student Name:.........................",
-                bold: true,
+                children: [
+                  new TextRun({
+                    text: text1,
+                    bold: true,
+                  }),
+                ],
               }),
             ],
           }),
@@ -627,52 +621,12 @@ function headers() {
             children: [
               new Paragraph({
                 alignment: AlignmentType.RIGHT,
-                text: "Roll Number:.............................",
-                bold: true,
-              }),
-            ],
-          }),
-        ],
-      }),
-      new TableRow({
-        children: [
-          new TableCell({
-            borders: border,
-            width: {
-              size: 100 / 2,
-              type: WidthType.PERCENTAGE,
-            },
-            children: [],
-          }),
-        ],
-      }),
-      new TableRow({
-        children: [
-          new TableCell({
-            borders: border,
-            width: {
-              size: 100 / 2,
-              type: WidthType.PERCENTAGE,
-            },
-            children: [
-              new Paragraph({
-                alignment: AlignmentType.LEFT,
-                text: "Teacher's Name:......................",
-                bold: true,
-              }),
-            ],
-          }),
-          new TableCell({
-            borders: border,
-            width: {
-              size: 100 / 2,
-              type: WidthType.PERCENTAGE,
-            },
-            children: [
-              new Paragraph({
-                alignment: AlignmentType.RIGHT,
-                text: "Teacher's Sign:...........................",
-                bold: true,
+                children: [
+                  new TextRun({
+                    text: text2,
+                    bold: true,
+                  }),
+                ],
               }),
             ],
           }),
