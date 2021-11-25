@@ -47,7 +47,8 @@ const KafkaService = {
     const record = [
       {
         topic: topicName,
-        messages: JSON.stringify(data)
+        messages: JSON.stringify(data),
+        key: data.processId
       }
     ]
     logger.info({msg: 'Kafka record', additionalInfo: {record}})
