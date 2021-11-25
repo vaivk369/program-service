@@ -17,7 +17,9 @@ const sizeOf = require("image-size");
 
 const programServiceHelper = new ProgramServiceHelper();
 
-const { size, create } = require("lodash");
+const { size, create, compact, result } = require("lodash");
+const { async } = require("rxjs/internal/scheduler/async");
+const { body } = require("express-validator");
 
 const buildDOCXWithCallback = async (id, callback) => {
   let error = false;
@@ -28,7 +30,7 @@ const buildDOCXWithCallback = async (id, callback) => {
       if (data.error) {
         callback(null, data.error, data.errorMsg);
       } else {
-        let subject, grade, examName, instructions, language;
+        let subject, grade, examName, instructions, language, description;
         if (data.paperData) {
           subject = data.paperData.subject && data.paperData.subject[0];
           grade = data.paperData.gradeLevel && data.paperData.gradeLevel[0];
@@ -48,6 +50,7 @@ const buildDOCXWithCallback = async (id, callback) => {
           examName: examName,
           className: grade,
           subject: subject,
+          instructions: instructions.split(/\n/),
         };
         let questionCounter = 0;
 
@@ -56,12 +59,14 @@ const buildDOCXWithCallback = async (id, callback) => {
             d.section.name,
             detectLanguage(d.section.name)
           );
-          const section = d.section;
+          const section = d.section.name;
+          let questionContent;
+          questionContent = [{ sectionHeader: section, type: "section" }];
+          questionPaperContent.push(questionContent);
 
           for (const [index, question] of d.questions.entries()) {
             questionCounter += 1;
 
-            let questionContent;
             switch (question.category) {
               case "MCQ":
                 questionContent = [
@@ -226,10 +231,20 @@ function createImageElement(src, width) {
 function extractTextFromElement(elem) {
   let rollUp = "";
   if (cheerio.text(elem)) return cheerio.text(elem);
+  // if ()
   else if (elem.name === "sup")
     return { text: elem.children[0].data, superScript: true };
   else if (elem.name === "sub")
     return { text: elem.children[0].data, subScript: true };
+  else if (elem.name === "br") return { br: "break" };
+  else if (elem.name === "strong")
+    return { text: elem.children[0].data, bold: true };
+  else if (elem.name === "br") return { br: "break" };
+  else if (elem.name === "i")
+    return { text: elem.children[0].data, italics: true };
+  else if (elem.name === "br") return { br: "break" };
+  else if (elem.name === "u")
+    return { text: elem.children[0].data, underline: true };
   else if (elem.type === "text" && elem.data) return elem.data;
   else {
     if (elem.children && elem.children.length) {
@@ -250,12 +265,34 @@ function extractTextFromElement(elem) {
   return rollUp;
 }
 
+function getStyleEle(el) {
+  let value = "";
+  if (
+    el.children[0].name &&
+    (el.children[0].name === "i" ||
+      el.children[0].name === "strong" ||
+      el.children[0].name === "u")
+  ) {
+    return getStyleEle(el.children[0]);
+  } else {
+    if (el.children[0].data !== undefined) {
+      {
+        return (
+          el.children[0] &&
+          (el.children[0].data ||
+            (el.children[0].children[0] && el.children[0].children[0].data))
+        );
+      }
+    }
+  }
+}
 async function getStack(htmlString, questionCounter) {
   const stack = [];
   $ = cheerio.load(htmlString);
   const elems = $("body").children().toArray();
   for (const [index, elem] of elems.entries()) {
     let nextLine = "";
+
     switch (elem.name) {
       case "p":
         let extractedText = extractTextFromElement(elem);
@@ -265,22 +302,17 @@ async function getStack(htmlString, questionCounter) {
         break;
       case "ol":
         nextLine = {
-          ol: elem.children.map(
-            (el) =>
-              el.children[0] &&
-              (el.children[0].data ||
-                (el.children[0].children[0] && el.children[0].children[0].data))
-          ),
+          ol: elem.children.map((el) => {
+            return getStyleEle(el);
+          }),
         };
+        console.log("ol", nextLine);
         break;
       case "ul":
         nextLine = {
-          ul: elem.children.map(
-            (el) =>
-              el.children[0] &&
-              (el.children[0].data ||
-                (el.children[0].children[0] && el.children[0].children[0].data))
-          ),
+          ul: elem.children.map((el) => {
+            return getStyleEle(el);
+          }),
         };
         break;
       case "figure":
@@ -340,8 +372,8 @@ async function renderMCQ(question, questionCounter, marks) {
     q.search("img") >= 0 ||
     q.search("sub") >= 0 ||
     q.search("sup") >= 0 ||
-    (q.match(/<p>/g) && q.match(/<p>/g).length > 1) ||
-    (q.match(/<ol>/g) && q.match(/<ol>/g).length > 1)
+    (q.match(/<p>/g) && q.match(/<p>/g).length >= 1) ||
+    (q.match(/<ol>/g) && q.match(/<ol>/g).length >= 1)
       ? await getStack(q, questionCounter)
       : [`${questionCounter}. ${cleanHTML(q)}`];
 
@@ -421,7 +453,6 @@ async function renderMCQ(question, questionCounter, marks) {
     height4: imageProperties[3].height,
     width4: imageProperties[3].width,
   };
-
   return data;
 }
 
@@ -432,10 +463,12 @@ async function renderQuestion(question, questionCounter, marks, Type) {
     question.editorState.question.search("img") >= 0 ||
     question.editorState.question.search("sub") >= 0 ||
     question.editorState.question.search("sup") >= 0 ||
-    question.editorState.question.search("ol") >= 0 ||
+    // question.editorState.question.search("ol") >= 0 ||
     question.editorState.question.search("ul") >= 0 ||
-    (question.editorState.question.match(/<p>/g) && question.editorState.question.match(/<p>/g).length > 1) ||
-    (question.editorState.question.match(/<ol>/g) && question.editorState.question.match(/<ol>/g).length > 1)
+    (question.editorState.question.match(/<p>/g) &&
+      question.editorState.question.match(/<p>/g).length >= 1) ||
+    (question.editorState.question.match(/<ol>/g) &&
+      question.editorState.question.match(/<ol>/g).length >= 1)
   ) {
     data = await getStack(question.editorState.question, questionCounter);
   } else {
@@ -447,7 +480,6 @@ async function renderQuestion(question, questionCounter, marks, Type) {
     Marks: marks,
     type: Type,
   };
-
   return quedata;
 }
 
@@ -460,13 +492,16 @@ async function renderComprehension(question, questionCounter, marks, Type) {
     question.editorState.question.search("sup") >= 0 ||
     question.editorState.question.search("ol") >= 0 ||
     question.editorState.question.search("ul") >= 0 ||
-    (question.editorState.question.match(/<p>/g) && question.editorState.question.match(/<p>/g).length > 1)||
-    (question.editorState.question.match(/<ol>/g) && question.editorState.question.match(/<ol>/g).length > 1)
-      ) {
+    (question.editorState.question.match(/<p>/g) &&
+      question.editorState.question.match(/<p>/g).length >= 1) ||
+    (question.editorState.question.match(/<ol>/g) &&
+      question.editorState.question.match(/<ol>/g).length >= 1)
+  ) {
     data = await getStack(question.editorState.question, questionCounter);
   } else {
     data = [`${questionCounter}. ${cleanHTML(question.editorState.question)}`];
   }
+  console.log("Comp data:", data);
   let quedata = {
     Questions: data,
     Marks: marks,
