@@ -4,7 +4,6 @@ var FormData = require('form-data');
 const fetch = require("node-fetch");
 const logger = require("sb_logger_util_v2");
 const { v4: uuidv4 } = require("uuid");
-const loggerService = require("./loggerService");
 const messageUtils = require("../service/messageUtil");
 const GoogleOauth  = require("../helpers/googleOauthHelper");
 const responseCode = messageUtils.RESPONSE_CODE;
@@ -74,26 +73,31 @@ const qumlConsumer = () => {
   }
 };
 
-const initQuestionCreateProcess = (questionData) => {
+const initQuestionCreateProcess = (questions) => {
   logger.info({ message: "Question creating process started" });
-  async.waterfall([
-    async.apply(createQuestion, questionData),
-    async.apply(startDownloadFileProcess, questionData),
-    async.apply(prepareQuestionBody),
-    async.apply(updateQuestion),
-    async.apply(reviewQuestion, questionData.status),
-    async.apply(publishQuestion, questionData.status),
-    async.apply(linkQuestionToQuestionSet, questionData)
-  ], function (err, result) {
-      if(err) { 
-        return logger.error(
-          {
-            message: `Something Went Wrong While Creating the question ${JSON.stringify(err)}`,
-          },
-          err
-        ); 
-      }
-      console.log('initQuestionCreateProcess :: SUCCESS :: =====> ', JSON.stringify(result));
+  async.eachSeries(questions,function(questionData, cb){
+    async.waterfall([
+      async.apply(createQuestion, questionData),
+      async.apply(startDownloadFileProcess, questionData),
+      async.apply(prepareQuestionBody),
+      async.apply(updateQuestion),
+      async.apply(reviewQuestion, questionData.status),
+      async.apply(publishQuestion, questionData.status),
+      async.apply(linkQuestionToQuestionSet, questionData)
+    ], function (err, result) {
+        cb();
+        if(err) { 
+          return logger.error(
+            {
+              message: `Something Went Wrong While Creating the question ${JSON.stringify(err)}`,
+            },
+            err
+          ); 
+        }
+        console.log('initQuestionCreateProcess :: SUCCESS :: =====> ', JSON.stringify(result));
+    });
+  }, function(err){
+    logger.info({ message: "Question creating process completed!" });
   });
 };
 

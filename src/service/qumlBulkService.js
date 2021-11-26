@@ -59,13 +59,15 @@ const bulkUpload = async (req, res) => {
         return res.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE3));
       }
       qumlData = csvData.data;
+      const questionsArr = [];
       _.forEach(qumlData, (question) => {
         question = prepareQuestionData(question, req);
         question['questionSetSectionId'] = flattenHierarchyObj[question.level1];
         question["processId"] = pId;
         console.log("Prepared Question body : =====>", JSON.stringify(question))
-        sendRecordToKafkaTopic(question);
+        questionsArr.push(question);
       });
+      sendRecordToKafkaTopic(questionsArr);
       logger.info({ message: "Bulk Upload process has started successfully for the process Id", pId});
       rspObj.responseCode = responseCode.SUCCESS;
       rspObj.result = { processId: pId, count: qumlData.length};
