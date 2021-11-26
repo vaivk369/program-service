@@ -4,7 +4,6 @@ var FormData = require('form-data');
 const fetch = require("node-fetch");
 const logger = require("sb_logger_util_v2");
 const { v4: uuidv4 } = require("uuid");
-const loggerService = require("./loggerService");
 const messageUtils = require("../service/messageUtil");
 const GoogleOauth  = require("../helpers/googleOauthHelper");
 const responseCode = messageUtils.RESPONSE_CODE;
@@ -74,26 +73,31 @@ const qumlConsumer = () => {
   }
 };
 
-const initQuestionCreateProcess = (questionData) => {
+const initQuestionCreateProcess = (questions) => {
   logger.info({ message: "Question creating process started" });
-  async.waterfall([
-    async.apply(createQuestion, questionData),
-    async.apply(startDownloadFileProcess, questionData),
-    async.apply(prepareQuestionBody),
-    async.apply(updateQuestion),
-    async.apply(reviewQuestion, questionData.status),
-    async.apply(publishQuestion, questionData.status),
-    async.apply(linkQuestionToQuestionSet, questionData)
-  ], function (err, result) {
-      if(err) { 
-        return logger.error(
-          {
-            message: `Something Went Wrong While Creating the question ${JSON.stringify(err)}`,
-          },
-          err
-        ); 
-      }
-      console.log('initQuestionCreateProcess :: SUCCESS :: =====> ', JSON.stringify(result));
+  async.eachSeries(questions,function(questionData, cb){
+    async.waterfall([
+      async.apply(createQuestion, questionData),
+      async.apply(startDownloadFileProcess, questionData),
+      async.apply(prepareQuestionBody),
+      async.apply(updateQuestion),
+      async.apply(reviewQuestion, questionData.status),
+      async.apply(publishQuestion, questionData.status),
+      async.apply(linkQuestionToQuestionSet, questionData)
+    ], function (err, result) {
+        cb();
+        if(err) { 
+          return logger.error(
+            {
+              message: `Something Went Wrong While Creating the question ${JSON.stringify(err)}`,
+            },
+            err
+          ); 
+        }
+        console.log('initQuestionCreateProcess :: SUCCESS :: =====> ', JSON.stringify(result));
+    });
+  }, function(err){
+    logger.info({ message: "Question creating process completed!" });
   });
 };
 
@@ -412,6 +416,10 @@ const updateQuestion = (questionBody, createQuestionRes, callback) => {
       if (updateResponseData.responseCode && _.toLower(updateResponseData.responseCode) === "ok") {
         callback(null, updateResponseData);
       } else {
+        updateResponse(
+          questionRes.result.identifier,
+          `Something Went wrong while updating the questions: ${JSON.stringify(updateResponseData)}`
+        );
         callback(updateResponseData);
       }
     })
@@ -419,6 +427,10 @@ const updateQuestion = (questionBody, createQuestionRes, callback) => {
       logger.error({
         message: `Error while updating the question ::  ${JSON.stringify(error)}`,
       });
+      updateResponse(
+        questionRes.result.identifier,
+        `Something Went wrong while updating the questions: ${JSON.stringify(error)}`
+      );
       callback(error);
   });
 }
@@ -446,6 +458,10 @@ const reviewQuestion = (status, questionRes, callback) => {
       if (reviewResponseData.responseCode && _.toLower(reviewResponseData.responseCode) === "ok") {
         callback(null, reviewResponseData);
       } else {
+        updateResponse(
+          questionRes.result.identifier,
+          `Something Went wrong while reviewing the questions: ${JSON.stringify(reviewResponseData)}`
+        );
         callback(reviewResponseData);
       }
     })
@@ -455,7 +471,7 @@ const reviewQuestion = (status, questionRes, callback) => {
       });
       updateResponse(
         questionRes.result.identifier,
-        `Something Went wrong while reviewing the questions: ${error}`
+        `Something Went wrong while reviewing the questions: ${JSON.stringify(error)}`
       );
       callback(error);
     });
@@ -482,6 +498,10 @@ const publishQuestion = (status, questionRes, callback) => {
       if (publishResponseData.responseCode && _.toLower(publishResponseData.responseCode) === "ok") {
         callback(null, publishResponseData);
       } else {
+        updateResponse(
+          questionRes.result.identifier,
+          `Something went wrong while Publishing the question :: ${JSON.stringify(publishResponseData)}`
+        );
         callback(publishResponseData);
       }
     })
@@ -491,7 +511,7 @@ const publishQuestion = (status, questionRes, callback) => {
       });
       updateResponse(
         questionRes.result.identifier,
-        `Something went wrong while Publishing the question`
+        `Something went wrong while Publishing the question :: ${JSON.stringify(error)}`
       );
       callback(error);
     });
@@ -522,10 +542,6 @@ const linkQuestionToQuestionSet = (questionData, questionRes, callback) => {
     .then((response) => response.json())
     .then((linkResponseData) => {
       if (linkResponseData.responseCode && _.toLower(linkResponseData.responseCode) === "ok") {
-        // updateResponse(
-        //   questionRes.result.identifier,
-        //   `Successfully linked the question for the identifier:${questionRes.result.identifier}`
-        // );
         console.log('Successfully linkQuestionToQuestionSet:: =====> ' , JSON.stringify(linkResponseData));
         callback(null, linkResponseData);
       } else {
@@ -534,7 +550,7 @@ const linkQuestionToQuestionSet = (questionData, questionRes, callback) => {
         });
         updateResponse(
           questionRes.result.identifier,
-          `Something went wrong while linking the question`
+          `Something went wrong while linking the question :: ${JSON.stringify(linkResponseData)}`
         );
         callback(linkResponseData);
       }
@@ -545,7 +561,7 @@ const linkQuestionToQuestionSet = (questionData, questionRes, callback) => {
       });
       updateResponse(
         questionRes.result.identifier,
-        `Something went wrong while linking the question`
+        `Something went wrong while linking the question :: ${JSON.stringify(error)}`
       );
       callback(error);
     });
