@@ -653,7 +653,7 @@ function displayNumber(data) {
       verticalAlign: VerticalAlign.CENTER,
       children: [
         new Paragraph({
-          text: data.text[0],
+          text: data.text[0].substr(0, 1),
         }),
       ],
     });
@@ -688,11 +688,11 @@ function displayOptionsObject(data, count) {
         if (typeof text === "object") {
           arr.push(new TextRun(text));
         } else {
-          arr.push(
-            new TextRun({
-              text: `${text}`,
-            })
-          );
+          // arr.push(
+          //   new TextRun({
+          //     text: `${text}`,
+          //   })
+          // );
         }
       })
       .reduce((prev, curr) => prev.concat(curr), []);
@@ -781,6 +781,9 @@ function optionsTabel(testimage) {
     columnWidths: [4505, 4505],
     rows: [
       new TableRow({
+        indent: {
+          left: 200,
+        },
         children: [
           displayNumber(testimage[0]),
 
@@ -792,6 +795,9 @@ function optionsTabel(testimage) {
         ],
       }),
       new TableRow({
+        indent: {
+          left: 200,
+        },
         children: [
           displayNumber(testimage[2]),
 
