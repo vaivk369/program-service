@@ -236,16 +236,26 @@ function extractTextFromElement(elem) {
     return { text: elem.children[0].data, superScript: true };
   else if (elem.name === "sub")
     return { text: elem.children[0].data, subScript: true };
-  else if (elem.name === "br") return { br: "break" };
-  else if (elem.name === "strong")
-    return { text: elem.children[0].data, bold: true };
-  else if (elem.name === "br") return { br: "break" };
-  else if (elem.name === "i")
-    return { text: elem.children[0].data, italics: true };
-  else if (elem.name === "br") return { br: "break" };
-  else if (elem.name === "u")
-    return { text: elem.children[0].data, underline: true };
-  else if (elem.type === "text" && elem.data) return elem.data;
+  else if (elem.name === "strong") {
+    if (elem.children[0].data === undefined) {
+      return getStyleEle(elem);
+    } else {
+      return { text: elem.children[0].data, bold: true };
+    }
+  } else if (elem.name === "i") {
+    if (elem.children[0].data === undefined) {
+      return getStyleEle(elem);
+    } else {
+      return { text: elem.children[0].data, italics: true };
+    }
+  } else if (elem.name === "br") return { br: "break" };
+  else if (elem.name === "u") {
+    if (elem.children[0].data === undefined) {
+      return getStyleEle(elem);
+    } else {
+      return { text: elem.children[0].data, underline: true };
+    }
+  } else if (elem.type === "text" && elem.data) return elem.data;
   else {
     if (elem.children && elem.children.length) {
       for (const nestedElem of elem.children) {
@@ -292,7 +302,6 @@ async function getStack(htmlString, questionCounter) {
   const elems = $("body").children().toArray();
   for (const [index, elem] of elems.entries()) {
     let nextLine = "";
-
     switch (elem.name) {
       case "p":
         let extractedText = extractTextFromElement(elem);
@@ -306,8 +315,8 @@ async function getStack(htmlString, questionCounter) {
             return getStyleEle(el);
           }),
         };
-        console.log("ol", nextLine);
         break;
+
       case "ul":
         nextLine = {
           ul: elem.children.map((el) => {
@@ -361,7 +370,7 @@ async function renderMCQ(question, questionCounter, marks) {
       qoBody.search("img") >= 0 ||
       qoBody.search("sup") >= 0 ||
       qoBody.search("sub") >= 0 ||
-      (qoBody.match(/<p>/g) && qoBody.match(/<p>/g).length > 1) ||
+      (qoBody.match(/<p>/g) && qoBody.match(/<p>/g).length >= 1) ||
       (qoBody.match(/<ol>/g) && qoBody.match(/<ol>/g).length >= 1)
         ? await getStack(qoBody, answerOptions[index])
         : [`${answerOptions[index]}. ${cleanHTML(qoBody)}`];
@@ -463,7 +472,6 @@ async function renderQuestion(question, questionCounter, marks, Type) {
     question.editorState.question.search("img") >= 0 ||
     question.editorState.question.search("sub") >= 0 ||
     question.editorState.question.search("sup") >= 0 ||
-    // question.editorState.question.search("ol") >= 0 ||
     question.editorState.question.search("ul") >= 0 ||
     (question.editorState.question.match(/<p>/g) &&
       question.editorState.question.match(/<p>/g).length >= 1) ||
@@ -501,7 +509,6 @@ async function renderComprehension(question, questionCounter, marks, Type) {
   } else {
     data = [`${questionCounter}. ${cleanHTML(question.editorState.question)}`];
   }
-  console.log("Comp data:", data);
   let quedata = {
     Questions: data,
     Marks: marks,
@@ -534,6 +541,7 @@ async function renderMTF(question, questionCounter, marks, Type) {
   const rows = [];
   for (const r of transposeColumns) {
     let left, right;
+
     if (r[0].search("img") >= 0) {
       left = await getStack(r[0]);
     } else left = [cleanHTML(r[0])];
