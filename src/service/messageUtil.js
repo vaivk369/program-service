@@ -651,7 +651,8 @@ exports.FORM = {
     MISSING_CODE: 'ERR_GET_FORM_DATA',
     MISSING_MESSAGE: 'Required fields to get form are missing',
     FAILED_CODE: 'ERR_GET_FORM_DATA_FAILED',
-    FAILED_MESSAGE: 'Unable to get the form data'
+    FAILED_MESSAGE: 'Unable to get the form data',
+    INFO: 'Get form config'
   },
   CREATE: {
     MISSING_CODE: 'ERR_CREATE_FORM_DATA',
