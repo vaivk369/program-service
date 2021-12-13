@@ -5,7 +5,7 @@ const messageUtils = require('./messageUtil');
 const Sequelize = require('sequelize');
 const moment = require('moment');
 const responseCode = messageUtils.RESPONSE_CODE;
-const programMessages = messageUtils.PROGRAM;
+const formMessages = messageUtils.FORM;
 const errorCodes = messageUtils.ERRORCODES;
 const model = require('../models');
 const loggerService = require('./loggerService');
@@ -23,12 +23,12 @@ function convertToLowerCase(obj, keys){
 async function getForm(req, response) {
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
-    message : programMessages.FORM.READ.INFO
+    message : formMessages.READ.INFO
   }
   loggerService.entryLog(data, logObject);
   if (!req.body.request || !req.body.request.context || !req.body.request.context_type) {
-    rspObj.errCode = programMessages.FORM.READ.MISSING_CODE
-    rspObj.errMsg = programMessages.FORM.READ.MISSING_MESSAGE
+    rspObj.errCode = formMessages.READ.MISSING_CODE
+    rspObj.errMsg = formMessages.READ.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR;
     loggerError('', rspObj, errCode+errorCodes.CODE1);
     loggerService.exitLog({responseCode: rspObj.responseCode, errCode: errCode+errorCodes.CODE1}, logObject);
@@ -93,6 +93,98 @@ async function getForm(req, response) {
         loggerError(rspObj.responseCode,rspObj,errCode+errorCodes.CODE2);
         return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
     })
+}
+
+async function createForm(req, response) {
+  const logObject = {
+    traceId : req.headers['x-request-id'] || '',
+    message : formMessages.CREATE.INFO
+  }
+  loggerService.entryLog(data, logObject);
+  if (!req.body.request || !req.body.request.context || !req.body.request.context_type || !req.body.request.data) {
+    rspObj.errCode = formMessages.CREATE.MISSING_CODE
+    rspObj.errMsg = formMessages.CREATE.MISSING_MESSAGE
+    rspObj.responseCode = responseCode.CLIENT_ERROR
+    loggerError('',rspObj,errCode+errorCodes.CODE1);
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+    return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
+  }
+  const data = _.pick(req.body.request, ['context', 'context_type', 'objectype', 'channel', 'operation', 'component', 'primarycategory']);
+  convertToLowerCase(data, ['context', 'context_type', 'operation']);
+  const insertObj = req.body.request;
+  insertObj.id = uuid();
+  insertObj.channel = data.channel || '*';
+  insertObj.objectype = data.objectype || '*';
+  insertObj.primarycategory = data.primarycategory || '*';
+  insertObj.operation = data.operation || '*';
+  insertObj.component = data.component || 'portal';
+  insertObj.created_on = new Date();
+
+  model.formConfig.create().then(data => {
+    rspObj.result = {
+      'id': res.dataValues.id
+    }
+    rspObj.responseCode = 'OK';
+    res.status(200).send(successResponse(rspObj));
+  })
+  .catch(error => {
+    const errCode = formMessages.EXCEPTION_CODE+'_'+formMessages.CREATE.EXCEPTION_CODE
+    rspObj.errMsg = formMessages.CREATE.FAILED_MESSAGE
+    rspObj.responseCode = formMessages.CREATE.FAILED_CODE;
+    rspObj.result = {};
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+    loggerError('',rspObj,errCode+errorCodes.CODE3);
+    return response.status(500).send(errorResponse(rspObj,errCode+errorCodes.CODE3));
+  })
+}
+
+async function updateForm(req, response) {
+  const logObject = {
+    traceId : req.headers['x-request-id'] || '',
+    message : formMessages.READ.INFO
+  }
+  loggerService.entryLog(data, logObject);
+  if (!req.body.request || !req.body.request.data || !req.body.request.context || !req.body.request.context_type) {
+    rspObj.errCode = formMessages.UPDATE.MISSING_CODE
+    rspObj.errMsg = formMessages.UPDATE.MISSING_MESSAGE
+    rspObj.responseCode = responseCode.CLIENT_ERROR;
+    loggerError('', rspObj, errCode+errorCodes.CODE1);
+    loggerService.exitLog({responseCode: rspObj.responseCode, errCode: errCode+errorCodes.CODE1}, logObject);
+    return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
+  }
+  const data = _.pick(req.body.request, ['context', 'context_type', 'objectype', 'channel', 'operation', 'component', 'primarycategory']);
+  convertToLowerCase(data, ['context', 'context_type', 'operation']);
+  const query = {
+    channel: data.channel || '*',
+    objectype: data.objectype || '*',
+    operation: data.operation || '*',
+    primarycategory: data.primarycategory || '*',
+    context: data.context,
+    context_type: data.context_type,
+    component: data.component,
+  }
+
+  const updateValue = {
+    data: JSON.stringify(data.data),
+    updatedOn: new Date(),
+  };
+
+  model.formConfig.update(query, updateValue).then(data => {
+    rspObj.result = {
+      'id': res.dataValues.id
+    }
+    rspObj.responseCode = 'OK';
+    res.status(200).send(successResponse(rspObj));
+  })
+  .catch(error => {
+    const errCode = formMessages.EXCEPTION_CODE+'_'+formMessages.CREATE.EXCEPTION_CODE
+    rspObj.errMsg = formMessages.CREATE.FAILED_MESSAGE
+    rspObj.responseCode = formMessages.CREATE.FAILED_CODE;
+    rspObj.result = {};
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+    loggerError('',rspObj,errCode+errorCodes.CODE3);
+    return response.status(500).send(errorResponse(rspObj,errCode+errorCodes.CODE3));
+  })
 }
 
 function loggerError(errmsg,data,errCode) {

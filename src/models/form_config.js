@@ -3,31 +3,36 @@ module.exports = function(sequelize, DataTypes) {
       id: {
         type: DataTypes.UUID,
         allowNull: false,
-        primaryKey: true
       },
       channel: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        primaryKey: true
       },
       objectype: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        primaryKey: true
       },
       primarycategory: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+        primaryKey: true
       },
       status: {
         type: DataTypes.ENUM("Active", "Inactive"),
         allowNull: false
       },
       context: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+        primaryKey: true
       },
       context_type: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+        primaryKey: true
       },
       operation: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+        primaryKey: true
       },
       data: {
         type: DataTypes.JSONB

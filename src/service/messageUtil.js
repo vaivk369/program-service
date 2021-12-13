@@ -647,6 +647,7 @@ exports.DATASET = {
 }
 
 exports.FORM = {
+  EXCEPTION_CODE: 'FORM',
   READ: {
     MISSING_CODE: 'ERR_GET_FORM_DATA',
     MISSING_MESSAGE: 'Required fields to get form are missing',
@@ -655,6 +656,7 @@ exports.FORM = {
     INFO: 'Get form config'
   },
   CREATE: {
+    EXCEPTION_CODE: 'FRMCRT',
     MISSING_CODE: 'ERR_CREATE_FORM_DATA',
     MISSING_MESSAGE: 'Required fields for creating form data are missing',
     FAILED_CODE: 'ERR_CREATE_FORM_DATA_FAILED',
