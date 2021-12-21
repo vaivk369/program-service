@@ -1,5 +1,6 @@
 const programService = require('../service/programService');
 const userProgramPreference = require('../service/userProgramPreference');
+const formConfig = require('../service/formConfig');
 const requestMiddleware = require('../middlewares/request.middleware')
 
 const BASE_URL = '/program/v1'
@@ -120,4 +121,16 @@ module.exports = function (app) {
   app.route(BASE_URL + '/preference/read')
     .post(requestMiddleware.gzipCompression(), requestMiddleware.createAndValidateRequestBody,
       userProgramPreference.getUserPreferences)
+
+      app.route(BASE_URL + '/form/create')
+      .post(requestMiddleware.gzipCompression(), requestMiddleware.createAndValidateRequestBody,
+      formConfig.createForm)
+
+    app.route(BASE_URL + '/form/update')
+      .post(requestMiddleware.gzipCompression(), requestMiddleware.createAndValidateRequestBody,
+      formConfig.updateForm)
+
+    app.route(BASE_URL + '/form/read')
+      .post(requestMiddleware.gzipCompression(), requestMiddleware.createAndValidateRequestBody,
+      formConfig.getForm)
 }
