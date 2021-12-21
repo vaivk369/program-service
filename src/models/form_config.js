@@ -1,5 +1,5 @@
 module.exports = function(sequelize, DataTypes) {
-    const formConfig = sequelize.define("formconfig", {
+    const formConfig = sequelize.define("formdata", {
       id: {
         type: DataTypes.UUID,
         allowNull: false,

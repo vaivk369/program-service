@@ -47,11 +47,11 @@ async function read(req, response) {
     context_type: data.context_type,
     status: data.status || 'Active'
   }
-  await model.formconfig.findOne({ where: query }).then(async data => {
+  await model.formdata.findOne({ where: query }).then(async data => {
     if (!data) {
       var temp = Object.assign({}, query, { channel: "*" });
       // find record by specified rootOrgId with channel = '*'
-      await model.formconfig.findOne({ where: temp })
+      await model.formdata.findOne({ where: temp })
     } else {
       return data;
     }
@@ -59,7 +59,7 @@ async function read(req, response) {
   .then(async data => {
       if (!data) {
         // get the default data
-        return await model.formconfig.findOne({ where: Object.assign({}, query, { objecttype: "*" })})
+        return await model.formdata.findOne({ where: Object.assign({}, query, { objecttype: "*" })})
       } else {
         return data;
       }
@@ -67,7 +67,7 @@ async function read(req, response) {
     .then(async data => {
       if (!data) {
         // get the default data
-        return await model.formconfig.findOne({ where: Object.assign({}, query, { channel: "*", objecttype: "*" })})
+        return await model.formdata.findOne({ where: Object.assign({}, query, { channel: "*", objecttype: "*" })})
       } else {
         return data;
       }
@@ -75,7 +75,7 @@ async function read(req, response) {
     .then(async data => {
       if (!data) {
         // get the default data
-        return await model.formconfig.findOne({ where: Object.assign({}, query, { channel: "*", objecttype: "*", primarycategory: "*" })})
+        return await model.formdata.findOne({ where: Object.assign({}, query, { channel: "*", objecttype: "*", primarycategory: "*" })})
       } else {
         return data;
       }
@@ -128,7 +128,7 @@ async function create(req, response) {
   insertObj.status = data.status || 'Active';
   insertObj.createdon = new Date();
 
-  model.formconfig.create(insertObj).then(res => {
+  model.formdata.create(insertObj).then(res => {
     rspObj.result = {
       'id': res.dataValues.id
     }
@@ -182,7 +182,7 @@ async function update(req, response) {
     updatedon: new Date(),
   };
 
-  model.formconfig.update(updateValue, query).then(data => {
+  model.formdata.update(updateValue, query).then(data => {
     if (_.isArray(data) && !data[0]) {
       rspObj.errMsg = formMessages.UPDATE.NOTFOUND_MESSAGE;
       const errCode = formMessages.EXCEPTION_CODE+'_'+formMessages.UPDATE.EXCEPTION_CODE
