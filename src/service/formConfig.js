@@ -89,7 +89,7 @@ async function read(req, response) {
       return response.status(200).send(successResponse(rspObj));
     })
     .catch(error => {
-      console.log("Error updating nomination to db", JSON.stringify(error));
+      console.log("Error updating form config data", JSON.stringify(error));
       rspObj.responseCode = 'ERR_GET_FORM_FAILED';
       rspObj.result = {};
       loggerService.exitLog({responseCode: rspObj.responseCode, errCode: errCode+errorCodes.CODE2}, logObject);
@@ -136,7 +136,7 @@ async function create(req, response) {
     response.status(200).send(successResponse(rspObj));
   })
   .catch(error => {
-    console.log("Error updating nomination to db", JSON.stringify(error));
+    console.log("Error creating form config", JSON.stringify(error));
     const errCode = formMessages.EXCEPTION_CODE+'_'+formMessages.CREATE.EXCEPTION_CODE
     rspObj.errMsg = formMessages.CREATE.FAILED_MESSAGE
     rspObj.responseCode = formMessages.CREATE.FAILED_CODE;
