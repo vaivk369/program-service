@@ -653,7 +653,8 @@ exports.FORM = {
     MISSING_MESSAGE: 'Required fields to get form are missing',
     FAILED_CODE: 'ERR_GET_FORM_DATA_FAILED',
     FAILED_MESSAGE: 'Unable to get the form data',
-    INFO: 'Get form config'
+    INFO: 'Get form config',
+    EXCEPTION_CODE: 'FRMRED'
   },
   CREATE: {
     EXCEPTION_CODE: 'FRMCRT',
@@ -663,10 +664,12 @@ exports.FORM = {
     FAILED_MESSAGE: 'Unable to create the form data'
   },
   UPDATE: {
+    EXCEPTION_CODE: 'FRMUPD',
     MISSING_CODE: 'ERR_UPDATE_FORM_DATA',
     MISSING_MESSAGE: 'Required fields while updating form data are missing',
     FAILED_CODE: 'ERR_UPDATE_FORM_DATA_FAILED',
-    FAILED_MESSAGE: 'Unable to update the form data'
+    FAILED_MESSAGE: 'Unable to update the form data',
+    NOTFOUND_MESSAGE: 'Entry not found for the given request',
   }
 }
 

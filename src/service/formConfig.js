@@ -20,12 +20,14 @@ function convertToLowerCase(obj, keys){
   keys.forEach(element => obj[element] = obj[element] && obj[element].toLowerCase());
 }
 
-async function getForm(req, response) {
+async function read(req, response) {
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
     message : formMessages.READ.INFO
   }
-  loggerService.entryLog(data, logObject);
+  var rspObj = req.rspObj;
+  const errCode = formMessages.EXCEPTION_CODE + '_' + formMessages.READ.EXCEPTION_CODE;
+  loggerService.entryLog(req.body.request, logObject);
   if (!req.body.request || !req.body.request.context || !req.body.request.context_type) {
     rspObj.errCode = formMessages.READ.MISSING_CODE
     rspObj.errMsg = formMessages.READ.MISSING_MESSAGE
@@ -34,22 +36,22 @@ async function getForm(req, response) {
     loggerService.exitLog({responseCode: rspObj.responseCode, errCode: errCode+errorCodes.CODE1}, logObject);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
-  const data = _.pick(req.body.request, ['context', 'context_type', 'objectype', 'channel', 'operation', 'component', 'primarycategory']);
+  const data = _.pick(req.body.request, ['context', 'context_type', 'objecttype', 'channel', 'operation', 'primarycategory']);
   convertToLowerCase(data, ['context', 'context_type', 'operation']);
   const query = {
     channel: data.channel || '*',
-    objectype: data.objectype || '*',
+    objecttype: data.objecttype || '*',
     operation: data.operation || '*',
     primarycategory: data.primarycategory || '*',
     context: data.context,
     context_type: data.context_type,
-    component: data.component,
-    status: 'Active'
+    status: data.status || 'Active'
   }
-  await model.formConfig.findOne(query).then(async data => {
+  await model.formconfig.findOne({ where: query }).then(async data => {
     if (!data) {
+      var temp = Object.assign({}, query, { channel: "*" });
       // find record by specified rootOrgId with channel = '*'
-      await model.formConfig.findOne(Object.assign({}, query, { channel: "*" }))
+      await model.formconfig.findOne({ where: temp })
     } else {
       return data;
     }
@@ -57,7 +59,7 @@ async function getForm(req, response) {
   .then(async data => {
       if (!data) {
         // get the default data
-        return await model.formConfig.findOne(Object.assign({}, query, { primarycategory: "*" }))
+        return await model.formconfig.findOne({ where: Object.assign({}, query, { objecttype: "*" })})
       } else {
         return data;
       }
@@ -65,7 +67,7 @@ async function getForm(req, response) {
     .then(async data => {
       if (!data) {
         // get the default data
-        return await model.formConfig.findOne(Object.assign({}, query, { channel: "*", primarycategory: "*" }))
+        return await model.formconfig.findOne({ where: Object.assign({}, query, { channel: "*", objecttype: "*" })})
       } else {
         return data;
       }
@@ -73,7 +75,7 @@ async function getForm(req, response) {
     .then(async data => {
       if (!data) {
         // get the default data
-        return await model.formConfig.findOne(Object.assign({}, query, { channel: "*", primarycategory: "*", objectype: "*" }))
+        return await model.formconfig.findOne({ where: Object.assign({}, query, { channel: "*", objecttype: "*", primarycategory: "*" })})
       } else {
         return data;
       }
@@ -87,20 +89,23 @@ async function getForm(req, response) {
       return response.status(200).send(successResponse(rspObj));
     })
     .catch(error => {
-        rspObj.responseCode = 'ERR_GET_FORM_FAILED';
-        rspObj.result = {};
-        loggerService.exitLog({responseCode: rspObj.responseCode, errCode: errCode+errorCodes.CODE2}, logObject);
-        loggerError(rspObj.responseCode,rspObj,errCode+errorCodes.CODE2);
-        return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
+      console.log("Error updating nomination to db", JSON.stringify(error));
+      rspObj.responseCode = 'ERR_GET_FORM_FAILED';
+      rspObj.result = {};
+      loggerService.exitLog({responseCode: rspObj.responseCode, errCode: errCode+errorCodes.CODE2}, logObject);
+      loggerError(rspObj.responseCode,rspObj,errCode+errorCodes.CODE2);
+      return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
     })
 }
 
-async function createForm(req, response) {
+async function create(req, response) {
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
     message : formMessages.CREATE.INFO
   }
-  loggerService.entryLog(data, logObject);
+  var rspObj = req.rspObj;
+  const errCode = formMessages.EXCEPTION_CODE + '_' + formMessages.CREATE.EXCEPTION_CODE
+  loggerService.entryLog(req.body.request, logObject);
   if (!req.body.request || !req.body.request.context || !req.body.request.context_type || !req.body.request.data) {
     rspObj.errCode = formMessages.CREATE.MISSING_CODE
     rspObj.errMsg = formMessages.CREATE.MISSING_MESSAGE
@@ -109,25 +114,29 @@ async function createForm(req, response) {
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
-  const data = _.pick(req.body.request, ['context', 'context_type', 'objectype', 'channel', 'operation', 'component', 'primarycategory']);
+  const data = _.pick(req.body.request, ['context', 'context_type', 'objecttype', 'channel', 'operation', 'primarycategory', 'data']);
   convertToLowerCase(data, ['context', 'context_type', 'operation']);
-  const insertObj = req.body.request;
+  const insertObj = {};
   insertObj.id = uuid();
+  insertObj.context = data.context;
+  insertObj.context_type = data.context_type;
+  insertObj.data = data.data;
   insertObj.channel = data.channel || '*';
-  insertObj.objectype = data.objectype || '*';
+  insertObj.objecttype = data.objecttype || '*';
   insertObj.primarycategory = data.primarycategory || '*';
   insertObj.operation = data.operation || '*';
-  insertObj.component = data.component || 'portal';
-  insertObj.created_on = new Date();
+  insertObj.status = data.status || 'Active';
+  insertObj.createdon = new Date();
 
-  model.formConfig.create().then(data => {
+  model.formconfig.create(insertObj).then(res => {
     rspObj.result = {
       'id': res.dataValues.id
     }
     rspObj.responseCode = 'OK';
-    res.status(200).send(successResponse(rspObj));
+    response.status(200).send(successResponse(rspObj));
   })
   .catch(error => {
+    console.log("Error updating nomination to db", JSON.stringify(error));
     const errCode = formMessages.EXCEPTION_CODE+'_'+formMessages.CREATE.EXCEPTION_CODE
     rspObj.errMsg = formMessages.CREATE.FAILED_MESSAGE
     rspObj.responseCode = formMessages.CREATE.FAILED_CODE;
@@ -138,12 +147,13 @@ async function createForm(req, response) {
   })
 }
 
-async function updateForm(req, response) {
+async function update(req, response) {
   const logObject = {
     traceId : req.headers['x-request-id'] || '',
     message : formMessages.READ.INFO
   }
-  loggerService.entryLog(data, logObject);
+  var rspObj = req.rspObj;
+  loggerService.entryLog(req.body.request, logObject);
   if (!req.body.request || !req.body.request.data || !req.body.request.context || !req.body.request.context_type) {
     rspObj.errCode = formMessages.UPDATE.MISSING_CODE
     rspObj.errMsg = formMessages.UPDATE.MISSING_MESSAGE
@@ -152,34 +162,45 @@ async function updateForm(req, response) {
     loggerService.exitLog({responseCode: rspObj.responseCode, errCode: errCode+errorCodes.CODE1}, logObject);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
-  const data = _.pick(req.body.request, ['context', 'context_type', 'objectype', 'channel', 'operation', 'component', 'primarycategory']);
+  const data = _.pick(req.body.request, ['context', 'context_type', 'objecttype', 'channel', 'operation', 'primarycategory', 'data']);
   convertToLowerCase(data, ['context', 'context_type', 'operation']);
   const query = {
-    channel: data.channel || '*',
-    objectype: data.objectype || '*',
-    operation: data.operation || '*',
-    primarycategory: data.primarycategory || '*',
-    context: data.context,
-    context_type: data.context_type,
-    component: data.component,
+    where: {
+      channel: data.channel || '*',
+      objecttype: data.objecttype || '*',
+      operation: data.operation || '*',
+      primarycategory: data.primarycategory || '*',
+      context: data.context,
+      context_type: data.context_type,
+    },
+    returning: true,
+    individualHooks: true
   }
 
   const updateValue = {
-    data: JSON.stringify(data.data),
-    updatedOn: new Date(),
+    data: data.data,
+    updatedon: new Date(),
   };
 
-  model.formConfig.update(query, updateValue).then(data => {
-    rspObj.result = {
-      'id': res.dataValues.id
+  model.formconfig.update(updateValue, query).then(data => {
+    if (_.isArray(data) && !data[0]) {
+      rspObj.errMsg = formMessages.UPDATE.NOTFOUND_MESSAGE;
+      const errCode = formMessages.EXCEPTION_CODE+'_'+formMessages.UPDATE.EXCEPTION_CODE
+      rspObj.responseCode = formMessages.UPDATE.FAILED_CODE;
+      rspObj.result = {};
+      return response.status(400).send(errorResponse(rspObj, errCode));
     }
-    rspObj.responseCode = 'OK';
-    res.status(200).send(successResponse(rspObj));
+    else {
+      rspObj.result = query.where;
+      rspObj.responseCode = 'OK';
+      return response.status(200).send(successResponse(rspObj));
+    }
   })
   .catch(error => {
-    const errCode = formMessages.EXCEPTION_CODE+'_'+formMessages.CREATE.EXCEPTION_CODE
-    rspObj.errMsg = formMessages.CREATE.FAILED_MESSAGE
-    rspObj.responseCode = formMessages.CREATE.FAILED_CODE;
+    console.log("Error updating formconfig to db", JSON.stringify(error));
+    const errCode = formMessages.EXCEPTION_CODE+'_'+formMessages.UPDATE.EXCEPTION_CODE;
+    rspObj.errMsg = formMessages.UPDATE.FAILED_MESSAGE
+    rspObj.responseCode = formMessages.UPDATE.FAILED_CODE;
     rspObj.result = {};
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     loggerError('',rspObj,errCode+errorCodes.CODE3);
@@ -237,7 +258,7 @@ function getParams(msgId, status, errCode, msg) {
   return params
 }
 
-module.exports.createForm = createForm
-module.exports.updateForm = updateForm
-module.exports.getForm = getForm
+module.exports.createForm = create
+module.exports.updateForm = update
+module.exports.getForm = read
 

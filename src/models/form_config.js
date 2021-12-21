@@ -1,5 +1,5 @@
 module.exports = function(sequelize, DataTypes) {
-    const formConfig = sequelize.define("formConfig", {
+    const formConfig = sequelize.define("formconfig", {
       id: {
         type: DataTypes.UUID,
         allowNull: false,
@@ -9,7 +9,7 @@ module.exports = function(sequelize, DataTypes) {
         allowNull: false,
         primaryKey: true
       },
-      objectype: {
+      objecttype: {
         type: DataTypes.STRING,
         allowNull: false,
         primaryKey: true
