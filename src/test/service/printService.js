@@ -13,11 +13,11 @@ var rewire = require("rewire");
 const { getData } = require("../../service/print/dataImporter");
 const dataImporter = rewire("../../service/print/dataImporter.js");
 const dataImporter1 = rewire(
-  "../../service/print/printDocx-1.0/dataImporter.js"
+  "../../service/print/printDocxV1.0/dataImporter.js"
 );
 
 const docx = rewire("../../service/print/docx.js");
-const docx1 = rewire("../../service/print/printDocx-1.0/docx.js");
+const docx1 = rewire("../../service/print/printDocxV1.0/docx.js");
 
 const getQuestionForSection = dataImporter.__get__("getQuestionForSection");
 const getItemsFromItemset = dataImporter.__get__("getItemsFromItemset");
