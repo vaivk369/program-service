@@ -300,7 +300,7 @@ class ProgramServiceHelper {
                 result['Status'] = 'Corrections pending';
               }
               return result;
-          }); 
+          });
         }
         return tableData;
     } catch (err) {
@@ -448,7 +448,7 @@ class ProgramServiceHelper {
 
   hierarchyRequest(req, collectionId) {
     const option = {
-      url: `${envVariables.baseURL}/action/content/v3/hierarchy/${collectionId}?mode=edit`,
+      url: `${envVariables.baseURL}/action/collection/v4/hierarchy/${collectionId}?mode=edit`,
       method: 'get',
       headers: {...req.headers}
     };
