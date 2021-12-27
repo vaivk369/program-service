@@ -77,7 +77,7 @@ function getQuestionFromItem(itemID, marks) {
 }
 
 const getQuestionForSection = async (id) => {
-  const url = `${envVariables.baseURL}/action/content/v4/hierarchy/${id}?mode=edit`;
+  const url = `${envVariables.baseURL}/action/collection/v4/hierarchy/${id}?mode=edit`;
   let status;
   return fetch(url)
     .then((r1) => {
@@ -114,7 +114,7 @@ const getQuestionForSection = async (id) => {
 const getData = async (id) => {
   let error = false;
   let errorMsg = "";
-  const url = `${envVariables.baseURL}/action/content/v4/hierarchy/${id}?mode=edit`;
+  const url = `${envVariables.baseURL}/action/collection/v4/hierarchy/${id}?mode=edit`;
   return fetch(url)
     .then((r4) => r4.json())
     .then((r) => {
