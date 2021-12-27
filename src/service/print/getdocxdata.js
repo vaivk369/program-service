@@ -108,7 +108,6 @@ function create(data, paperData) {
                 let page = 1;
                 if (question[0].type === "COMPREHENSION") {
                   let count = 0;
-                  // arr.push(Marks(question));
                   question[0].Questions.map((item) => {
                     arr.push(
                       formatview(
@@ -128,7 +127,6 @@ function create(data, paperData) {
                   );
                 } else if (question[0].type === "CuriosityQuestion") {
                   let count = 0;
-                  // arr.push(Marks(question));
                   question[0].Questions.map((item) => {
                     arr.push(
                       formatview(
@@ -148,7 +146,6 @@ function create(data, paperData) {
                   );
                 } else if (question[0].type === "SA") {
                   let count = 0;
-                  // arr.push(Marks(question));
                   question[0].Questions.map((item) => {
                     arr.push(
                       formatview(
@@ -168,7 +165,6 @@ function create(data, paperData) {
                   );
                 } else if (question[0].type === "LA") {
                   let count = 0;
-                  // arr.push(Marks(question));
                   question[0].Questions.map((item) => {
                     arr.push(
                       formatview(
@@ -187,7 +183,6 @@ function create(data, paperData) {
                   );
                 } else if (question[0].type === "VSA") {
                   let count = 0;
-                  // arr.push(Marks(question));
                   question[0].Questions.map((item) => {
                     arr.push(
                       formatview(
@@ -206,7 +201,6 @@ function create(data, paperData) {
                   );
                 } else if (question[0].type === "FTB") {
                   let count = 0;
-                  // arr.push(Marks(question));
                   question[0].Questions.map((item) => {
                     arr.push(
                       formatview(
@@ -217,11 +211,7 @@ function create(data, paperData) {
                       )
                     );
                     count++;
-                    // if (typeof item === "object") {
-                    //   arr.push(createFTBObject(item));
-                    // } else {
-                    //   arr.push(createFTB(item, count++));
-                    // }
+                    
                   });
                   arr.push(
                     new Paragraph({
@@ -230,7 +220,6 @@ function create(data, paperData) {
                   );
                 } else if (question[0].type === "MCQ") {
                   let testimage = formatOptions(question[0]);
-                  // arr.push(Marks(question));
                   let count = 0;
                   question[0].Questions.map((item) => {
                     arr.push(
@@ -248,7 +237,6 @@ function create(data, paperData) {
                       children: [], // Just newline without text
                     })
                   );
-                  // arr.push(formatview(testimage,count,"table"))
                   arr.push(optionsTabel(testimage));
                   arr.push(
                     new Paragraph({
@@ -256,8 +244,6 @@ function create(data, paperData) {
                     })
                   );
                 } else if (question[0].type === "MTF") {
-                  // arr.push(Marks(question));
-
                   let count = 0;
                   arr.push(
                     formatview(
@@ -272,7 +258,7 @@ function create(data, paperData) {
                       children: [], // Just newline without text
                     })
                   );
-                  // arr.push(MTFTabel(question));
+                 
                   arr.push(mtfTableData(question));
                   arr.push(
                     new Paragraph({
@@ -379,9 +365,7 @@ function MTFTabel(question) {
   question[0].Questions.map((item) => {
     arr.push(
       new TableRow({
-        // indent: {
-        //   left:600,
-        // },
+        
         children: [displayMTFData(item.left[0]), displayMTFData(item.right[0])],
       })
     );
@@ -866,7 +850,6 @@ function displayOptions(option, height, width) {
         ],
       });
     } else {
-      // let text= option.split(".")
       return new TableCell({    
         borders: MCQborder,
         width: {
