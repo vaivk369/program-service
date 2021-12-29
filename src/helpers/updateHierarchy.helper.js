@@ -109,7 +109,8 @@ class HierarchyService {
                 "lockKey",
                 "variants",
                 "mimeTypesCount",
-                "contentTypesCount"
+                "contentTypesCount",
+                "contentType"
               ])
             }
           }
