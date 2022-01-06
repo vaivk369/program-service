@@ -14,8 +14,8 @@ class PrintDocx1ImportError {
 const fields =
   "body,primaryCategory,mimeType,qType,answer,templateId,responseDeclaration,interactionTypes,interactions,name,solutions,editorState,media,name,board,medium,gradeLevel,subject,topic,learningOutcome,maxScore,bloomsLevel,author,copyright,license";
 
-const QUE_READ_URL= `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}question/v4/read/`;
-const QS_HIERARCHY_READ_URL = `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}questionset/v4/hierarchy/`;
+const QUE_READ_URL= `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/question/v4/read/`;
+const QS_HIERARCHY_READ_URL = `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/questionset/v4/hierarchy/`;
 
 
 const getQuestionForSet = async (id) => {

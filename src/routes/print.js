@@ -9,10 +9,8 @@ async function printDocx(req,res){
   const id = req.query.id;
   const format = req.query.format;
   const version = req.query.version;
-  console.log("Version:",version)
 
   if(version === "1.0"){
-    console.log("Entered 1.0")
     buildDOCX_1_WithCallback(id,function (binary, error, errorMsg,filename) {
       var date = new Date();
       if (!error) {
