@@ -979,7 +979,7 @@ function getProgramCountsByOrg(req, response) {
 
  /* Get the org details by filters*/
  function getOrganisationDetails(req, orgList) {
-  const url = `${envVariables.baseURL}/api/org/v1/search`;
+  const url = `${envVariables.baseURL}/api/org/v2/search`;
   const reqData = {
     "request": {
       "filters": {
@@ -1511,7 +1511,7 @@ async function downloadProgramDetails(req, res) {
   });
 
   if (filteredPrograms.length) {
-    if (data.request.filters.targetType  && data.request.filters.targetType === 'searchCriteria') { 
+    if (data.request.filters.targetType  && data.request.filters.targetType === 'searchCriteria') {
       await _.forEach(programArr, (programId) => {
         programServiceHelper.getProgramDetails(programId).then((program)=> {
           programObjs[programId] = program;
