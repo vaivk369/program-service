@@ -864,7 +864,7 @@ class ProgramServiceHelper {
 
   getUserDetails(userId, reqHeaders) {
     const option = {
-      url: `${envVariables.baseURL}/learner/user/v1/search`,
+      url: `${envVariables.baseURL}/learner/user/v3/search`,
       method: 'POST',
       headers: reqHeaders,
       data: {
@@ -906,7 +906,7 @@ class ProgramServiceHelper {
 
   getSourcingOrgUsers(reqHeaders, reqFilters, offset, limit) {
     const req = {
-      url: `${envVariables.baseURL}/learner/user/v1/search`,
+      url: `${envVariables.baseURL}/learner/user/v3/search`,
       method: 'post',
       headers: reqHeaders,
       data: {

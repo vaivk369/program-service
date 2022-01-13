@@ -5,7 +5,7 @@ const axios = require('axios');
 class UserService {
   async getDikshaUserProfiles(req, identifier) {
     const option = {
-      url: learnerService + '/user/v1/search',
+      url: learnerService + '/user/v3/search',
       method: 'post',
       headers: {
         ...req.headers
