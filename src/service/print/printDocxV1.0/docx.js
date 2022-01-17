@@ -16,7 +16,7 @@ const buildDOCX_1_WithCallback = async (id, callback) => {
   let totalMarks = 0;
   getQuestionSet(id)
     .then(async (data) => {
-      if (data.error) {
+        if (data.error) {
         callback(null, data.error, data.errorMsg);
       } else {
         let subject, grade, examName, instructions, language, description;
@@ -24,7 +24,7 @@ const buildDOCX_1_WithCallback = async (id, callback) => {
           subject = data.paperData.subject && data.paperData.subject[0];
           grade = data.paperData.gradeLevel && data.paperData.gradeLevel[0];
           examName = data.paperData.name;
-          instructions = data.paperData.description;
+          instructions = data.instructions;
           language = data.paperData.medium && data.paperData.medium[0];
         }
 
@@ -38,6 +38,7 @@ const buildDOCX_1_WithCallback = async (id, callback) => {
         let questionCounter = 0;
 
         for (const d of data.sectionData) {
+                  
           const section = d.section.name;
           let questionContent;
           questionContent = [{ sectionHeader: section, type: "section" }];

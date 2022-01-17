@@ -12,7 +12,7 @@ class PrintDocx1ImportError {
   }
 }
 const fields =
-  "body,primaryCategory,mimeType,qType,answer,templateId,responseDeclaration,interactionTypes,interactions,name,solutions,editorState,media,name,board,medium,gradeLevel,subject,topic,learningOutcome,maxScore,bloomsLevel,author,copyright,license";
+  "body,primaryCategory,mimeType,qType,answer,templateId,responseDeclaration,interactionTypes,interactions,name,solutions,editorState,media,name,board,medium,gradeLevel,subject,topic,learningOutcome,maxScore,bloomsLevel,author,copyright,license,instructions";
 
 const QUE_READ_URL= `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/question/v4/read/`;
 const QS_HIERARCHY_READ_URL = `${envVariables.SUNBIRD_ASSESSMENT_SERVICE_BASE_URL}/questionset/v4/hierarchy/`;
@@ -47,7 +47,6 @@ const getQuestionSet = async (id) => {
 
   return axios(request).then((r) => {
     const data = r.data.result.questionSet;
-
     let sections;
     if (data && "children" in data) sections = data.children;
     else {
@@ -67,6 +66,17 @@ const getQuestionSet = async (id) => {
       else return [];
     }); // Hierarchy
 
+    const instructions =  getQuestionForSet(id).then((resp) => {
+        return resp.instructions.default;
+    });
+
+    var introData
+   
+    instructions.then((result)=>{
+      introData = result
+    })
+    
+
     const promiseMap = questionIds.map((sec) =>
       sec.map((question) => {
         if (question !== undefined) {
@@ -84,7 +94,8 @@ const getQuestionSet = async (id) => {
           throw e;
         })
     );
-
+    
+  
     return Promise.all(questionPromises).then((results) => {
       const sectionData = results.map((questions, index) => {
         return {
@@ -93,9 +104,12 @@ const getQuestionSet = async (id) => {
         };
       });
 
+     
+
       return {
         sectionData,
         paperData: data,
+        instructions: introData
       };
     });
   });
