@@ -211,7 +211,6 @@ function create(data, paperData) {
                       )
                     );
                     count++;
-                    
                   });
                   arr.push(
                     new Paragraph({
@@ -258,7 +257,7 @@ function create(data, paperData) {
                       children: [], // Just newline without text
                     })
                   );
-                 
+
                   arr.push(mtfTableData(question));
                   arr.push(
                     new Paragraph({
@@ -365,7 +364,6 @@ function MTFTabel(question) {
   question[0].Questions.map((item) => {
     arr.push(
       new TableRow({
-        
         children: [displayMTFData(item.left[0]), displayMTFData(item.right[0])],
       })
     );
@@ -373,90 +371,6 @@ function MTFTabel(question) {
   return new Table({
     columnWidths: [5000, 5000],
     rows: arr,
-  });
-}
-function Marks(data) {
-  if (data[0].Marks !== undefined) {
-    return new Paragraph({
-      alignment: AlignmentType.RIGHT,
-      children: [
-        new TextRun({
-          text: `${data[0].Marks}`,
-          bold: true,
-        }),
-      ],
-    });
-  } else {
-    return new Paragraph({
-      alignment: AlignmentType.RIGHT,
-      children: [],
-    });
-  }
-}
-function createFTBObject(data) {
-  const arr = [];
-  if (data.text) {
-    data.text
-      .map((text) => {
-        if (typeof text === "object") {
-          arr.push(new TextRun(text));
-        } else {
-          arr.push(
-            new TextRun({
-              text: `${text}`,
-            })
-          );
-        }
-      })
-      .reduce((prev, curr) => prev.concat(curr), []);
-  } else if (data.image) {
-    if (data.image.includes("data:image/")) {
-      let image = getBufferImg(data.image);
-      return new Paragraph({
-        children: [
-          new ImageRun({
-            data: image,
-            transformation: {
-              width: data.width,
-              height: data.height,
-            },
-          }),
-        ],
-      });
-    }
-  } else if (data.ol) {
-    let count1 = 0;
-    data.ol
-      .map((text) => {
-        count1++;
-        if (typeof text === "object") {
-          text = count1 + text.text;
-          arr.push(
-            new TextRun({
-              text: `${count1}.${text}`,
-            })
-          );
-        } else {
-          arr.push(
-            new TextRun({
-              text: `${count1}.${text}`,
-              break: 2,
-            })
-          );
-        }
-      })
-      .reduce((prev, curr) => prev.concat(curr), []);
-    return new Paragraph({
-      alignment: AlignmentType.LEFT,
-      indent: {
-        left: 200,
-      },
-      children: arr,
-    });
-  }
-  return new Paragraph({
-    alignment: AlignmentType.LEFT,
-    children: arr,
   });
 }
 
@@ -547,7 +461,29 @@ function createSAObject(data, count) {
               break: 0.5,
             })
           );
-          // arr.push(new Paragraph({}))
+        }
+      })
+      .reduce((prev, curr) => prev.concat(curr), []);
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      indent: {
+        left: 200,
+      },
+      children: arr,
+    });
+  } else if (data.ul) {
+    let count1 = 0;
+    data.ul
+      .map((text) => {
+        if (typeof text === "object") {
+          arr.push(new TextRun(text));
+        } else {
+          arr.push(
+            new TextRun({
+              text: ` ${text}`,
+              break: 0.5,
+            })
+          );
         }
       })
       .reduce((prev, curr) => prev.concat(curr), []);
@@ -573,10 +509,6 @@ function imageData(image) {
     return (bufferImage = image.replace("data:image/jpeg;base64,", ""));
   }
 }
-function getBufferData(data) {
-  let image = imageData(data);
-  return image.substr(2);
-}
 
 function getBufferImg(data) {
   let image = imageData(data);
@@ -591,7 +523,6 @@ function formatOptions(data) {
     optionArr.push(testimage.Option2);
     optionArr.push(testimage.Option3);
     optionArr.push(testimage.Option4);
-
     optionArr.push(testimage.height1);
     optionArr.push(testimage.width1);
     optionArr.push(testimage.height2);
@@ -664,6 +595,7 @@ const MCQborder = {
     color: "ffffff",
   },
 };
+
 function headers(text1, text2) {
   return new Table({
     columnWidths: [4505, 4505],
@@ -780,20 +712,20 @@ function displayNumber(data) {
 
 function displayOptionsObject(data, count) {
   const arr = [];
-  
+
   if (data.text) {
-    if(typeof data === "object") {
+    if (typeof data === "object") {
       arr.push(new TextRun(data));
-    } else{
+    } else {
       data.text
-      .map((text) => {
-        if (typeof text === "object") {
-          arr.push(new TextRun(text));
-        } 
-      })
-      .reduce((prev, curr) => prev.concat(curr), []);
+        .map((text) => {
+          if (typeof text === "object") {
+            arr.push(new TextRun(text));
+          }
+        })
+        .reduce((prev, curr) => prev.concat(curr), []);
     }
-    
+
     return new TableCell({
       borders: MCQborder,
       width: {
@@ -815,8 +747,8 @@ function displayOptionsObject(data, count) {
     });
   }
 }
+
 function displayOptions(option, height, width) {
- 
   if (option !== undefined) {
     if (typeof option[1] === "object") {
       return displayOptionsObject(option[1]);
@@ -850,7 +782,7 @@ function displayOptions(option, height, width) {
         ],
       });
     } else {
-      return new TableCell({    
+      return new TableCell({
         borders: MCQborder,
         width: {
           size: 4505,
@@ -896,6 +828,7 @@ function displayOptions(option, height, width) {
     });
   }
 }
+
 function displayViewData(data) {
   return new TableCell({
     borders: MCQborder,
@@ -934,6 +867,7 @@ function displayMarks(data) {
     children: [createSAObject(data, 0)],
   });
 }
+
 function formatview(data, count, questionCounter, marks) {
   if (count === 0) {
     return new Table({
@@ -994,7 +928,6 @@ function optionsTabel(testimage) {
     columnWidths: [4505, 4505],
     rows: [
       new TableRow({
-        
         children: [
           displayNumber(testimage[0]),
 

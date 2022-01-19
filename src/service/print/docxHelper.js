@@ -1,6 +1,7 @@
 var cheerio = require("cheerio");
 var cheerioTableparser = require("cheerio-tableparser");
 const sizeOf = require("image-size");
+const { compact } = require("lodash");
 const ProgramServiceHelper = require("../../helpers/programHelper");
 const programServiceHelper = new ProgramServiceHelper();
 
@@ -83,7 +84,6 @@ function createImageElement(src, width) {
 function extractTextFromElement(elem) {
   let rollUp = "";
   if (cheerio.text(elem)) return cheerio.text(elem);
-  // if ()
   else if (elem.name === "sup")
     return { text: elem.children[0].data, superScript: true };
   else if (elem.name === "sub")
@@ -93,6 +93,12 @@ function extractTextFromElement(elem) {
       return getStyleEle(elem);
     } else {
       return { text: elem.children[0].data, bold: true };
+    }
+  } else if (elem.name === "span") {
+    if (elem.children[0].data === undefined) {
+      return getStyleEle(elem);
+    } else {
+      return elem.children[0].data;
     }
   } else if (elem.name === "i") {
     if (elem.children[0].data === undefined) {
@@ -138,7 +144,31 @@ function getStyleEle(el) {
     return getStyleEle(el.children[0]);
   } else {
     if (el.children[0].data !== undefined) {
-      {
+      if (el.name && el.name === "u") {
+        return {
+          text:
+            el.children[0] &&
+            (el.children[0].data ||
+              (el.children[0].children[0] && el.children[0].children[0].data)),
+          underline: true,
+        };
+      } else if (el.name && el.name === "i") {
+        return {
+          text:
+            el.children[0] &&
+            (el.children[0].data ||
+              (el.children[0].children[0] && el.children[0].children[0].data)),
+          italics: true,
+        };
+      } else if (el.name && (el.name === "b" || el.name === "strong")) {
+        return {
+          text:
+            el.children[0] &&
+            (el.children[0].data ||
+              (el.children[0].children[0] && el.children[0].children[0].data)),
+          bold: true,
+        };
+      } else {
         return (
           el.children[0] &&
           (el.children[0].data ||
@@ -148,6 +178,7 @@ function getStyleEle(el) {
     }
   }
 }
+
 async function getStack(htmlString) {
   const stack = [];
   $ = cheerio.load(htmlString);
@@ -206,7 +237,7 @@ async function getStack(htmlString) {
 }
 
 async function renderMCQ(question, questionCounter, marks) {
-  const questionOptions = []
+  const questionOptions = [];
   let questionTitle;
   for (const [index, qo] of question.editorState.options.entries()) {
     let qoBody = qo.value.body;
@@ -230,31 +261,25 @@ async function renderMCQ(question, questionCounter, marks) {
     (q.match(/<ol>/g) && q.match(/<ol>/g).length >= 1)
       ? await getStack(q, questionCounter)
       : [`${questionCounter}. ${cleanHTML(q)}`];
-     
+
   let questionOpt = [];
   let imageProperties = [];
   if (questionOptions[0] !== undefined) {
-
     if (
       questionOptions[0][0] !== undefined &&
       typeof questionOptions[0][0] === "object"
     ) {
-      if( questionOptions[0][0].text){
-        questionOpt.push(
-          ["I." , questionOptions[0][0].text[1]]
-        );
-      } else{
-        questionOpt.push(
-          ["I." , questionOptions[0][0].image]
-        );
+      if (questionOptions[0][0].text) {
+        questionOpt.push(["I.", questionOptions[0][0].text[1]]);
+      } else {
+        questionOpt.push(["I.", questionOptions[0][0].image]);
         imageProperties.push({
           width: questionOptions[0][0].width,
           height: questionOptions[0][0].height,
         });
       }
-      
     } else {
-      questionOpt.push(["I." , questionOptions[0][0]]);
+      questionOpt.push(["I.", questionOptions[0][0]]);
       imageProperties.push({
         width: 0,
         height: 0,
@@ -267,22 +292,17 @@ async function renderMCQ(question, questionCounter, marks) {
       questionOptions[1][0] !== undefined &&
       typeof questionOptions[1][0] === "object"
     ) {
-      if( questionOptions[1][0].text){
-        questionOpt.push(
-         [ "II." ,questionOptions[1][0].text[1]]
-        );
-      } else{
-        questionOpt.push(
-          ["II." , questionOptions[1][0].image]
-        );
+      if (questionOptions[1][0].text) {
+        questionOpt.push(["II.", questionOptions[1][0].text[1]]);
+      } else {
+        questionOpt.push(["II.", questionOptions[1][0].image]);
         imageProperties.push({
           width: questionOptions[1][0].width,
           height: questionOptions[1][0].height,
         });
       }
-      
     } else {
-      questionOpt.push(["II." ,questionOptions[1][0]]);
+      questionOpt.push(["II.", questionOptions[1][0]]);
       imageProperties.push({
         width: 0,
         height: 0,
@@ -295,22 +315,17 @@ async function renderMCQ(question, questionCounter, marks) {
       questionOptions[2][0] !== undefined &&
       typeof questionOptions[2][0] === "object"
     ) {
-      if( questionOptions[2][0].text){
-        questionOpt.push(
-          ["III." ,questionOptions[2][0].text[1]]
-        );
+      if (questionOptions[2][0].text) {
+        questionOpt.push(["III.", questionOptions[2][0].text[1]]);
       } else {
-        questionOpt.push(
-          ["III." , questionOptions[2][0].image]
-        );
+        questionOpt.push(["III.", questionOptions[2][0].image]);
         imageProperties.push({
           width: questionOptions[2][0].width,
           height: questionOptions[2][0].height,
         });
       }
-      
     } else {
-      questionOpt.push(["III." , questionOptions[2][0]]);
+      questionOpt.push(["III.", questionOptions[2][0]]);
       imageProperties.push({
         width: 0,
         height: 0,
@@ -323,23 +338,17 @@ async function renderMCQ(question, questionCounter, marks) {
       questionOptions[3][0] !== undefined &&
       typeof questionOptions[3][0] === "object"
     ) {
-      
-      if( questionOptions[3][0].text){
-        questionOpt.push(
-          ["IV." , questionOptions[3][0].text[1]]
-        );
+      if (questionOptions[3][0].text) {
+        questionOpt.push(["IV.", questionOptions[3][0].text[1]]);
       } else {
-        questionOpt.push(
-          ["IV." , questionOptions[3][0].image]
-        );
+        questionOpt.push(["IV.", questionOptions[3][0].image]);
         imageProperties.push({
           width: questionOptions[3][0].width,
           height: questionOptions[3][0].height,
         });
       }
-      
     } else {
-      questionOpt.push(["IV." ,questionOptions[3][0]]);
+      questionOpt.push(["IV.", questionOptions[3][0]]);
       imageProperties.push({
         width: 0,
         height: 0,
@@ -357,10 +366,10 @@ async function renderMCQ(question, questionCounter, marks) {
     Marks: marks,
     Language: detectLanguage(questionTitle[0]),
     type: "MCQ",
-    height1: imageProperties[0].height,
-    width1: imageProperties[0].width,
-    height2: imageProperties[1].height,
-    width2: imageProperties[1].width,
+    height1: imageProperties[0] ? imageProperties[0].height : undefined,
+    width1: imageProperties[0] ? imageProperties[0].width : undefined,
+    height2: imageProperties[1] ? imageProperties[1].height : undefined,
+    width2: imageProperties[1] ? imageProperties[1].width : undefined,
     height3: imageProperties[2] ? imageProperties[2].height : undefined,
     width3: imageProperties[2] ? imageProperties[2].width : undefined,
     height4: imageProperties[3] ? imageProperties[3].height : undefined,
@@ -372,7 +381,6 @@ async function renderMCQ(question, questionCounter, marks) {
 async function renderQuestion(question, questionCounter, marks, Type) {
   let data;
   $ = cheerio.load(question.editorState.question);
-
   cheerioTableparser($);
   var columns = $("table").parsetable(false, false, false);
   if (columns.length !== 0) {
@@ -393,6 +401,7 @@ async function renderQuestion(question, questionCounter, marks, Type) {
   } else {
     data = [`${questionCounter}. ${cleanHTML(question.editorState.question)}`];
   }
+
   let quedata = {
     QuestionIndex: questionCounter,
     Questions: data,
