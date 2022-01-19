@@ -20,11 +20,11 @@ const buildDOCX_1_WithCallback = async (id, callback) => {
         callback(null, data.error, data.errorMsg);
       } else {
         let subject, grade, examName, instructions, language, description;
+        if(data.instructions) instructions = data.instructions;
         if (data.paperData) {
           subject = data.paperData.subject && data.paperData.subject[0];
           grade = data.paperData.gradeLevel && data.paperData.gradeLevel[0];
           examName = data.paperData.name;
-          instructions = data.instructions;
           language = data.paperData.medium && data.paperData.medium[0];
         }
 

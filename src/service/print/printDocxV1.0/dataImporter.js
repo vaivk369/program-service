@@ -45,7 +45,7 @@ const getQuestionSet = async (id) => {
     headers,
   };
 
-  return axios(request).then((r) => {
+  return axios(request).then(async (r) => {
     const data = r.data.result.questionSet;
     let sections;
     if (data && "children" in data) sections = data.children;
@@ -65,17 +65,8 @@ const getQuestionSet = async (id) => {
           });
       else return [];
     }); // Hierarchy
-
-    const instructions =  getQuestionForSet(id).then((resp) => {
-        return resp.instructions.default;
-    });
-
-    var introData
-   
-    instructions.then((result)=>{
-      introData = result
-    })
-    
+ 
+    const instructions = await  getQuestionForSet(id);
 
     const promiseMap = questionIds.map((sec) =>
       sec.map((question) => {
@@ -109,7 +100,7 @@ const getQuestionSet = async (id) => {
       return {
         sectionData,
         paperData: data,
-        instructions: introData
+        instructions: instructions.instructions.default
       };
     });
   });
