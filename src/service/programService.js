@@ -979,7 +979,7 @@ function getProgramCountsByOrg(req, response) {
 
  /* Get the org details by filters*/
  function getOrganisationDetails(req, orgList) {
-  const url = `${envVariables.baseURL}/api/org/v2/search`;
+  const url = `${envVariables.baseURL}/learner/org/v2/search`;
   const reqData = {
     "request": {
       "filters": {
