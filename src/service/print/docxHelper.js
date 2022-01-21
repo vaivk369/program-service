@@ -271,6 +271,10 @@ async function renderMCQ(question, questionCounter, marks) {
     ) {
       if (questionOptions[0][0].text) {
         questionOpt.push(["I.", questionOptions[0][0].text[1]]);
+        imageProperties.push({
+          width: 0,
+          height: 0,
+        });
       } else {
         questionOpt.push(["I.", questionOptions[0][0].image]);
         imageProperties.push({
@@ -294,6 +298,10 @@ async function renderMCQ(question, questionCounter, marks) {
     ) {
       if (questionOptions[1][0].text) {
         questionOpt.push(["II.", questionOptions[1][0].text[1]]);
+        imageProperties.push({
+          width: 0,
+          height: 0,
+        });
       } else {
         questionOpt.push(["II.", questionOptions[1][0].image]);
         imageProperties.push({
@@ -317,6 +325,10 @@ async function renderMCQ(question, questionCounter, marks) {
     ) {
       if (questionOptions[2][0].text) {
         questionOpt.push(["III.", questionOptions[2][0].text[1]]);
+        imageProperties.push({
+          width: 0,
+          height: 0,
+        });
       } else {
         questionOpt.push(["III.", questionOptions[2][0].image]);
         imageProperties.push({
@@ -340,6 +352,10 @@ async function renderMCQ(question, questionCounter, marks) {
     ) {
       if (questionOptions[3][0].text) {
         questionOpt.push(["IV.", questionOptions[3][0].text[1]]);
+        imageProperties.push({
+          width: 0,
+          height: 0,
+        });
       } else {
         questionOpt.push(["IV.", questionOptions[3][0].image]);
         imageProperties.push({
@@ -355,7 +371,6 @@ async function renderMCQ(question, questionCounter, marks) {
       });
     }
   }
-
   let data = {
     QuestionIndex: questionCounter,
     Questions: questionTitle,
@@ -375,6 +390,7 @@ async function renderMCQ(question, questionCounter, marks) {
     height4: imageProperties[3] ? imageProperties[3].height : undefined,
     width4: imageProperties[3] ? imageProperties[3].width : undefined,
   };
+
   return data;
 }
 
