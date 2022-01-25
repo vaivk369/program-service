@@ -411,7 +411,9 @@ function createFTB(data, count) {
 
 function createSAObject(data, count) {
   const arr = [];
-  if(data !== undefined){
+  if(data === undefined){
+    return createFTB(data, count);
+  }
   if (data.text) {
     data.text
       .map((text) => {
@@ -509,7 +511,6 @@ function createSAObject(data, count) {
   } else {
     return createFTB(data, count);
   }
-} else createFTB(data, count)
 }
 
 function imageData(image) {
