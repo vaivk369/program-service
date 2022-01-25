@@ -375,6 +375,17 @@ function MTFTabel(question) {
 }
 
 function createFTB(data, count) {
+  if(data === undefined){
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      children: [
+        new TextRun({
+          text: ``,
+          thematicBreak: true,
+        }),
+      ],
+    });
+  }
   if (count !== 0) {
     return new Paragraph({
       alignment: AlignmentType.LEFT,
@@ -400,6 +411,7 @@ function createFTB(data, count) {
 
 function createSAObject(data, count) {
   const arr = [];
+  if(data !== undefined){
   if (data.text) {
     data.text
       .map((text) => {
@@ -497,6 +509,7 @@ function createSAObject(data, count) {
   } else {
     return createFTB(data, count);
   }
+} else createFTB(data, count)
 }
 
 function imageData(image) {
@@ -712,7 +725,6 @@ function displayNumber(data) {
 
 function displayOptionsObject(data, count) {
   const arr = [];
-
   if (data.text) {
     if (typeof data === "object") {
       arr.push(new TextRun(data));
@@ -907,6 +919,7 @@ function formatview(data, count, questionCounter, marks) {
 }
 
 function mtfTableData(data) {
+  
   const cell = new TableCell({
     children: [MTFTabel(data)],
   });
