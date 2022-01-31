@@ -486,17 +486,14 @@ async function renderMTF(
   $ = cheerio.load(question.editorState.question);
 
   cheerioTableparser($);
-  // var data = [];
   var columns = $("table").parsetable(false, false, false);
   let transposeColumns = columns[0].map((_, colIndex) =>
     columns.map((row) => row[colIndex])
   );
 
   const heading = cleanHTML($("p").first().text());
-
   transposeColumns.shift();
 
-  // const rows = [];
   let left = [],
     right = [];
   for (const r of transposeColumns) {
