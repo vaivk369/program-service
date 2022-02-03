@@ -47,35 +47,43 @@ async function read(req, response) {
     context_type: data.context_type,
     status: data.status || 'Active'
   }
+  console.log(query);
   await model.formdata.findOne({ where: query }).then(async data => {
     if (!data) {
       var temp = Object.assign({}, query, { channel: "*" });
+      console.log(temp);
       // find record by specified rootOrgId with channel = '*'
-      await model.formdata.findOne({ where: temp })
+      return await model.formdata.findOne({ where: temp })
     } else {
       return data;
     }
   })
   .then(async data => {
       if (!data) {
+        var temp = Object.assign({}, query, { objecttype: "*" });
+        console.log(temp);
         // get the default data
-        return await model.formdata.findOne({ where: Object.assign({}, query, { objecttype: "*" })})
+        return await model.formdata.findOne({ where: temp })
       } else {
         return data;
       }
     })
     .then(async data => {
       if (!data) {
+        var temp = Object.assign({}, query, { channel: "*", objecttype: "*" });
+        console.log(temp);
         // get the default data
-        return await model.formdata.findOne({ where: Object.assign({}, query, { channel: "*", objecttype: "*" })})
+        return await model.formdata.findOne({ where: temp })
       } else {
         return data;
       }
     })
     .then(async data => {
       if (!data) {
+        var temp = Object.assign({}, query, { channel: "*", objecttype: "*", primarycategory: "*" });
+        console.log(temp);
         // get the default data
-        return await model.formdata.findOne({ where: Object.assign({}, query, { channel: "*", objecttype: "*", primarycategory: "*" })})
+        return await model.formdata.findOne({ where: temp })
       } else {
         return data;
       }
