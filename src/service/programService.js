@@ -985,7 +985,7 @@ function getProgramCountsByOrg(req, response) {
       "filters": {
         "id": orgList,
         "status": 1,
-        "isRootOrg": true
+        "isTenant": true
       },
       "fields": ["id", "slug", "orgName", "orgCode", "imgUrl"]
     }
