@@ -136,7 +136,6 @@ const buildCSVWithCallback = async (id, callback) => {
       }
     })
     .catch((e) => {
-      console.log(e);
       error = true;
       errorMsg = "";
       callback(null, error, errorMsg, null);

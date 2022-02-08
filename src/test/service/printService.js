@@ -18,6 +18,7 @@ const dataImporter1 = rewire(
 
 const docx = rewire("../../service/print/docx.js");
 const docx1 = rewire("../../service/print/printDocxV1.0/docx.js");
+const csv = rewire("../../service/print/csv.js")
 
 const getQuestionForSection = dataImporter.__get__("getQuestionForSection");
 const getItemsFromItemset = dataImporter.__get__("getItemsFromItemset");
@@ -113,7 +114,7 @@ describe("Print Service", () => {
   });
 
   it("[Integration test] should getData for correct Hierarchy ID", (done) => {
-    getData("do_11341790341271552011559")
+    getData("do_11326731857693900818")
       .then((response) => {
         expect(response).to.not.be.undefined;
         expect(response).to.have.property("paperData");
@@ -160,14 +161,14 @@ describe("Print Service", () => {
       });
   });
   it("[Integration test] docx1.0 should return and error for incorrect Hierarchy ID", (done) => {
-    getQuestionSet("do_11341847729268326411897")
+    getQuestionSet("any")
       .then((response) => {
         expect(response).to.not.be.undefined;
         done();
       })
       .catch((e) => {
         expect(e.name).to.equal("DocxDataImportError");
-        expect(e.message).to.equal("Invalid Response for Itemset ID :: any");
+        expect(e.message).to.equal("Invalid Response for Hierarchy ID :: any");
         done();
       });
   });
@@ -216,6 +217,22 @@ describe("Print Service", () => {
       done();
     });
   });
+  it("[Integration test] generate CSV correct CSV Hierarchy ID", (done) => {
+    csv.buildCSVWithCallback("do_113469567867748352166", (base64, error, errorMsg) => {
+      expect(error).to.be.false;
+      expect(errorMsg).to.equal("");
+      done();
+    });
+  })
+  
+  it("[Integration test] throw error for incorrect CSV Hierarchy ID", (done) => {
+    csv.buildCSVWithCallback("any", (base64, error, errorMsg) => {
+      expect(error).to.be.true;
+      expect(errorMsg).to.equal("Uncaught Exception");
+      done();
+    });
+  });
+
   it("Should parse table", (done) => {
     const table = `<p>Match the following:</p><figure class="table"><table><tbody><tr><td><strong>Column 1</strong></td><td><strong>Column 2</strong></td></tr><tr><td>1</td><td>1</td></tr></tbody></table></figure>`;
     $ = cheerio.load(table);
