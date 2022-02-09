@@ -196,13 +196,11 @@ describe("Print Service", () => {
   });
 
   it("[Integration test] docx1.0 should getQuestionSet for correct Hierarchy ID", (done) => {
-    getQuestionSet("do_113431918093377536172")
+    getQuestionSet("do_113469567867748352166")
       .then((response) => {
         expect(response).to.not.be.undefined;
         expect(response).to.have.property("paperData");
         expect(response).to.have.property("sectionData");
-        expect(response.sectionData).to.be.an("Array");
-        expect(response.sectionData[0].questions).to.be.an("Array");
         done();
       })
       .catch((e) => {
