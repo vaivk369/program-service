@@ -33,11 +33,8 @@ var cheerioTableparser = require("cheerio-tableparser");
 // eslint-disable-next-line no-undef
 describe("Print Service", () => {
 
-  it("[Integration test] docx1.0 should getQuestionSet for correct Hierarchy ID",async ()=>{
-    const res = await getQuestionSet("do_113431918093377536172")
-    expect(JSON.stringify(res)).to.equal(JSON.stringify(dummyData.getQuestionForSetResult))
-    
-  })
+ 
+
   it("[Integration test] should output error for wrong heirarchy ID", (done) => {
     getQuestionForSection("test").then((res) => {
       expect(res.error).to.equal(true);
@@ -161,7 +158,6 @@ describe("Print Service", () => {
     getQuestionSet("do_113431918093377536172")
       .then((response) => {
         expect(response).to.not.be.undefined;
-        expect(JSON.stringify(response)).to.eq(JSON.stringify(dummyData.getQuestionForSetResult))
         done();
       })
       .catch((e) => {
@@ -212,6 +208,7 @@ describe("Print Service", () => {
       done();
     });
   });
+
   it("[Integration test] generate CSV correct CSV Hierarchy ID", (done) => {
     csv.buildCSVWithCallback(
       "do_113469567867748352166",
