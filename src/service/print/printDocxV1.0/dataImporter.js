@@ -103,6 +103,14 @@ const getQuestionSet = async (id) => {
         instructions: instructions.instructions.default
       };
     });
+  })
+  .catch((e) => {
+    error = true;
+    errorMsg = "Uncaught Exception";
+    return {
+      error,
+      errorMsg,
+    };
   });
 };
 

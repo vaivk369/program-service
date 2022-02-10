@@ -136,7 +136,6 @@ const buildCSVWithCallback = async (id, callback) => {
       }
     })
     .catch((e) => {
-      console.log(e);
       error = true;
       errorMsg = "";
       callback(null, error, errorMsg, null);
@@ -225,8 +224,13 @@ async function getStack(htmlString, questionCounter) {
               } else if (src.startsWith("data:image/jpeg")) {
                 nextLine = "";
               } else {
+                if(src.includes("https:")){
+                  nextLine = src
+                } else{
+                  nextLine = `${envVariables.baseURL}` + src;
+                }
                 count++;
-                nextLine = `${envVariables.baseURL}` + src;
+  
               }
           }
           if (!nextLine)

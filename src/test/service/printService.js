@@ -1,6 +1,4 @@
 process.env.NODE_ENV = "test";
-
-const envVariables = require("../../envVariables");
 const chai = require("chai");
 const chaiHttp = require("chai-http");
 chai.use(chaiHttp);
@@ -8,6 +6,8 @@ const { expect } = chai;
 chai.use(require("chai-sorted"));
 chai.use(require("chai-match"));
 const _ = require("lodash");
+
+const dummyData = require("../testData/dummyData");
 
 var rewire = require("rewire");
 const { getData } = require("../../service/print/dataImporter");
@@ -18,6 +18,7 @@ const dataImporter1 = rewire(
 
 const docx = rewire("../../service/print/docx.js");
 const docx1 = rewire("../../service/print/printDocxV1.0/docx.js");
+const csv = rewire("../../service/print/csv.js");
 
 const getQuestionForSection = dataImporter.__get__("getQuestionForSection");
 const getItemsFromItemset = dataImporter.__get__("getItemsFromItemset");
@@ -28,19 +29,22 @@ var cheerio = require("cheerio");
 var cheerioTableparser = require("cheerio-tableparser");
 
 
+
 // eslint-disable-next-line no-undef
 describe("Print Service", () => {
 
+ 
+
   it("[Integration test] should output error for wrong heirarchy ID", (done) => {
-        getQuestionForSection("test").then((res) => {
-          expect(res.error).to.equal(true);
-          expect(res.errorMsg).to.equal(
-            "Invalid Response for Hierarchy ID :: test"
-          );
-          done();
-        });
-      });
-  
+    getQuestionForSection("test").then((res) => {
+      expect(res.error).to.equal(true);
+      expect(res.errorMsg).to.equal(
+        "Invalid Response for Hierarchy ID :: test"
+      );
+      done();
+    });
+  });
+
   it("[Integration test] should output error for wrong heirarchy ID", (done) => {
     getQuestionForSection("test").then((res) => {
       expect(res.error).to.equal(true);
@@ -113,7 +117,7 @@ describe("Print Service", () => {
   });
 
   it("[Integration test] should getData for correct Hierarchy ID", (done) => {
-    getData("do_11341790341271552011559")
+    getData("do_11326731857693900818")
       .then((response) => {
         expect(response).to.not.be.undefined;
         expect(response).to.have.property("paperData");
@@ -150,6 +154,7 @@ describe("Print Service", () => {
   });
 
   it("[Integration test] should return Question Object for correct questions set ID for docx1.0", (done) => {
+
     getQuestionSet("do_113431918093377536172")
       .then((response) => {
         expect(response).to.not.be.undefined;
@@ -160,14 +165,16 @@ describe("Print Service", () => {
       });
   });
   it("[Integration test] docx1.0 should return and error for incorrect Hierarchy ID", (done) => {
-    getQuestionSet("do_11341847729268326411897")
+    
+
+    getQuestionSet("any")
       .then((response) => {
         expect(response).to.not.be.undefined;
         done();
       })
       .catch((e) => {
         expect(e.name).to.equal("DocxDataImportError");
-        expect(e.message).to.equal("Invalid Response for Itemset ID :: any");
+        expect(e.message).to.equal("Invalid Response for Hierarchy ID :: any");
         done();
       });
   });
@@ -194,21 +201,6 @@ describe("Print Service", () => {
       });
   });
 
-  it("[Integration test] docx1.0 should getQuestionSet for correct Hierarchy ID", (done) => {
-    getQuestionSet("do_113431918093377536172")
-      .then((response) => {
-        expect(response).to.not.be.undefined;
-        expect(response).to.have.property("paperData");
-        expect(response).to.have.property("sectionData");
-        expect(response.sectionData).to.be.an("Array");
-        expect(response.sectionData[0].questions).to.be.an("Array");
-        done();
-      })
-      .catch((e) => {
-        done(e);
-      });
-  });
-
   it("[Integration test] should return a an error for incorrect Hierarchy ID", (done) => {
     docx1.buildDOCX_1_WithCallback("any", (base64, error, errorMsg) => {
       expect(error).to.be.true;
@@ -216,6 +208,26 @@ describe("Print Service", () => {
       done();
     });
   });
+
+  it("[Integration test] generate CSV correct CSV Hierarchy ID", (done) => {
+    csv.buildCSVWithCallback(
+      "do_113469567867748352166",
+      (base64, error, errorMsg) => {
+        expect(error).to.be.false;
+        expect(errorMsg).to.equal("");
+        done();
+      }
+    );
+  });
+
+  it("[Integration test] throw error for incorrect CSV Hierarchy ID", (done) => {
+    csv.buildCSVWithCallback("any", (base64, error, errorMsg) => {
+      expect(error).to.be.true;
+      expect(errorMsg).to.equal("Uncaught Exception");
+      done();
+    });
+  });
+
   it("Should parse table", (done) => {
     const table = `<p>Match the following:</p><figure class="table"><table><tbody><tr><td><strong>Column 1</strong></td><td><strong>Column 2</strong></td></tr><tr><td>1</td><td>1</td></tr></tbody></table></figure>`;
     $ = cheerio.load(table);
