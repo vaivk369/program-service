@@ -2652,12 +2652,14 @@ function publishContent(req, response){
 
 function getUserOrganisationRoles(profileData, rootorg_id) {
   let userRoles = ['PUBLIC'];
-  if (profileData.organisations) {
-    let thisOrg = _.find(profileData.organisations, {
-      organisationId: rootorg_id
-    });
-    userRoles = _.union(userRoles, thisOrg.roles);
-  }
+  userRoles = _.uniq(_.union(userRoles, _.map(profileData.roles, 'role')));
+  // if (profileData.organisations) {
+  //   let thisOrg = _.find(profileData.organisations, {
+  //     organisationId: rootorg_id
+  //   });
+  //   userRoles = _.union(userRoles, thisOrg.roles);
+  // }
+
   return userRoles;
 }
 
