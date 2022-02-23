@@ -224,12 +224,22 @@ async function getStack(htmlString, questionCounter) {
               } else if (src.startsWith("data:image/jpeg")) {
                 nextLine = "";
               } else {
+<<<<<<< HEAD
                 if (src.includes("https:")) {
                   nextLine = src;
                 } else {
                   nextLine = `${envVariables.baseURL}` + src;
                 }
                 count++;
+=======
+                if(src.includes("https:")){
+                  nextLine = src
+                } else{
+                  nextLine = `${envVariables.baseURL}` + src;
+                }
+                count++;
+  
+>>>>>>> 924adafb1f771fa5a663513a9a975a8ac78b04f6
               }
           }
           if (!nextLine)
