@@ -264,20 +264,22 @@ async function renderMCQ(
     answerOptions = ["A", "B", "C", "D"];
   let questionTitle;
   let finalQuestion = "";
-
-  for (const [index, qo] of question.editorState.options.entries()) {
-    let qoBody = qo.value.body;
-    let qoData =
-      qoBody.search("img") >= 0 ||
-      qoBody.search("sup") >= 0 ||
-      qoBody.search("sub") >= 0 ||
-      (qoBody.match(/<p>/g) && qoBody.match(/<p>/g).length > 1) ||
-      (qoBody.match(/<ol>/g) && qoBody.match(/<ol>/g).length >= 1)
-        ? await getStack(qoBody, answerOptions[index])
-        : [`${cleanHTML(qoBody)}`];
-    questionOptions.push(qoData);
+  if (question.editorState.options) {
+    for (const [index, qo] of question.editorState.options.entries()) {
+      let qoBody = qo.value.body;
+      let qoData =
+        qoBody.search("img") >= 0 ||
+        qoBody.search("sup") >= 0 ||
+        qoBody.search("sub") >= 0 ||
+        (qoBody.match(/<p>/g) && qoBody.match(/<p>/g).length > 1) ||
+        (qoBody.match(/<ol>/g) && qoBody.match(/<ol>/g).length >= 1)
+          ? await getStack(qoBody, answerOptions[index])
+          : [`${cleanHTML(qoBody)}`];
+      questionOptions.push(qoData);
+    }
   }
   let q = question.editorState.question;
+
   questionTitle =
     q.search("img") >= 0 ||
     q.search("sub") >= 0 ||
@@ -366,16 +368,15 @@ async function renderMCQ(
       }
     }
   }
-
   let data = {
     Class: grade,
     Subject: subject,
     QuestionSetName: examName,
     Questions: finalQuestion,
-    Option1: questionOptions[0][0],
-    Option2: questionOptions[1][0],
-    Option3: questionOptions[2][0],
-    Option4: questionOptions[3][0],
+    Option1: questionOptions.length !== 0 ? questionOptions[0][0] : "",
+    Option2: questionOptions.length !== 0 ? questionOptions[1][0] : "",
+    Option3: questionOptions.length !== 0 ? questionOptions[2][0] : "",
+    Option4: questionOptions.length !== 0 ? questionOptions[3][0] : "",
     "CorrectAnswer(1/2/3/4)": question.answer,
     Competencies: learningOutcome,
     Skills: blooms,
@@ -385,6 +386,7 @@ async function renderMCQ(
     RightColumn: "",
     LeftColumn: "",
   };
+
   return data;
 }
 
