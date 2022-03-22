@@ -2,7 +2,9 @@
 
 ## Pre-requisites
 
-Before you install program service on your laptop, examine your environment and gather data to ensure an optimal installation experience. Review the [details](https://app.gitbook.com/o/-Mi9QwJlsfb7xuxTBc0J/s/SjljYc0PyD64vGgDlMl4/use/system-requirements) to ensure that the environment has the necessary resources and compliant target systems to successfully install and run Program Service.
+1. Before you install program service on your laptop, examine your environment and gather data to ensure an optimal installation experience. Review the [details](https://app.gitbook.com/o/-Mi9QwJlsfb7xuxTBc0J/s/SjljYc0PyD64vGgDlMl4/use/system-requirements) to ensure that the environment has the necessary resources and compliant target systems to successfully install and run Program Service.
+
+2. Program service uses Postgres database to store and manage data. Refer [programs.sql](https://github.com/Sunbird-Ed/program-service/blob/master/programs.sql) for the database and table structure.
 
 ## Project Setup
 
@@ -62,5 +64,3 @@ Before you install program service on your laptop, examine your environment and 
 ```
 
 2. The local HTTP server is launched at `http://localhost:6000`
-
-> Note: To create Postgres table in the local db use the `<project-folder>/programs.sql`
