@@ -38,10 +38,12 @@ async function printDocx(req, res) {
           };
           res.send(resJSON);
         } else {
+          let fileName = encodeURIComponent(filename, "UTF-8");
           res.setHeader(
             "Content-Disposition",
-            `attachment; filename=${filename}.docx`
+            `attachment; filename=${fileName}.docx`
           );
+          res.setHeader("Content-type", "text/docx; charset=utf-8");
           res.send(Buffer.from(binary, "base64"));
         }
       } else {
@@ -75,10 +77,12 @@ async function printDocx(req, res) {
           };
           res.send(resJSON);
         } else {
+          let fileName = encodeURIComponent(filename, "UTF-8");
           res.setHeader(
             "Content-Disposition",
-            `attachment; filename=${filename}.docx`
+            `attachment; filename=${fileName}.docx`
           );
+          res.setHeader("Content-type", "text/docx; charset=utf-8");
           res.send(Buffer.from(binary, "base64"));
         }
       } else {
@@ -118,9 +122,10 @@ async function printCSV(req, res) {
         };
         res.send(resJSON);
       } else {
+        let fileName = encodeURIComponent(filename, "UTF-8");
         res.setHeader(
           "Content-disposition",
-          `attachment; filename=${filename}.csv`
+          `attachment; filename=${fileName}.csv`
         );
         res.setHeader("Content-type", "text/csv; charset=utf-8");
         res.send(binary);
