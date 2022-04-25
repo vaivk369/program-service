@@ -67,7 +67,7 @@ const getQuestionSet = async (id) => {
     }); // Hierarchy
  
     const instructions = await  getQuestionForSet(id);
-
+    
     const promiseMap = questionIds.map((sec) =>
       sec.map((question) => {
         if (question !== undefined) {
@@ -94,13 +94,10 @@ const getQuestionSet = async (id) => {
           questions: questions,
         };
       });
-
-     
-
       return {
         sectionData,
         paperData: data,
-        instructions: instructions.instructions.default
+        instructions: instructions.instructions === undefined ? undefined:instructions.instructions.default
       };
     });
   })

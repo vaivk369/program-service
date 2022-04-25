@@ -295,7 +295,8 @@ function create(data, paperData) {
 
 function instructions(data) {
   const arr = [];
-  data
+  if(data !== undefined){
+    data
     .map((text) => {
       arr.push(
         new TextRun({
@@ -313,6 +314,16 @@ function instructions(data) {
     },
     children: arr,
   });
+  } else {
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      indent: {
+        left: 720,
+      },
+      children: arr,
+    });
+  }
+  
 }
 function displayMTFHeader(data) {
   return new TableCell({
