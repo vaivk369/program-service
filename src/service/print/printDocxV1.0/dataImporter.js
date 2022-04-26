@@ -1,7 +1,7 @@
 const { async } = require("rxjs/internal/scheduler/async");
 const fetch = require("node-fetch");
 const axios = require("axios");
-
+const _ = require("lodash")
 const envVariables = require("../../../envVariables");
 const { result } = require("lodash");
 
@@ -97,7 +97,7 @@ const getQuestionSet = async (id) => {
       return {
         sectionData,
         paperData: data,
-        instructions: instructions.instructions === undefined ? undefined:instructions.instructions.default
+        instructions: _.isUndefined(instructions.instructions) ? undefined : instructions.instructions.default
       };
     });
   })

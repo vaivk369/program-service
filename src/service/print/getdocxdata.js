@@ -17,6 +17,7 @@ const {
   ITableCellMarginOptions,
   convertInchesToTwip,
 } = docx;
+const _ = require("lodash");
 
 function create(data, paperData) {
   const doc = new Document({
@@ -79,15 +80,8 @@ function create(data, paperData) {
               }),
             ],
           }),
-          new Paragraph({
-            alignment: AlignmentType.LEFT,
-            children: [
-              new TextRun({
-                text: `Instructions:`,
-                bold: true,
-              }),
-            ],
-          }),
+
+          instructionHead(paperData.instructions),
           instructions(paperData.instructions),
           new Paragraph({
             alignment: AlignmentType.CENTER,
@@ -293,28 +287,46 @@ function create(data, paperData) {
   return doc;
 }
 
+function instructionHead(data) {
+  const arr = [];
+
+  if (!_.isUndefined(data)) {
+    arr.push(
+      new TextRun({
+        text: `Instructions:`,
+        bold: true,
+      })
+    );
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      children: arr,
+    });
+  }
+}
+
 function instructions(data) {
   const arr = [];
-  if(data !== undefined){
-    data
-    .map((text) => {
-      arr.push(
-        new TextRun({
-          text: `${text}`,
-          break: 1,
-          bold: true,
-        })
-      );
-    })
-    .reduce((prev, curr) => prev.concat(curr), []);
-  return new Paragraph({
-    alignment: AlignmentType.LEFT,
-    indent: {
-      left: 720,
-    },
-    children: arr,
-  });
+
+  if (_.isUndefined(data)) {
+    return new Paragraph({
+      alignment: AlignmentType.LEFT,
+      indent: {
+        left: 720,
+      },
+      children: arr,
+    });
   } else {
+    data
+      .map((text) => {
+        arr.push(
+          new TextRun({
+            text: `${text}`,
+            break: 1,
+            bold: true,
+          })
+        );
+      })
+      .reduce((prev, curr) => prev.concat(curr), []);
     return new Paragraph({
       alignment: AlignmentType.LEFT,
       indent: {
@@ -323,8 +335,8 @@ function instructions(data) {
       children: arr,
     });
   }
-  
 }
+
 function displayMTFHeader(data) {
   return new TableCell({
     borders: MTFborder,
@@ -386,7 +398,7 @@ function MTFTabel(question) {
 }
 
 function createFTB(data, count) {
-  if(data === undefined){
+  if (_.isUndefined(data)) {
     return new Paragraph({
       alignment: AlignmentType.LEFT,
       children: [
@@ -422,7 +434,7 @@ function createFTB(data, count) {
 
 function createSAObject(data, count) {
   const arr = [];
-  if(data === undefined){
+  if (_.isUndefined(data)) {
     return createFTB(data, count);
   }
   if (data.text) {
@@ -931,7 +943,6 @@ function formatview(data, count, questionCounter, marks) {
 }
 
 function mtfTableData(data) {
-  
   const cell = new TableCell({
     children: [MTFTabel(data)],
   });
