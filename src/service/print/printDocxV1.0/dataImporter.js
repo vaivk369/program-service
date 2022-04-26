@@ -1,7 +1,7 @@
 const { async } = require("rxjs/internal/scheduler/async");
 const fetch = require("node-fetch");
 const axios = require("axios");
-
+const _ = require("lodash")
 const envVariables = require("../../../envVariables");
 const { result } = require("lodash");
 
@@ -67,7 +67,7 @@ const getQuestionSet = async (id) => {
     }); // Hierarchy
  
     const instructions = await  getQuestionForSet(id);
-
+    
     const promiseMap = questionIds.map((sec) =>
       sec.map((question) => {
         if (question !== undefined) {
@@ -94,13 +94,10 @@ const getQuestionSet = async (id) => {
           questions: questions,
         };
       });
-
-     
-
       return {
         sectionData,
         paperData: data,
-        instructions: instructions.instructions.default
+        instructions: _.isUndefined(instructions.instructions) ? undefined : instructions.instructions.default
       };
     });
   })

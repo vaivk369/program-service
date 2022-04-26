@@ -33,7 +33,7 @@ const buildDOCX_1_WithCallback = async (id, callback) => {
           examName: examName,
           className: grade,
           subject: subject,
-          instructions: instructions.split(/\n/),
+          instructions: instructions == undefined ? undefined : instructions.split(/\n/),
         };
         let questionCounter = 0;
 
