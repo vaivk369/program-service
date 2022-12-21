@@ -945,7 +945,7 @@ function getProgramCountsByOrg(req, response) {
     attributes: [...facets, [Sequelize.fn('count', Sequelize.col(facets[0])), 'count']],
     group: [...facets]
   }).then((result) => {
-      const apiRes = _.keyBy(_.map(result, 'dataValues'), 'rootorg_id');
+      const apiRes = _.keyBy( _.compact(_.map(result, 'dataValues'), 'rootorg_id'));
 
       const orgIds = _.map(apiRes, 'rootorg_id');
       if (_.isEmpty(result) || _.isEmpty(orgIds)) {
