@@ -946,8 +946,7 @@ function getProgramCountsByOrg(req, response) {
     group: [...facets]
   }).then((result) => {
       const apiRes = _.keyBy(_.map(result, 'dataValues'), 'rootorg_id');
-
-      const orgIds = _.map(apiRes, 'rootorg_id');
+      const orgIds = _.compact(_.map(apiRes, 'rootorg_id'));
       if (_.isEmpty(result) || _.isEmpty(orgIds)) {
         loggerService.exitLog({responseCode: 'OK'}, logObject);
         return response.status(200).send(successResponse(rspObj));
