@@ -23,8 +23,6 @@ const loggerService = require('../service/loggerService');
 const queryRes_Min = 300;
 const NotificationService = require('../service/notificationService');
 const notificationService = new NotificationService();
-const uuid = require("uuid/v1");
-const stackTrace_MaxLimit = 500;
 
 class ProgramServiceHelper {
 
