@@ -3,6 +3,7 @@ const uuid = require("uuid/v1");
 const logger = require('sb_logger_util_v2');
 const SbCacheManager = require('sb_cache_manager');
 const messageUtils = require('./messageUtil');
+const { successResponse, errorResponse, loggerError } = require('../helpers/responseUtil');
 const Sequelize = require('sequelize');
 const moment = require('moment');
 const loggerService = require('./loggerService');
@@ -31,7 +32,7 @@ var async = require('async')
 
 const queryRes_Max = 1000;
 const queryRes_Min = 300;
-const stackTrace_MaxLimit = 500;
+//const stackTrace_MaxLimit = 500;
 const HierarchyService = require('../helpers/updateHierarchy.helper');
 const { constant } = require("lodash");
 const programServiceHelper = new ProgramServiceHelper();
@@ -41,38 +42,32 @@ const registryService = new RegistryService()
 const hierarchyService = new HierarchyService()
 const UserService = require('./userService');
 const userService = new UserService();
+
 function getProgram(req, response) {
  const logObject = {
        traceId : req.headers['x-request-id'] || '',
        message : programMessages.READ.INFO
  }
-  loggerService.entryLog(req.body, logObject);
+ loggerService.entryLog(req.body, logObject);
 
   var rspObj = req.rspObj
   const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.READ.EXCEPTION_CODE
 
   model.program.findByPk(req.params.program_id)
     .then(function (res) {
-  loggerService.exitLog({responseCode: 'OK'}, logObject);
-      return response.status(200).send(successResponse({
-        apiId: 'api.program.read',
-        ver: '1.0',
-        msgid: uuid(),
-        responseCode: 'OK',
-        result: res
-      }))
+      rspObj.responseCode = responseCode.SUCCESS;
+      rspObj.result = res;
+      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+      return response.status(200).send(successResponse(rspObj));
     })
-    .catch(function (err) {
-      // console.log(err)
-     loggerError('',rspObj,errCode+errorCodes.CODE1);
-     loggerService.exitLog({responseCode: 'ERR_READ_PROGRAM'}, logObject);
-      return response.status(400).send(errorResponse({
-        apiId: 'api.program.read',
-        ver: '1.0',
-        msgid: uuid(),
-        responseCode: 'ERR_READ_PROGRAM',
-        result: err
-      },errCode+errorCodes.CODE1));
+    .catch(function (error) {
+      const sequelizeErrorMessage = _.first(_.get(error, 'errors'));
+      rspObj.errCode = programMessages.READ.FAILED_CODE;
+      rspObj.errMsg = sequelizeErrorMessage ? sequelizeErrorMessage.message : error.message || programMessages.READ.FAILED_MESSAGE;
+      rspObj.responseCode = responseCode.SERVER_ERROR;
+      loggerError(rspObj, errCode + errorCodes.CODE1);
+      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+      return response.status(400).send(errorResponse(rspObj, errCode + errorCodes.CODE2));
     });
 }
 
@@ -82,7 +77,7 @@ async function createProgram(req, response) {
     traceId : req.headers['x-request-id'] || '',
     message : programMessages.CREATE.INFO
   }
- loggerService.entryLog(data, logObject);
+  loggerService.entryLog(data, logObject);
   var rspObj = req.rspObj
   const errCode = programMessages.EXCEPTION_CODE+'_'+programMessages.CREATE.EXCEPTION_CODE
 
@@ -90,7 +85,7 @@ async function createProgram(req, response) {
     rspObj.errCode = programMessages.CREATE.MISSING_CODE
     rspObj.errMsg = programMessages.CREATE.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
-    loggerError('',rspObj,errCode+errorCodes.CODE1);
+    loggerError(rspObj,errCode+errorCodes.CODE1);
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
@@ -105,28 +100,20 @@ async function createProgram(req, response) {
   }
 
   model.program.create(insertObj).then(sc => {
-    loggerService.exitLog({responseCode: 'OK'}, logObject);
-    return response.status(200).send(successResponse({
-      apiId: 'api.program.create',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'OK',
-      result: {
-        'program_id': insertObj.program_id
-      }
-    }));
-  }).catch(err => {
-    // console.log(err)
-    // console.log("Error adding Program to db", err);
-    loggerError('Error Adding program to DB',rspObj,errCode+errorCodes.CODE2);
-    loggerService.exitLog({responseCode: 'ERR_CREATE_PROGRAM'}, logObject);
-    return response.status(400).send(errorResponse({
-      apiId: 'api.program.create',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'ERR_CREATE_PROGRAM',
-      result: err
-    },errCode+errorCodes.CODE2));
+    rspObj.responseCode = responseCode.SUCCESS;
+    rspObj.result = {
+      'program_id': insertObj.program_id
+    }
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+    return response.status(200).send(successResponse(rspObj))
+  }).catch(error => {
+    const sequelizeErrorMessage = _.first(_.get(error, 'errors'));
+    rspObj.errCode = programMessages.CREATE.FAILED_CODE;
+    rspObj.errMsg = sequelizeErrorMessage ? sequelizeErrorMessage.message : error.message || programMessages.CREATE.FAILED_MESSAGE;
+    rspObj.responseCode = responseCode.SERVER_ERROR;
+    loggerError(rspObj, errCode + errorCodes.CODE2);
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+    return response.status(500).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
   });
 }
 
@@ -144,7 +131,7 @@ function updateProgram(req, response) {
     rspObj.errCode = programMessages.UPDATE.MISSING_CODE
     rspObj.errMsg = programMessages.UPDATE.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
-    loggerError('',rspObj,errCode+errorCodes.CODE1);
+    loggerError(rspObj,errCode+errorCodes.CODE1);
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
@@ -164,38 +151,28 @@ function updateProgram(req, response) {
   }
   model.program.update(updateValue, updateQuery).then(resData => {
     if (_.isArray(resData) && !resData[0]) {
-      loggerError('',rspObj,errCode+errorCodes.CODE2);
-      loggerService.exitLog({responseCode: 'ERR_UPDATE_PROGRAM'}, logObject);
-      return response.status(400).send(errorResponse({
-        apiId: 'api.program.update',
-        ver: '1.0',
-        msgid: uuid(),
-        responseCode: 'ERR_UPDATE_PROGRAM',
-        result: 'Program_id Not Found'
-      },errCode+errorCodes.CODE2));
+      rspObj.errCode = programMessages.UPDATE.FAILED_CODE;
+      rspObj.errMsg = programMessages.UPDATE.FAILED_MESSAGE;
+      rspObj.responseCode = responseCode.SERVER_ERROR;
+      loggerError(rspObj, errCode+errorCodes.CODE2);
+      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+      return response.status(500).send(errorResponse(rspObj, errCode+errorCodes.CODE2));
     }
-    loggerService.exitLog({responseCode: 'OK'}, logObject);
+    rspObj.responseCode = responseCode.SUCCESS;
+    rspObj.result = {
+      'program_id': updateQuery.where.program_id
+    }
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     asyncOnAfterPublish(req, data.request.program_id);
-    return response.status(200).send(successResponse({
-      apiId: 'api.program.update',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'OK',
-      result: {
-        'program_id': updateQuery.where.program_id
-      }
-    }));
+    return response.status(200).send(successResponse(rspObj));
   }).catch(error => {
-    // console.log(error)
-    loggerError('',rspObj,errCode+errorCodes.CODE3);
-    loggerService.exitLog({responseCode: 'ERR_UPDATE_PROGRAM'}, logObject);
-    return response.status(400).send(errorResponse({
-      apiId: 'api.program.update',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'ERR_UPDATE_PROGRAM',
-      result: error
-    },errCode+errorCodes.CODE3));
+    console.log(JSON.stringify(error));
+    rspObj.errCode = programMessages.UPDATE.FAILED_CODE;
+    rspObj.errMsg = programMessages.UPDATE.FAILED_MESSAGE;
+    rspObj.responseCode = responseCode.SERVER_ERROR;
+    loggerError(rspObj, errCode+errorCodes.CODE3);
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+    return response.status(500).send(errorResponse(rspObj, errCode+errorCodes.CODE3));
   });
 }
 
@@ -211,7 +188,7 @@ function publishProgram(req, response) {
     req.rspObj.errCode = programMessages.PUBLISH.MISSING_CODE
     req.rspObj.errMsg = programMessages.PUBLISH.MISSING_MESSAGE
     req.rspObj.responseCode = responseCode.CLIENT_ERROR
-    loggerError('',req.rspObj,req.rspObj.errCode+errorCodes.CODE1);
+    loggerError(req.rspObj,req.rspObj.errCode+errorCodes.CODE1);
     loggerService.exitLog({responseCode: req.rspObj.responseCode, errCode: req.rspObj.errCode+errorCodes.CODE1}, logObject);
     return response.status(400).send(errorResponse(req.rspObj,req.rspObj.errCode+errorCodes.CODE1))
   }
@@ -240,7 +217,7 @@ function publishProgram(req, response) {
     req.rspObj.result = err;
     req.rspObj.errMsg = programMessages.PUBLISH.FAILED_MESSAGE;
     loggerService.exitLog({responseCode: req.rspObj.responseCode, errCode: req.rspObj.errCode+errorCodes.CODE5}, logObject);
-    loggerError('', req.rspObj, req.rspObj.errCode+errorCodes.CODE5);
+    loggerError(req.rspObj, req.rspObj.errCode+errorCodes.CODE5);
     return response.status(400).send(errorResponse(req.rspObj, req.rspObjerrCode+errorCodes.CODE5));
   });
 }
@@ -317,8 +294,8 @@ const publishCallback = function(errObj, req, response, program, copyCollectionR
     });
   }
   else {
+    loggerError(req.rspObj, req.rspObj.errCode+errorCodes.CODE4);
     loggerService.exitLog({responseCode: errObj.responseCode, errCode: req.rspObj.errCode+errorCodes.CODE4}, logObject);
-    loggerError('', req.rspObj, req.rspObj.errCode+errorCodes.CODE4);
     return response.status(400).send(errorResponse(errObj,req.rspObj.errCode+errorCodes.CODE4));
   }
 };
@@ -3143,17 +3120,6 @@ function syncUsersToRegistry(req, response) {
   });
 }
 
-function loggerError(errmsg, data, errCode) {
-  var errObj = {}
-  errObj.eid = 'Error'
-  errObj.edata = {
-    err : errCode,
-    errtype : errmsg || _.get(data,'errMsg'),
-    requestid : _.get(data, 'msgId') || uuid(),
-    stacktrace : _.truncate(JSON.stringify(data), { 'length': stackTrace_MaxLimit})
-  }
-  logger.error({ msg: 'Error log', errObj})
-}
 
 function health(req, response) {
   return response.status(200).send(successResponse({
@@ -3165,43 +3131,7 @@ function health(req, response) {
   }));
 }
 
-function successResponse(data) {
-  var response = {}
-  response.id = data.apiId
-  response.ver = data.apiVersion
-  response.ts = new Date()
-  response.params = getParams(data.msgid, 'successful', null, null)
-  response.responseCode = data.responseCode || 'OK'
-  response.result = data.result
-  return response
-}
 
-/**
- * function create error response body.
- * @param {Object} data
- * @returns {nm$_responseUtil.errorResponse.response}
- */
-function errorResponse(data,errCode) {
-  var response = {}
-  response.id = data.apiId
-  response.ver = data.apiVersion
-  response.ts = new Date()
-  response.params = getParams(data.msgId, 'failed', data.errCode, data.errMsg)
-  response.responseCode = errCode ? errCode +'_'+ data.responseCode : data.responseCode
-  response.result = data.result
-  return response
-}
-
-function getParams(msgId, status, errCode, msg) {
-  var params = {}
-  params.resmsgid = uuid()
-  params.msgid = msgId || null
-  params.status = status
-  params.err = errCode
-  params.errmsg = msg
-
-  return params
-}
 
 async function asyncOnAfterPublish (req, program_id) {
   var rspObj = req.rspObj;

@@ -37,7 +37,7 @@ loggerService.entryLog(data, logObject);
     const createdResponse = await model.bulk_job_request.create(insertObj)
     rspObj.responseCode = responseCode.SUCCESS;
     rspObj.result = createdResponse;
-   loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(200).send(successResponse(rspObj))
   }
   catch(error) {
@@ -46,7 +46,7 @@ loggerService.entryLog(data, logObject);
     rspObj.errMsg = sequelizeErrorMessage ? sequelizeErrorMessage.message : error.message || bulkJobRequestMessages.CREATE.FAILED_MESSAGE;
     rspObj.responseCode = responseCode.SERVER_ERROR;
     loggerError(rspObj,errCode+errorCode.CODE2);
-   loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return response.status(500).send(errorResponse(rspObj,errCode+errorCode.CODE2));
   }
 }
@@ -207,7 +207,7 @@ function errorResponse(data,errCode) {
   response.id = data.apiId
   response.ver = data.apiVersion
   response.ts = new Date()
-  response.params = getParams(data.msgId, 'failed', data.errCode, data.errMsg)
+  response.params = getParams(data.msgid, 'failed', data.errCode, data.errMsg)
   response.responseCode = errCode+'_'+data.responseCode
   response.result = data.result
   return response
