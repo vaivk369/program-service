@@ -205,7 +205,7 @@ function publishProgram(req, response) {
       publishCallback(null, req, response, program);
     } else {
         loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: req.rspObj.errCode+errorCodes.CODE2}, logObject);
-        loggerError('', req.rspObj, req.rspObj.errCode+errorCodes.CODE2);
+        loggerError(req.rspObj, req.rspObj.errCode+errorCodes.CODE2);
         req.rspObj.responseCode = 'ERR_PUBLISH_PROGRAM';
         req.rspObj.result = 'Program_id Not Found';
         req.rspObj.errMsg = programMessages.PUBLISH.FAILED_MESSAGE;
@@ -258,7 +258,7 @@ const publishCallback = function(errObj, req, response, program, copyCollectionR
     model.program.update(updateValue, updateQuery).then(resData => {
       if (_.isArray(resData) && !resData[0]) {
         loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: req.rspObj.errCode+errorCodes.CODE2}, logObject);
-        loggerError('', req.rspObj, errCode+errorCodes.CODE2);
+        loggerError(req.rspObj, errCode+errorCodes.CODE2);
         req.rspObj.responseCode = 'ERR_PUBLISH_PROGRAM';
         req.rspObj.result = 'Program_id Not Found';
         req.rspObj.errMsg = programMessages.PUBLISH.FAILED_MESSAGE;
@@ -268,7 +268,7 @@ const publishCallback = function(errObj, req, response, program, copyCollectionR
         if (afterPublishResponse.error) {
           console.log(JSON.stringify(afterPublishResponse.error));
           loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: req.rspObj.errCode+errorCodes.CODE3}, logObject);
-          loggerError('', req.rspObj, req.rspObj.errCode+errorCodes.CODE2);
+          loggerError(req.rspObj, req.rspObj.errCode+errorCodes.CODE2);
           req.rspObj.responseCode = 'ERR_PUBLISH_PROGRAM';
           req.rspObj.result = (_.get(afterPublishResponse.error, 'Error.response.data')) ? _.get(afterPublishResponse.error, 'Error.response.data') : 'On After Publish callback failed';
           return response.status(400).send(errorResponse(req.rspObj, req.rspObj.errCode+errorCodes.CODE2));
@@ -286,7 +286,7 @@ const publishCallback = function(errObj, req, response, program, copyCollectionR
     }).catch(error => {
       console.log(JSON.stringify(error));
       loggerService.exitLog({responseCode: 'ERR_PUBLISH_PROGRAM', errCode: req.rspObj.errCode+errorCodes.CODE3}, logObject);
-      loggerError('', req.rspObj, req.rspObj.errCode+errorCodes.CODE3);
+      loggerError(req.rspObj, req.rspObj.errCode+errorCodes.CODE3);
       req.rspObj.responseCode = 'ERR_PUBLISH_PROGRAM';
       req.rspObj.result = error;
       req.rspObj.errMsg = programMessages.PUBLISH.FAILED_MESSAGE;
@@ -940,7 +940,7 @@ function getProgramCountsByOrg(req, response) {
         rspObj.responseCode = responseCode.SERVER_ERROR
         rspObj.errCode = programMessages.PROGRAMCOUNTS_BYORG.ORGSEARCH_FETCH.FAILED_CODE
         rspObj.errMsg = programMessages.PROGRAMCOUNTS_BYORG.ORGSEARCH_FETCH.FAILED_MESSAGE
-        loggerError('',rspObj,errCode+errorCodes.CODE1);
+        loggerError(rspObj,errCode+errorCodes.CODE1);
         rspObj.result = error;
         loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
         return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1));
@@ -948,7 +948,7 @@ function getProgramCountsByOrg(req, response) {
   }).catch((err) => {
     rspObj.responseCode = responseCode.SERVER_ERROR
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE2);
+    loggerError(rspObj,errCode+errorCodes.CODE2);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
   });
 }
@@ -990,7 +990,7 @@ async function programList(req, response) {
     rspObj.errMsg = programMessages.LIST.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE1);
+    loggerError(rspObj,errCode+errorCodes.CODE1);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
   if (data.request.limit) {
@@ -1150,7 +1150,7 @@ async function programList(req, response) {
   }
   catch (err){
     loggerService.exitLog({responseCode: 'ERR_LIST_PROGRAM'}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE4);
+    loggerError(rspObj,errCode+errorCodes.CODE4);
     return response.status(400).send(errorResponse({
       apiId: 'api.program.list',
       ver: '1.0',
@@ -1175,7 +1175,7 @@ function addNomination(req, response) {
     rspObj.errMsg = programMessages.NOMINATION.CREATE.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE1);
+    loggerError(rspObj,errCode+errorCodes.CODE1);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
   const insertObj = req.body.request;
@@ -1200,7 +1200,7 @@ function addNomination(req, response) {
   }).catch(err => {
     console.log("Error adding nomination to db", JSON.stringify(err));
     loggerService.exitLog({responseCode: 'ERR_CREATE_PROGRAM'}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE2);
+    loggerError(rspObj,errCode+errorCodes.CODE2);
     return response.status(400).send(errorResponse({
       apiId: 'api.nomination.add',
       ver: '1.0',
@@ -1225,7 +1225,7 @@ function updateNomination(req, response) {
     rspObj.errMsg = programMessages.NOMINATION.UPDATE.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE1);
+    loggerError(rspObj,errCode+errorCodes.CODE1);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
   const updateQuery = {
@@ -1258,7 +1258,7 @@ function updateNomination(req, response) {
   model.nomination.update(updateValue, updateQuery).then(res => {
     if (_.isArray(res) && !res[0]) {
       loggerService.exitLog({responseCode: 'ERR_UPDATE_NOMINATION'}, logObject);
-      loggerError('',rspObj,errCode+errorCodes.CODE2);
+      loggerError(rspObj,errCode+errorCodes.CODE2);
       return response.status(400).send(errorResponse({
         apiId: 'api.nomination.update',
         ver: '1.0',
@@ -1287,7 +1287,7 @@ function updateNomination(req, response) {
   }).catch(err => {
     loggerService.exitLog({responseCode: 'ERR_UPDATE_NOMINATION'}, logObject);
     console.log("Error updating nomination to db", JSON.stringify(err));
-    loggerError('',rspObj,errCode+errorCodes.CODE3);
+    loggerError(rspObj,errCode+errorCodes.CODE3);
     return response.status(400).send(errorResponse({
       apiId: 'api.nomination.update',
       ver: '1.0',
@@ -1339,7 +1339,7 @@ function getNominationsList(req, response) {
       }))
     }).catch((err) => {
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-      loggerError('',rspObj,errCode+errorCodes.CODE1);
+      loggerError(rspObj,errCode+errorCodes.CODE1);
       return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1));
     })
   }else if (data.request.limit === 0) {
@@ -1360,7 +1360,7 @@ function getNominationsList(req, response) {
       }))
     }).catch((err) => {
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-      loggerError('Error fetching nomination count when limit = 0',rspObj,errCode+errorCodes.CODE2);
+      loggerError(rspObj,errCode+errorCodes.CODE2);
       return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
     })
   } else {
@@ -1435,19 +1435,19 @@ function getNominationsList(req, response) {
         }, (error) => {
           console.log(JSON.stringify(error));
           loggerService.exitLog(rspObj.responseCode, logObject);
-          loggerError('',rspObj,errCode+errorCodes.CODE3);
+          loggerError(rspObj,errCode+errorCodes.CODE3);
           return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE3));
         });
       } catch (err) {
         console.log(JSON.stringify(err));
         loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-        loggerError('Error fetching nomination with limit and offset',rspObj,errCode+errorCodes.CODE4);
+        loggerError(rspObj,errCode+errorCodes.CODE4);
         return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE4));
       }
     }).catch(function (err) {
       console.log(JSON.stringify(err));
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-      loggerError('Error fetching nomination with limit and offset',rspObj,errCode+errorCodes.CODE5);
+      loggerError(rspObj,errCode+errorCodes.CODE5);
       return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE5));
     });
   }
@@ -1472,7 +1472,7 @@ async function downloadProgramDetails(req, res) {
     rspObj.errMsg = programMessages.GENERATE_DETAILS.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE1);
+    loggerError(rspObj,errCode+errorCodes.CODE1);
     return res.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1));
   }
   programArr = _.isArray(data.request.filters.program_id) ? data.request.filters.program_id : [];
@@ -1529,13 +1529,13 @@ async function downloadProgramDetails(req, res) {
     return res.status(200).send(successResponse(rspObj));
   } catch (err) {
     console.log(JSON.stringify(err));
-    loggerError('Error due to unhandled exception',rspObj,errCode+errorCodes.CODE2);
+    loggerError(rspObj,errCode+errorCodes.CODE2);
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     return res.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
   }
     }, (err) => {
       console.log(JSON.stringify(err));
-      loggerError('Error http requests or nomination table query promise failure',rspObj,errCode+errorCodes.CODE3);
+      loggerError(rspObj,errCode+errorCodes.CODE3);
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       return res.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE3));
     });
@@ -1598,7 +1598,7 @@ function aggregatedNominationCount(data, result) {
   rspObj.responseCode = responseCode.CLIENT_ERROR;
   if(!data || !data.request || !data.request.filters || !data.request.filters.program_id || !data.request.filters.program_name || !data.request.filters.status) {
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE1);
+    loggerError(rspObj,errCode+errorCodes.CODE1);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
   const reqHeaders = req.headers;
@@ -1686,7 +1686,7 @@ function aggregatedNominationCount(data, result) {
                 rspObj.errMsg = _.get(error, 'response.data.message');
                 rspObj.responseCode = responseCode.UNAUTHORIZED_ACCESS;
                 loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-                loggerError('Error fetching user or org details while downloading nomination list',rspObj,errCode+errorCodes.CODE2);
+                loggerError(rspObj,errCode+errorCodes.CODE2);
                 return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2))
               }
             )
@@ -1695,7 +1695,7 @@ function aggregatedNominationCount(data, result) {
           rspObj.errMsg = _.get(error, 'message');
           rspObj.responseCode = responseCode.SERVER_ERROR;
           loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-          loggerError('',rspObj,errCode+errorCodes.CODE3);
+          loggerError(rspObj,errCode+errorCodes.CODE3);
           return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE3))
         }
       }).catch(error => {
@@ -1703,7 +1703,7 @@ function aggregatedNominationCount(data, result) {
         rspObj.errMsg = programMessages.NOMINATION.DOWNLOAD_LIST.QUERY_FAILED_MESSAGE;
         rspObj.responseCode = responseCode.SERVER_ERROR;
         loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-        loggerError('',rspObj,errCode+errorCodes.CODE4);
+        loggerError(rspObj,errCode+errorCodes.CODE4);
         return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE4))
       })
     }
@@ -1867,7 +1867,7 @@ async function contributorSearch(req, response) {
   rspObj.responseCode = responseCode.CLIENT_ERROR;
   if (!data || !data.request || !data.request.filters || !data.request.filters.user_org || !data.request.filters.user_org.orgId) {
     loggerService.exitLog({ responseCode: rspObj.responseCode }, logObject);
-    loggerError('', rspObj, errCode + errorCodes.CODE1);
+    loggerError(rspObj, errCode + errorCodes.CODE1);
     return response.status(400).send(errorResponse(rspObj, errCode + errorCodes.CODE1))
   }
 
@@ -2106,7 +2106,7 @@ function getProgramContentTypes(req, response) {
       return response.status(200).send(successResponse(rspObj))
     }).catch(error => {
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-      loggerError('',rspObj,errCode+errorCodes.CODE1);
+      loggerError(rspObj,errCode+errorCodes.CODE1);
       return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1));
     })
 }
@@ -2137,7 +2137,7 @@ function getAllConfigurations(req, response) {
       return response.status(200).send(successResponse(rspObj))
     }).catch(error => {
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-      loggerError('',rspObj,errCode+errorCodes.CODE1);
+      loggerError(rspObj,errCode+errorCodes.CODE1);
       return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1));
     })
 }
@@ -2156,7 +2156,7 @@ function getConfigurationByKey(req, response) {
     rspObj.errMsg = configurationMessages.SEARCH.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE1);
+    loggerError(rspObj,errCode+errorCodes.CODE1);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
   rspObj.errCode = configurationMessages.FETCH.FAILED_CODE
@@ -2183,7 +2183,7 @@ function getConfigurationByKey(req, response) {
     }).catch(error => {
       rspObj.responseCode = responseCode.CLIENT_ERROR
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-      loggerError('',rspObj,errCode+errorCodes.CODE2);
+      loggerError(rspObj,errCode+errorCodes.CODE2);
       return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
     })
 }
@@ -2203,7 +2203,7 @@ function programUpdateCollection(req, response) {
     rspObj.errMsg = programMessages.LINK.MISSING_MESSAGE
     rspObj.responseCode = responseCode.CLIENT_ERROR
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE1);
+    loggerError(rspObj,errCode+errorCodes.CODE1);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
 
@@ -2238,7 +2238,7 @@ function programUpdateCollection(req, response) {
     rspObj.errMsg = programMessages.LINK.MISSING_MESSAGE
     rspObj.responseCode = responseCode.RESOURCE_NOT_FOUND
     loggerService.exitLog({responseCode: error.response.data.responseCode}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE2);
+    loggerError(rspObj,errCode+errorCodes.CODE2);
     return response.status(400).send(errorResponse({
       apiId: 'api.program.collection.link',
       ver: '1.0',
@@ -2268,7 +2268,7 @@ async function programCopyCollections(req, response) {
     rspObj.errMsg = programMessages.COPY_COLLECTION.COPY.MISSING_MESSAGE;
     rspObj.responseCode = responseCode.CLIENT_ERROR;
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE1);
+    loggerError(rspObj,errCode+errorCodes.CODE1);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
   }
 
@@ -2329,7 +2329,7 @@ async function programCopyCollections(req, response) {
                         console.log(`Error updating hierarchy for collections ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
                       }
                       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-                      loggerError('',rspObj,errCode+errorCodes.CODE2);
+                      loggerError(rspObj,errCode+errorCodes.CODE2);
                     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2))
                   })
               }, error => {
@@ -2341,7 +2341,7 @@ async function programCopyCollections(req, response) {
                     console.log(`Error fetching hierarchy for collections ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
                   }
                   loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-                  loggerError('',rspObj,errCode+errorCodes.CODE3);
+                  loggerError(rspObj,errCode+errorCodes.CODE3);
                 return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE3))
               })
         }
@@ -2400,7 +2400,7 @@ async function programCopyCollections(req, response) {
                           console.log(`Error updating hierarchy for collections ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
                         }
                         loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-                        loggerError('',rspObj,errCode+errorCodes.CODE4);
+                        loggerError(rspObj,errCode+errorCodes.CODE4);
                         return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE4))
                       })
                   }, error => {
@@ -2412,7 +2412,7 @@ async function programCopyCollections(req, response) {
                       console.log(`Error creating collection ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
                     }
                     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-                    loggerError('',rspObj,errCode+errorCodes.CODE5);
+                    loggerError(rspObj,errCode+errorCodes.CODE5);
                     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE5))
                   })
               }, (error) => {
@@ -2424,7 +2424,7 @@ async function programCopyCollections(req, response) {
                   console.log(`Error fetching hierarchy for collections ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
                 }
                 loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-                loggerError('',rspObj,errCode+errorCodes.CODE6);
+                loggerError(rspObj,errCode+errorCodes.CODE6);
                 return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE6))
               })
         }
@@ -2438,7 +2438,7 @@ async function programCopyCollections(req, response) {
           console.log(`Error searching for collections ==> ${additionalMetaData.programId}  ==>`, JSON.stringify(error.response.data));
         }
         loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-        loggerError('',rspObj,errCode+errorCodes.CODE7);
+        loggerError(rspObj,errCode+errorCodes.CODE7);
         return response.status(error.response.status || 400).send(errorResponse(rspObj,errCode+errorCodes.CODE7))
       }
     )
@@ -2464,7 +2464,7 @@ async function generateApprovedContentReport(req, res) {
     rspObj.responseCode = responseCode.CLIENT_ERROR
 
     loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE1);
+    loggerError(rspObj,errCode+errorCodes.CODE1);
     return res.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1));
   }
   programArr = _.isArray(data.request.filters.program_id) ? data.request.filters.program_id : [];
@@ -2518,7 +2518,7 @@ async function generateApprovedContentReport(req, res) {
       rspObj.errMsg = err;
     }
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-      loggerError('Error in preparing content metrics',rspObj,errCode+errorCodes.CODE2);
+      loggerError(rspObj,errCode+errorCodes.CODE2);
       return res.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
     }
   } else {
@@ -2547,7 +2547,7 @@ async function generateApprovedContentReport(req, res) {
         rspObj.errMsg = err;
       }
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-      loggerError('Error in preparing content metrics',rspObj,errCode+errorCodes.CODE3);
+      loggerError(rspObj,errCode+errorCodes.CODE3);
       return res.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE3));
     }
   }
@@ -2570,7 +2570,7 @@ function publishContent(req, response){
     rspObj.responseCode = responseCode.CLIENT_ERROR
 
     loggerService.exitLog({responseCode: rspObj.responseCode, errCode: rspObj.errCode}, logObject);
-    loggerError('', rspObj, errCode+errorCodes.CODE1);
+    loggerError(rspObj, errCode+errorCodes.CODE1);
     return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1));
   }
 
@@ -2602,7 +2602,7 @@ function publishContent(req, response){
             rspObj.errMsg = 'Error while sending event to kafka'
             rspObj.responseCode = responseCode.SERVER_ERROR
             loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-            loggerError('Error while sending event to kafka',rspObj,errCode+errorCodes.CODE2);
+            loggerError(rspObj,errCode+errorCodes.CODE2);
             return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
           } else {
             rspObj.responseCode = 'OK'
@@ -2620,7 +2620,7 @@ function publishContent(req, response){
         rspObj.errMsg = programMessages.CONTENT_PUBLISH.FAILED_MESSAGE
         rspObj.responseCode = responseCode.SERVER_ERROR
         loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-        loggerError('',rspObj,errCode+errorCodes.CODE3);
+        loggerError(rspObj,errCode+errorCodes.CODE3);
         return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE3));
       }
     )
@@ -3166,7 +3166,7 @@ async function asyncOnAfterPublish (req, program_id) {
     rspObj.errMsg = programMessages.NOMINATION.CREATE.FAILED_MESSAGE
     rspObj.responseCode = responseCode.SERVER_ERROR
     loggerService.exitLog(rspObj.responseCode, logObject);
-    loggerError('',rspObj,errCode+errorCodes.CODE1);
+    loggerError(rspObj,errCode+errorCodes.CODE1);
   }
 }
 
