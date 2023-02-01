@@ -9,7 +9,7 @@ const successResponse = (data) => {
   response.id = data.apiId
   response.ver = data.apiVersion
   response.ts = new Date()
-  response.params = getParams(data, 'successful', null, null)
+  response.params = getParams(data.msgid, 'successful', null, null)
   response.responseCode = data.responseCode || 'OK'
   response.result = data.result
   return response
@@ -20,16 +20,16 @@ const errorResponse = (data,errCode) => {
   response.id = data.apiId
   response.ver = data.apiVersion
   response.ts = new Date()
-  response.params = getParams(data, 'failed', data.errCode, data.errMsg)
+  response.params = getParams(data.msgid, 'failed', data.errCode, data.errMsg)
   response.responseCode = errCode+'_'+data.responseCode
   response.result = data.result
   return response
 }
 
-const getParams = (data, status, errCode, msg) => {
+const getParams = (msgId, status, errCode, msg) => {
   var params = {}
-  params.resmsgid = data.traceid || data.msgid || uuid()
-  params.msgid = data.msgid || null
+  params.resmsgid = msgId || uuid()
+  params.msgid = msgId || null
   params.status = status
   params.err = errCode
   params.errmsg = msg
