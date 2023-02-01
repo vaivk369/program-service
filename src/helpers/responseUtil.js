@@ -28,7 +28,7 @@ const errorResponse = (data,errCode) => {
 
 const getParams = (msgId, status, errCode, msg) => {
   var params = {}
-  params.resmsgid = msgId || uuid()
+  params.resmsgid = msgId
   params.msgid = msgId || null
   params.status = status
   params.err = errCode
