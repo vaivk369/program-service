@@ -10,10 +10,10 @@ const errorCode = messageUtils.ERRORCODES;
 const model = require('../models');
 const uuid = require("uuid/v1");
 const loggerService = require('./loggerService');
+const { successResponse, errorResponse, loggerError } = require('../helpers/responseUtil');
 
 const searchResult_Max = 1000;
 const searchResult_Min = 300;
-const stackTrace_MaxLimit = 500;
 
 async function createJob(req, response) {
   let data = req.body
@@ -189,53 +189,6 @@ async function searchJob(req, response) {
     return response.status(500).send(errorResponse(rspObj,errCode+errorCode.CODE2));
   }
 }
-
-
-function successResponse(data) {
-  var response = {}
-  response.id = data.apiId
-  response.ver = data.apiVersion
-  response.ts = new Date()
-  response.params = getParams(data.msgid, 'successful', null, null)
-  response.responseCode = data.responseCode || 'OK'
-  response.result = data.result
-  return response
-}
-
-function errorResponse(data,errCode) {
-  var response = {}
-  response.id = data.apiId
-  response.ver = data.apiVersion
-  response.ts = new Date()
-  response.params = getParams(data.msgid, 'failed', data.errCode, data.errMsg)
-  response.responseCode = errCode+'_'+data.responseCode
-  response.result = data.result
-  return response
-}
-
-function getParams(msgId, status, errCode, msg) {
-  var params = {}
-  params.resmsgid = uuid()
-  params.msgid = msgId || null
-  params.status = status
-  params.err = errCode
-  params.errmsg = msg
-
-  return params
-}
-
-function loggerError(data,errCode) {
-    var errObj = {}
-    errObj.eid = 'Error'
-    errObj.edata = {
-      err : errCode,
-      errtype : data.errMsg,
-      requestid : data.msgId || uuid(),
-      stacktrace : _.truncate(JSON.stringify(data), { 'length': stackTrace_MaxLimit})
-    }
-    logger.error({msg: 'Error log', errObj})
-}
-
 
 module.exports.createJob = createJob;
 module.exports.updateJob = updateJob;
