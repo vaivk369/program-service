@@ -837,7 +837,7 @@ class ProgramServiceHelper {
                     })
                 }, (error) => {
                   errObj.errCode = programMessages.COPY_COLLECTION.GET_HIERARCHY.FAILED_CODE;
-                  errObj.errMsg = programMessages.COPY_COLLECTION.GET_HIERARCHY.FAILED_MESSAGE;
+                  errObj.errMsg = error.message || programMessages.COPY_COLLECTION.GET_HIERARCHY.FAILED_MESSAGE;
                   errObj.responseCode = responseCode.SERVER_ERROR;
                   errObj.loggerMsg = 'Error fetching hierarchy for collections';
                   console.log('Error fetching hierarchy for collections', JSON.stringify(error));
