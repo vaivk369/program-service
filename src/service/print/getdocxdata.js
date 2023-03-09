@@ -18,16 +18,40 @@ const {
   convertInchesToTwip,
 } = docx;
 const _ = require("lodash");
+const defaultLanguage = 'english';
+const basicDetails={
+  english : {
+    studentName : 'Student Name Testing',
+    rollNo: 'Roll Number',
+    subject: 'Subject',
+    class: 'Class',
+    time: 'Time',
+    marks: 'Marks',
+    instructionHead: 'Instructions'
+  },
+  hindi : {
+    studentName : 'विद्यार्थी का नाम',
+    rollNo: 'रोल न',
+    subject: 'विषय',
+    class: 'कक्षा',
+    time: 'समय',
+    marks: 'कुल अंक',
+    instructionHead: 'निर्देश'
+  }
+}
 
 function create(data, paperData) {
+  const language = paperData.language.toLowerCase();
+  let basicPaperDetials = basicDetails.english;
+
   const doc = new Document({
     sections: [
       {
         properties: {},
         children: [
           headers(
-            "Student Name:..............................................................",
-            "Roll Number:............................."
+            getLanguageKey(language, 'studentName') +  ":..................................................",
+            getLanguageKey(language, 'rollNo') +  ":............................."
           ),
           new Paragraph({
             children: [], // Just newline without text
@@ -49,7 +73,7 @@ function create(data, paperData) {
             alignment: AlignmentType.CENTER,
             children: [
               new TextRun({
-                text: `Grade: ${paperData.className}`,
+                text: getLanguageKey(language, 'class')+ `:${paperData.className}`,
                 bold: true,
               }),
             ],
@@ -61,7 +85,7 @@ function create(data, paperData) {
             alignment: AlignmentType.CENTER,
             children: [
               new TextRun({
-                text: `Subject: ${paperData.subject}`,
+                text: getLanguageKey(language, 'subject')+ `:${paperData.subject}`,
                 bold: true,
               }),
             ],
@@ -69,7 +93,7 @@ function create(data, paperData) {
           new Paragraph({
             children: [], // Just newline without text
           }),
-          headers("Time:............", "Marks:............"),
+          headers(getLanguageKey(language, 'time')+":" + `${paperData.maxTime}`, getLanguageKey(language, 'marks')+":"+`${paperData.maxScore}`),
           new Paragraph({
             alignment: AlignmentType.CENTER,
             children: [
@@ -81,7 +105,7 @@ function create(data, paperData) {
             ],
           }),
 
-          instructionHead(paperData.instructions),
+          instructionHead(paperData.instructions, language),
           instructions(paperData.instructions),
           new Paragraph({
             alignment: AlignmentType.CENTER,
@@ -287,13 +311,13 @@ function create(data, paperData) {
   return doc;
 }
 
-function instructionHead(data) {
+function instructionHead(data, language) {
   const arr = [];
 
   if (!_.isUndefined(data)) {
     arr.push(
       new TextRun({
-        text: `Instructions:`,
+        text: (getLanguageKey(language, 'instructionHead')+":"),
         bold: true,
       })
     );
@@ -990,6 +1014,12 @@ function optionsTabel(testimage) {
       }),
     ],
   });
+}
+
+function getLanguageKey(lang, key) {
+  return basicDetails[lang] && basicDetails[lang][key] ? 
+  basicDetails[lang][key] : 
+  basicDetails[defaultLanguage][key]
 }
 
 module.exports = {

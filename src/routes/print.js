@@ -47,7 +47,7 @@ async function printDocx(req, res) {
           res.send(Buffer.from(binary, "base64"));
         }
       } else {
-        res.status(404).send({
+        res.status(400).send({
           error: errorMsg,
         });
       }
@@ -86,7 +86,7 @@ async function printDocx(req, res) {
           res.send(Buffer.from(binary, "base64"));
         }
       } else {
-        res.status(404).send({
+        res.status(400).send({
           error: errorMsg,
         });
       }

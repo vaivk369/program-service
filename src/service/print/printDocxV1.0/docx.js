@@ -34,6 +34,9 @@ const buildDOCX_1_WithCallback = async (id, callback) => {
           className: grade,
           subject: subject,
           instructions: instructions == undefined ? undefined : instructions.split(/\n/),
+          language: data.paperData.medium[0],
+          maxTime: data.paperData.timeLimits?.maxTime ? `${(Math.floor(data.paperData.timeLimits.warningTime)/60)} Minutes` : "............",
+          maxScore: data.paperData.maxScore? maxScore : "............"
         };
         let questionCounter = 0;
 
