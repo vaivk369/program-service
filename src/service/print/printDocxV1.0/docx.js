@@ -10,11 +10,11 @@ var {
   renderQuestion,
 } = require("../docxHelper");
 
-const buildDOCX_1_WithCallback = async (id, callback) => {
+const buildDOCX_1_WithCallback = async (config, callback) => {
   let error = false;
   let errorMsg = "";
   let totalMarks = 0;
-  getQuestionSet(id)
+  getQuestionSet(config)
     .then(async (data) => {
         if (data.error) {
         callback(null, data.error, data.errorMsg);

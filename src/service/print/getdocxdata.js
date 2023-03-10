@@ -18,30 +18,15 @@ const {
   convertInchesToTwip,
 } = docx;
 const _ = require("lodash");
+
 const defaultLanguage = 'english';
 const basicDetails={
-  english : {
-    studentName : 'Student Name Testing',
-    rollNo: 'Roll Number',
-    subject: 'Subject',
-    class: 'Class',
-    time: 'Time',
-    marks: 'Marks',
-    instructionHead: 'Instructions'
-  },
-  hindi : {
-    studentName : 'विद्यार्थी का नाम',
-    rollNo: 'रोल न',
-    subject: 'विषय',
-    class: 'कक्षा',
-    time: 'समय',
-    marks: 'कुल अंक',
-    instructionHead: 'निर्देश'
-  }
+  english : require('./lang/english.json'),
+  hindi : require('./lang/hindi.json')
 }
 
 function create(data, paperData) {
-  const language = paperData.language.toLowerCase();
+  const language = paperData?.language?.toLowerCase();
   let basicPaperDetials = basicDetails.english;
 
   const doc = new Document({
