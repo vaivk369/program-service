@@ -9,12 +9,17 @@ const requestMiddleware = require("../middlewares/request.middleware");
 const BASE_URL = "/program/v1";
 // Refactor this to move to service
 async function printDocx(req, res) {
-  const id = req.query.id;
   const format = req.query.format;
   const version = req.query.version;
+  const config={
+    id : req.query.id,
+    allQuestions: req.query.allQuestions || false
+  }
+
 
   if (version === "1.0") {
-    buildDOCX_1_WithCallback(id, function (binary, error, errorMsg, filename) {
+    buildDOCX_1_WithCallback(config, function (binary, error, errorMsg, filename) {
+      const id = config.id;
       var date = new Date();
       if (!error) {
         if (format === "json") {
@@ -47,13 +52,14 @@ async function printDocx(req, res) {
           res.send(Buffer.from(binary, "base64"));
         }
       } else {
-        res.status(404).send({
+        res.status(400).send({
           error: errorMsg,
         });
       }
     });
   } else {
-    buildDOCXWithCallback(id, function (binary, error, errorMsg, filename) {
+    buildDOCXWithCallback(config, function (binary, error, errorMsg, filename) {
+      const id = config.id
       var date = new Date();
       if (!error) {
         if (format === "json") {
@@ -86,7 +92,7 @@ async function printDocx(req, res) {
           res.send(Buffer.from(binary, "base64"));
         }
       } else {
-        res.status(404).send({
+        res.status(400).send({
           error: errorMsg,
         });
       }
