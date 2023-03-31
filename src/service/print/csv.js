@@ -380,10 +380,6 @@ async function renderMCQ(
     Subject: subject,
     QuestionSetName: examName,
     Questions: finalQuestion,
-    Option1: questionOptions.length !== 0 ? questionOptions[0][0] : "",
-    Option2: questionOptions.length !== 0 ? questionOptions[1][0] : "",
-    Option3: questionOptions.length !== 0 ? questionOptions[2][0] : "",
-    Option4: questionOptions.length !== 0 ? questionOptions[3][0] : "",
     "CorrectAnswer(1/2/3/4)": answer,
     Competencies: learningOutcome,
     Skills: blooms,
@@ -393,6 +389,9 @@ async function renderMCQ(
     RightColumn: "",
     LeftColumn: "",
   };
+  questionOptions.forEach(( quesOpt , i)=>{
+    data[`Option${i+1}`] =   quesOpt[0]
+  })
 
   return data;
 }
