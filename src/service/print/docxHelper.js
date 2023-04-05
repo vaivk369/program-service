@@ -4,10 +4,6 @@ const sizeOf = require("image-size");
 const { compact } = require("lodash");
 const ProgramServiceHelper = require("../../helpers/programHelper");
 const programServiceHelper = new ProgramServiceHelper();
-const optionLabelling = {
-  english: {i: 'I', ii: 'II', iii: 'III', iv: 'IV'}, 
-  hindi: {i: 'क', ii: 'ख', iii: 'ग', iv: 'घ'}, 
-}
 
 var {
   docDefinition,
@@ -274,20 +270,20 @@ async function renderMCQ(question, questionCounter, marks) {
       typeof questionOptions[0][0] === "object"
     ) {
       if (questionOptions[0][0].text) {
-        questionOpt.push([`${getLanguageKey(question.medium[0].toLowerCase(), 'i')+")"}`, questionOptions[0][0].text[1]]);
+        questionOpt.push(["I.", questionOptions[0][0].text[1]]);
         imageProperties.push({
           width: 0,
           height: 0,
         });
       } else {
-        questionOpt.push([`${getLanguageKey(question.medium[0].toLowerCase(), 'i')+")"}`, questionOptions[0][0].image]);
+        questionOpt.push(["I.", questionOptions[0][0].image]);
         imageProperties.push({
           width: questionOptions[0][0].width,
           height: questionOptions[0][0].height,
         });
       }
     } else {
-      questionOpt.push([`${getLanguageKey(question.medium[0].toLowerCase(), 'i')+")"}`, questionOptions[0][0]]);
+      questionOpt.push(["I.", questionOptions[0][0]]);
       imageProperties.push({
         width: 0,
         height: 0,
@@ -301,20 +297,20 @@ async function renderMCQ(question, questionCounter, marks) {
       typeof questionOptions[1][0] === "object"
     ) {
       if (questionOptions[1][0].text) {
-        questionOpt.push([`${getLanguageKey(question.medium[0].toLowerCase(), 'ii')+")"}`, questionOptions[1][0].text[1]]);
+        questionOpt.push(["II.", questionOptions[1][0].text[1]]);
         imageProperties.push({
           width: 0,
           height: 0,
         });
       } else {
-        questionOpt.push([`${getLanguageKey(question.medium[0].toLowerCase(), 'ii')+")"}`, questionOptions[1][0].image]);
+        questionOpt.push(["II.", questionOptions[1][0].image]);
         imageProperties.push({
           width: questionOptions[1][0].width,
           height: questionOptions[1][0].height,
         });
       }
     } else {
-      questionOpt.push([`${getLanguageKey(question.medium[0].toLowerCase(), 'ii')+")"}`, questionOptions[1][0]]);
+      questionOpt.push(["II.", questionOptions[1][0]]);
       imageProperties.push({
         width: 0,
         height: 0,
@@ -328,20 +324,20 @@ async function renderMCQ(question, questionCounter, marks) {
       typeof questionOptions[2][0] === "object"
     ) {
       if (questionOptions[2][0].text) {
-        questionOpt.push([`${getLanguageKey(question.medium[0].toLowerCase(), 'iii')+")"}`, questionOptions[2][0].text[1]]);
+        questionOpt.push(["III.", questionOptions[2][0].text[1]]);
         imageProperties.push({
           width: 0,
           height: 0,
         });
       } else {
-        questionOpt.push([`${getLanguageKey(question.medium[0].toLowerCase(), 'iii')+")"}`, questionOptions[2][0].image]);
+        questionOpt.push(["III.", questionOptions[2][0].image]);
         imageProperties.push({
           width: questionOptions[2][0].width,
           height: questionOptions[2][0].height,
         });
       }
     } else {
-      questionOpt.push([`${getLanguageKey(question.medium[0].toLowerCase(), 'iii')+")"}`, questionOptions[2][0]]);
+      questionOpt.push(["III.", questionOptions[2][0]]);
       imageProperties.push({
         width: 0,
         height: 0,
@@ -355,20 +351,20 @@ async function renderMCQ(question, questionCounter, marks) {
       typeof questionOptions[3][0] === "object"
     ) {
       if (questionOptions[3][0].text) {
-        questionOpt.push([`${getLanguageKey(question.medium[0].toLowerCase(), 'iv')+")"}`, questionOptions[3][0].text[1]]);
+        questionOpt.push(["IV.", questionOptions[3][0].text[1]]);
         imageProperties.push({
           width: 0,
           height: 0,
         });
       } else {
-        questionOpt.push([`${getLanguageKey(question.medium[0].toLowerCase(), 'iv')+")"}`, questionOptions[3][0].image]);
+        questionOpt.push(["IV.", questionOptions[3][0].image]);
         imageProperties.push({
           width: questionOptions[3][0].width,
           height: questionOptions[3][0].height,
         });
       }
     } else {
-      questionOpt.push([`${getLanguageKey(question.medium[0].toLowerCase(), 'iv')+")"}`, questionOptions[3][0]]);
+      questionOpt.push(["IV.", questionOptions[3][0]]);
       imageProperties.push({
         width: 0,
         height: 0,
@@ -501,11 +497,6 @@ async function renderMTF(question, questionCounter, marks, Type) {
   };
 
   return mtfData;
-}
-function getLanguageKey(lang, key) {
-  return optionLabelling[lang] && optionLabelling[lang][key] ? 
-  optionLabelling[lang][key] : 
-  optionLabelling['english'][key]
 }
 
 module.exports = {

@@ -34,8 +34,7 @@ const getQuestionForSet = async (id) => {
     }
   })
 };
-const getQuestionSet = async (config) => {
-  const id = config.id
+const getQuestionSet = async (id) => {
   const headers = {
     Authorization: "Bearer " + envVariables.SUNBIRD_PORTAL_API_AUTH_TOKEN
   };
@@ -57,15 +56,9 @@ const getQuestionSet = async (config) => {
       if (section.children)
         return section.children
           .filter(
-            (child) =>{
-              if(config && config.allQuestions && child.status.toLowerCase()==='live'){
-                return child; 
-              }
-              else if (data.acceptedContributions &&
-                data.acceptedContributions.indexOf(child.identifier) > -1){
-                  return child;
-              }
-            }
+            (child) =>
+              data.acceptedContributions &&
+              data.acceptedContributions.indexOf(child.identifier) > -1
           )
           .map((child) => {
             return child.identifier;
