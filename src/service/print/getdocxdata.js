@@ -19,12 +19,6 @@ const {
 } = docx;
 const _ = require("lodash");
 
-const defaultLanguage = 'english';
-const basicDetails={
-  english : require('./lang/english.json'),
-  hindi : require('./lang/hindi.json')
-}
-
 function create(data, paperData) {
   const language = (paperData && paperData.language) ? paperData.language.toLowerCase(): defaultLanguage;
 
@@ -34,8 +28,8 @@ function create(data, paperData) {
         properties: {},
         children: [
           headers(
-            getLanguageKey(language, 'studentName') +  ":..................................................",
-            getLanguageKey(language, 'rollNo') +  ":............................."
+            "Student Name:..............................................................",
+            "Roll Number:............................."
           ),
           new Paragraph({
             children: [], // Just newline without text
@@ -57,7 +51,7 @@ function create(data, paperData) {
             alignment: AlignmentType.CENTER,
             children: [
               new TextRun({
-                text: getLanguageKey(language, 'class')+ `:${paperData.className}`,
+                text: `Grade: ${paperData.className}`,
                 bold: true,
               }),
             ],
@@ -69,7 +63,7 @@ function create(data, paperData) {
             alignment: AlignmentType.CENTER,
             children: [
               new TextRun({
-                text: getLanguageKey(language, 'subject')+ `:${paperData.subject}`,
+                text: `Subject: ${paperData.subject}`,
                 bold: true,
               }),
             ],
@@ -77,7 +71,7 @@ function create(data, paperData) {
           new Paragraph({
             children: [], // Just newline without text
           }),
-          headers(getLanguageKey(language, 'time')+":" + `${paperData.maxTime}`, getLanguageKey(language, 'marks')+":"+`${paperData.maxScore}`),
+          headers("Time:............", "Marks:............"),
           new Paragraph({
             alignment: AlignmentType.CENTER,
             children: [
@@ -89,7 +83,7 @@ function create(data, paperData) {
             ],
           }),
 
-          instructionHead(paperData.instructions, language),
+          instructionHead(paperData.instructions),
           instructions(paperData.instructions),
           new Paragraph({
             alignment: AlignmentType.CENTER,
@@ -295,13 +289,13 @@ function create(data, paperData) {
   return doc;
 }
 
-function instructionHead(data, language) {
+function instructionHead(data) {
   const arr = [];
 
   if (!_.isUndefined(data)) {
     arr.push(
       new TextRun({
-        text: (getLanguageKey(language, 'instructionHead')+":"),
+        text: `Instructions:`,
         bold: true,
       })
     );
