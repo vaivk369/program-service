@@ -9,7 +9,7 @@
     "test-with-coverage": "nyc --reporter=lcov --reporter=text-lcov mocha test/**/*.js --exit --timeout 20000"
   },
   "dependencies": {
-    "@json2csv/node": "6.1.2",
+    "@json2csv/plainjs": "^7.0.1",
     "@project-sunbird/telemetry-sdk": "0.0.24",
     "async": "3.2.1",
     "axios": "0.19.2",
