@@ -107,25 +107,6 @@ const buildCSVWithCallback = async (id, callback) => {
           }
         }
 
-        let fields = [
-          "Class",
-          "Subject",
-          "QuestionSetName",
-          "Questions",
-          "Option1",
-          "Option2",
-          "Option3",
-          "Option4",
-          "CorrectAnswer(1/2/3/4)",
-          "Competencies",
-          "Skills",
-          "QuestionImageUrl",
-          "ChapterName",
-          "QuestionType",
-          "RightColumn",
-          "LeftColumn",
-        ];
-
         let csv = await JSON2CSV.json2csv(questionPaperContent);
         let filename = grade + "_" + subject + "_" + examName;
         filename = filename.replace(/\s/g, "");
