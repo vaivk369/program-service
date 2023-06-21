@@ -1,5 +1,5 @@
 const { getQuestionSet } = require("./printDocxV1.0/dataImporter");
-//const JSON2CSV = require("@json2csv/node").parse;
+let JSON2CSV = require('json-2-csv');
 var cheerio = require("cheerio");
 var cheerioTableparser = require("cheerio-tableparser");
 
@@ -12,7 +12,7 @@ const buildCSVWithCallback = async (id, callback) => {
       if (data.error) {
         callback(null, data.error, data.errorMsg, null);
       } else {
-        let subject;
+       let subject;
         let grade;
         if (data.paperData.subject && data.paperData.gradeLevel) {
           subject = data.paperData.subject[0];
@@ -107,32 +107,10 @@ const buildCSVWithCallback = async (id, callback) => {
           }
         }
 
-        let fields = [
-          "Class",
-          "Subject",
-          "QuestionSetName",
-          "Questions",
-          "Option1",
-          "Option2",
-          "Option3",
-          "Option4",
-          "CorrectAnswer(1/2/3/4)",
-          "Competencies",
-          "Skills",
-          "QuestionImageUrl",
-          "ChapterName",
-          "QuestionType",
-          "RightColumn",
-          "LeftColumn",
-        ];
-
-        // let csv = JSON2CSV(questionPaperContent, {
-        //   fields: fields,
-        //   withBOM: true,
-        // });
+        let csv = await JSON2CSV.json2csv(questionPaperContent);
         let filename = grade + "_" + subject + "_" + examName;
         filename = filename.replace(/\s/g, "");
-        //callback(csv, error, errorMsg, filename);
+        callback(csv, error, errorMsg, filename);
       }
     })
     .catch((e) => {
