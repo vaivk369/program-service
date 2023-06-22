@@ -10,6 +10,7 @@
     "pre-install": "git submodule update -i -r"
   },
   "dependencies": {
+    "@json2csv/node": "6.1.2",
     "@project-sunbird/telemetry-sdk": "0.0.24",
     "async": "3.2.1",
     "axios": "0.19.2",
@@ -36,7 +37,6 @@
     "http-errors": "1.6.3",
     "image-size": "0.9.7",
     "jade": "1.11.0",
-    "json-2-csv": "4.0.0",
     "jsonwebtoken": "8.5.1",
     "kafka-node": "3.0.1",
     "lodash": "4.17.15",
