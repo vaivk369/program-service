@@ -1,5 +1,5 @@
 const { getQuestionSet } = require("./printDocxV1.0/dataImporter");
-//const JSON2CSV = require("@json2csv/node").parse;
+const JSON2CSV = require("json-2-csv");
 var cheerio = require("cheerio");
 var cheerioTableparser = require("cheerio-tableparser");
 
@@ -126,13 +126,16 @@ const buildCSVWithCallback = async (id, callback) => {
           "LeftColumn",
         ];
 
-        // let csv = JSON2CSV(questionPaperContent, {
-        //   fields: fields,
-        //   withBOM: true,
-        // });
+        let csv = null;
+       await JSON2CSV.json2csvAsync(questionPaperContent,{
+        fields: fields,
+        excelBOM: true
+       })
+        .then((data) => { csv = data; })
+        .catch((err) => { throw err; });
         let filename = grade + "_" + subject + "_" + examName;
         filename = filename.replace(/\s/g, "");
-        //callback(csv, error, errorMsg, filename);
+        callback(csv, error, errorMsg, filename);
       }
     })
     .catch((e) => {
