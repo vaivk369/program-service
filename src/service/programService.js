@@ -1060,16 +1060,13 @@ async function programList(req, response) {
   try {
     if(data.request.filters && data.request.filters.nomination) {
       const resp =  await programServiceHelper.getProgramsForContribution(data, filters);
-      return response.status(200).send(successResponse({
-        apiId: 'api.program.list',
-        ver: '1.0',
-        msgid: uuid(),
-        responseCode: 'OK',
-        result: {
-          count: resp ? resp.length : 0,
-          programs: resp || []
-        }
-      }));
+      rspObj.responseCode  = 'OK';
+      rspObj.result = {
+        count: resp ? resp.length : 0,
+        programs: resp || []
+      }
+      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+      return response.status(200).send(successResponse(rspObj));
     }
     else {
       if (data.request.filters && data.request.filters.role && data.request.filters.user_id) {
@@ -1102,17 +1099,13 @@ async function programList(req, response) {
             _.forEach(response.rows, row => aggregatedRes.push(row));
           })
           aggregatedRes = _.uniqBy(aggregatedRes, 'dataValues.program_id');
-          loggerService.exitLog({responseCode: 'OK'}, logObject);
-          return response.status(200).send(successResponse({
-            apiId: 'api.program.list',
-            ver: '1.0',
-            msgid: uuid(),
-            responseCode: 'OK',
-            result: {
-              count: aggregatedRes.length,
-              programs: aggregatedRes
-            }
-          }));
+          rspObj.responseCode  = 'OK';
+          rspObj.result = {
+            count: aggregatedRes.length,
+            programs: aggregatedRes
+          }
+          loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+          return response.status(200).send(successResponse(rspObj));
         } else {
 
           const res = await model.program.findAll({
@@ -1134,31 +1127,24 @@ async function programList(req, response) {
           if (data.request.sort){
             apiRes = programServiceHelper.sortPrograms(apiRes, data.request.sort);
           }
-          loggerService.exitLog({responseCode: 'OK'}, logObject);
-          return response.status(200).send(successResponse({
-            apiId: 'api.program.list',
-            ver: '1.0',
-            msgid: uuid(),
-            responseCode: 'OK',
-            result: {
-              count: apiRes ? apiRes.length : 0,
-              programs: apiRes || []
-            }
-          }));
+          rspObj.responseCode  = 'OK';
+          rspObj.result = {
+            count: apiRes ? apiRes.length : 0,
+            programs: apiRes || []
+          }
+          loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+          return response.status(200).send(successResponse(rspObj));
         }
     }
   }
   catch (err){
-    loggerService.exitLog({responseCode: 'ERR_LIST_PROGRAM'}, logObject);
-    loggerError(rspObj,errCode+errorCodes.CODE4);
-    return response.status(400).send(errorResponse({
-      apiId: 'api.program.list',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'ERR_LIST_PROGRAM',
-      result: err
-    },errCode+errorCodes.CODE4));
-  }
+    console.log(JSON.stringify(err));
+    rspObj.responseCode = programMessages.LIST.FAILED_CODE;
+    rspObj.errMsg = programMessages.LIST.FAILED_MESSAGE;
+    rspObj.result = err;
+    loggerService.exitLog({responseCode: rspObj.responseCode, errCode: errCode+errorCodes.CODE4}, logObject);
+    loggerError(rspObj, errCode+errorCodes.CODE4);
+    return response.status(400).send(errorResponse(rspObj, errCode+errorCodes.CODE4));
 }
 
 function addNomination(req, response) {
@@ -1185,29 +1171,25 @@ function addNomination(req, response) {
 
   model.nomination.create(insertObj).then(res => {
     programServiceHelper.onAfterAddNomination(insertObj.program_id, insertObj.user_id);
-    loggerService.exitLog({'program_id': insertObj.program_id}, logObject);
-    return response.status(200).send(successResponse({
-      apiId: 'api.nomination.add',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'OK',
-      result: {
-        'program_id': insertObj.program_id,
-        'user_id': insertObj.user_id,
-        'id': res.dataValues.id
-      }
-    }));
-  }).catch(err => {
-    console.log("Error adding nomination to db", JSON.stringify(err));
-    loggerService.exitLog({responseCode: 'ERR_CREATE_PROGRAM'}, logObject);
+    loggerService.exitLog({responseCode: rspObj.responseCode, 'program_id': insertObj.program_id}, logObject);
+    rspObj.responseCode = responseCode.SUCCESS;
+    rspObj.result = {
+      'program_id': insertObj.program_id,
+      'user_id': insertObj.user_id,
+      'id': res.dataValues.id
+    };
+    return response.status(200).send(successResponse(rspObj));
+  }).catch(error => {
+    console.log("Error adding nomination to db", JSON.stringify(error));
+    rspObj.errCode = programMessages.NOMINATION.FAILED_CODE;
+
+    const sequelizeErrorMessage = _.first(_.get(error, 'errors'));
+    rspObj.errMsg = sequelizeErrorMessage ? sequelizeErrorMessage.message : error.message ||
+                    programMessages.NOMINATION.FAILED_MESSAGE;
+    rspObj.responseCode = responseCode.SERVER_ERROR;
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     loggerError(rspObj,errCode+errorCodes.CODE2);
-    return response.status(400).send(errorResponse({
-      apiId: 'api.nomination.add',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'ERR_CREATE_PROGRAM',
-      result: err
-    },errCode+errorCodes.CODE2));
+    return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
   });
 }
 
@@ -1257,15 +1239,9 @@ function updateNomination(req, response) {
   }
   model.nomination.update(updateValue, updateQuery).then(res => {
     if (_.isArray(res) && !res[0]) {
-      loggerService.exitLog({responseCode: 'ERR_UPDATE_NOMINATION'}, logObject);
       loggerError(rspObj,errCode+errorCodes.CODE2);
-      return response.status(400).send(errorResponse({
-        apiId: 'api.nomination.update',
-        ver: '1.0',
-        msgid: uuid(),
-        responseCode: 'ERR_UPDATE_NOMINATION',
-        result: 'Nomination Not Found'
-      },errCode+errorCodes.CODE2));
+      loggerService.exitLog({responseCode: 'ERR_UPDATE_NOMINATION'}, logObject);
+      return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2))
     }
     const successRes = {
       program_id: updateQuery.where.program_id,
@@ -1277,24 +1253,13 @@ function updateNomination(req, response) {
       successRes.organisation_id = updateQuery.where.organisation_id
     }
     loggerService.exitLog({responseCode: 'OK'}, logObject);
-    return response.status(200).send(successResponse({
-      apiId: 'api.nomination.update',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'OK',
-      result: successRes
-    }));
+    return response.status(200).send(successResponse(rspObj))
   }).catch(err => {
     loggerService.exitLog({responseCode: 'ERR_UPDATE_NOMINATION'}, logObject);
     console.log("Error updating nomination to db", JSON.stringify(err));
     loggerError(rspObj,errCode+errorCodes.CODE3);
-    return response.status(400).send(errorResponse({
-      apiId: 'api.nomination.update',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'ERR_UPDATE_NOMINATION',
-      result: err
-    },errCode+errorCodes.CODE3));
+    rspObj.responseCode = 'ERR_UPDATE_NOMINATION';
+    return response.status(500).send(errorResponse(rspObj,errCode+errorCodes.CODE3));
   });
 }
 
@@ -1424,14 +1389,10 @@ function getNominationsList(req, response) {
               }
             })
           }
+          rspObj.result = result;
+          rspObj.responseCode = responseCode.SUCCESS;
           loggerService.exitLog({responseCode: 'OK'}, logObject);
-          return response.status(200).send(successResponse({
-            apiId: 'api.nomination.list',
-            ver: '1.0',
-            msgid: uuid(),
-            responseCode: 'OK',
-            result: result
-          }))
+          return response.status(200).send(successResponse(rspObj));
         }, (error) => {
           console.log(JSON.stringify(error));
           loggerService.exitLog(rspObj.responseCode, logObject);

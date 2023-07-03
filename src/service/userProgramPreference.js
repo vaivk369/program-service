@@ -292,7 +292,7 @@ function setPreferences(req, response) {
           rspObj.responseCode = 'ERR_GET_USER_PREFERENCE_FAILED';
           rspObj.result = result.result;
           loggerService.exitLog({responseCode: rspObj.responseCode, errCode: errCode+errorCodes.CODE2}, logObject);
-          loggerError(rspObj.responseCode,rspObj,errCode+errorCodes.CODE2);
+          loggerError(rspObj,errCode+errorCodes.CODE2);
           return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
         }
 
