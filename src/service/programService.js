@@ -1429,7 +1429,7 @@ function getNominationsList(req, response) {
         rspObj.responseCode = 'ERR_LIST_NOMINATION';
         rspObj.errCode = programMessages.NOMINATION.LIST.FAILED_CODE;
         rspObj.errMsg = programMessages.NOMINATION.LIST.FAILED_MESSAGE;
-        rspObj.result = error;
+        rspObj.result = err;
         loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
         loggerError(rspObj,errCode+errorCodes.CODE4);
         return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE4));
@@ -1439,7 +1439,7 @@ function getNominationsList(req, response) {
       rspObj.responseCode = 'ERR_LIST_NOMINATION';
       rspObj.errCode = programMessages.NOMINATION.LIST.FAILED_CODE;
       rspObj.errMsg = programMessages.NOMINATION.LIST.FAILED_MESSAGE;
-      rspObj.result = error;
+      rspObj.result = err;
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       loggerError(rspObj,errCode+errorCodes.CODE5);
       return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE5));
