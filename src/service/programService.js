@@ -1185,29 +1185,26 @@ function addNomination(req, response) {
 
   model.nomination.create(insertObj).then(res => {
     programServiceHelper.onAfterAddNomination(insertObj.program_id, insertObj.user_id);
-    loggerService.exitLog({'program_id': insertObj.program_id}, logObject);
-    return response.status(200).send(successResponse({
-      apiId: 'api.nomination.add',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'OK',
-      result: {
-        'program_id': insertObj.program_id,
-        'user_id': insertObj.user_id,
-        'id': res.dataValues.id
-      }
-    }));
+    rspObj.responseCode = responseCode.SUCCESS;
+    rspObj.result = {
+      'program_id': insertObj.program_id,
+      'user_id': insertObj.user_id,
+      'id': res.dataValues.id
+    };
+    loggerService.exitLog({responseCode: rspObj.responseCode,'program_id': insertObj.program_id}, logObject);
+    return response.status(200).send(successResponse(rspObj));
   }).catch(err => {
     console.log("Error adding nomination to db", JSON.stringify(err));
-    loggerService.exitLog({responseCode: 'ERR_CREATE_PROGRAM'}, logObject);
+
+    const sequelizeErrorMessage = _.first(_.get(error, 'errors'));
+    rspObj.errMsg = sequelizeErrorMessage ? sequelizeErrorMessage.message : error.message ||
+                    programMessages.NOMINATION.FAILED_MESSAGE;
+    rspObj.responseCode = responseCode.SERVER_ERROR;
+    rspObj.errCode = programMessages.NOMINATION.FAILED_CODE;
+    rspObj.result = err;
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
     loggerError(rspObj,errCode+errorCodes.CODE2);
-    return response.status(400).send(errorResponse({
-      apiId: 'api.nomination.add',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'ERR_CREATE_PROGRAM',
-      result: err
-    },errCode+errorCodes.CODE2));
+    return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
   });
 }
 
@@ -1257,15 +1254,13 @@ function updateNomination(req, response) {
   }
   model.nomination.update(updateValue, updateQuery).then(res => {
     if (_.isArray(res) && !res[0]) {
-      loggerService.exitLog({responseCode: 'ERR_UPDATE_NOMINATION'}, logObject);
+      rspObj.responseCode = 'ERR_UPDATE_NOMINATION';
+      rspObj.errCode = programMessages.NOMINATION.UPDATE.FAILED_CODE;
+      rspObj.errMsg = programMessages.NOMINATION.UPDATE.FAILED_MESSAGE;
+      rspObj.result = {};
       loggerError(rspObj,errCode+errorCodes.CODE2);
-      return response.status(400).send(errorResponse({
-        apiId: 'api.nomination.update',
-        ver: '1.0',
-        msgid: uuid(),
-        responseCode: 'ERR_UPDATE_NOMINATION',
-        result: 'Nomination Not Found'
-      },errCode+errorCodes.CODE2));
+      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+      return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2))
     }
     const successRes = {
       program_id: updateQuery.where.program_id,
@@ -1276,25 +1271,19 @@ function updateNomination(req, response) {
     if(updateQuery.where.organisation_id){
       successRes.organisation_id = updateQuery.where.organisation_id
     }
-    loggerService.exitLog({responseCode: 'OK'}, logObject);
-    return response.status(200).send(successResponse({
-      apiId: 'api.nomination.update',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'OK',
-      result: successRes
-    }));
+    rspObj.responseCode = responseCode.SUCCESS;
+    rspObj.result = successRes;
+    loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+    return response.status(200).send(successResponse(rspObj));
   }).catch(err => {
-    loggerService.exitLog({responseCode: 'ERR_UPDATE_NOMINATION'}, logObject);
-    console.log("Error updating nomination to db", JSON.stringify(err));
-    loggerError(rspObj,errCode+errorCodes.CODE3);
-    return response.status(400).send(errorResponse({
-      apiId: 'api.nomination.update',
-      ver: '1.0',
-      msgid: uuid(),
-      responseCode: 'ERR_UPDATE_NOMINATION',
-      result: err
-    },errCode+errorCodes.CODE3));
+      console.log("Error updating nomination to db", JSON.stringify(err));
+      rspObj.responseCode = 'ERR_UPDATE_NOMINATION';
+      rspObj.errCode = programMessages.NOMINATION.UPDATE.FAILED_CODE;
+      rspObj.errMsg = programMessages.NOMINATION.UPDATE.FAILED_MESSAGE;
+      rspObj.result = err;
+      loggerError(rspObj,errCode+errorCodes.CODE3);
+      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+      return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE3))
   });
 }
 
@@ -1329,18 +1318,19 @@ function getNominationsList(req, response) {
       attributes: [...facets, [Sequelize.fn('count', Sequelize.col(facets[0])), 'count']],
       group: [...facets]
     }).then((result) => {
-      loggerService.exitLog({responseCode: 'OK'}, logObject);
-      return response.status(200).send(successResponse({
-        apiId: 'api.nomination.list',
-        ver: '1.0',
-        msgid: uuid(),
-        responseCode: 'OK',
-        result: result
-      }))
+      rspObj.responseCode = responseCode.SUCCESS;
+      rspObj.result = result;
+      loggerService.exitLog({responseCode: rspObj.responseCod}, logObject);
+      return response.status(200).send(successResponse(rspObj));
     }).catch((err) => {
-      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+      console.log("Error getting nomination list", JSON.stringify(err));
+      rspObj.responseCode = 'ERR_LIST_NOMINATION';
+      rspObj.errCode = programMessages.NOMINATION.LIST.FAILED_CODE;
+      rspObj.errMsg = programMessages.NOMINATION.LIST.FAILED_MESSAGE;
+      rspObj.result = err;
       loggerError(rspObj,errCode+errorCodes.CODE1);
-      return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1));
+      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+      return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE1))
     })
   }else if (data.request.limit === 0) {
     model.nomination.findAll({
@@ -1350,17 +1340,18 @@ function getNominationsList(req, response) {
       attributes: [...data.request.fields || []]
     }).then(async (result) => {
       let aggregatedRes = await aggregatedNominationCount(data, result);
-      loggerService.exitLog({responseCode: 'OK'}, logObject);
-      return response.status(200).send(successResponse({
-        apiId: 'api.nomination.list',
-        ver: '1.0',
-        msgid: uuid(),
-        responseCode: 'OK',
-        result: aggregatedRes
-      }))
-    }).catch((err) => {
+      rspObj.responseCode = responseCode.SUCCESS;
+      rspObj.result = aggregatedRes;
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+      return response.status(200).send(successResponse(rspObj))
+    }).catch((err) => {
+      console.log("Error getting nomination list", JSON.stringify(err));
+      rspObj.responseCode = 'ERR_LIST_NOMINATION';
+      rspObj.errCode = programMessages.NOMINATION.LIST.FAILED_CODE;
+      rspObj.errMsg = programMessages.NOMINATION.LIST.FAILED_MESSAGE;
+      rspObj.result = err;
       loggerError(rspObj,errCode+errorCodes.CODE2);
+      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE2));
     })
   } else {
@@ -1387,14 +1378,9 @@ function getNominationsList(req, response) {
           }
         })
         if (_.isEmpty(userList)) {
-          loggerService.exitLog({responseCode: 'OK'}, logObject);
-          return response.status(200).send(successResponse({
-            apiId: 'api.nomination.list',
-            ver: '1.0',
-            msgid: uuid(),
-            responseCode: 'OK',
-            result: result
-          }))
+          rspObj.responseCode = responseCode.SUCCESS;
+          rspObj.result = result;
+          loggerService.exitLog({ responseCode: rspObj.responseCode }, logObject);
         }
         const userOrgAPIPromise = [];
         userOrgAPIPromise.push(getUsersDetails(req, userList))
@@ -1424,28 +1410,36 @@ function getNominationsList(req, response) {
               }
             })
           }
-          loggerService.exitLog({responseCode: 'OK'}, logObject);
-          return response.status(200).send(successResponse({
-            apiId: 'api.nomination.list',
-            ver: '1.0',
-            msgid: uuid(),
-            responseCode: 'OK',
-            result: result
-          }))
+          rspObj.responseCode = responseCode.SUCCESS;
+          rspObj.result = result;
+          loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+          return response.status(200).send(successResponse(rspObj))
         }, (error) => {
-          console.log(JSON.stringify(error));
-          loggerService.exitLog(rspObj.responseCode, logObject);
+          console.log("Error getting nomination list", JSON.stringify(error));
+          rspObj.responseCode = 'ERR_LIST_NOMINATION';
+          rspObj.errCode = programMessages.NOMINATION.LIST.FAILED_CODE;
+          rspObj.errMsg = programMessages.NOMINATION.LIST.FAILED_MESSAGE;
+          rspObj.result = error;
           loggerError(rspObj,errCode+errorCodes.CODE3);
+          loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
           return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE3));
-        });
+         });
       } catch (err) {
-        console.log(JSON.stringify(err));
+        console.log("Error getting nomination list", JSON.stringify(err));
+        rspObj.responseCode = 'ERR_LIST_NOMINATION';
+        rspObj.errCode = programMessages.NOMINATION.LIST.FAILED_CODE;
+        rspObj.errMsg = programMessages.NOMINATION.LIST.FAILED_MESSAGE;
+        rspObj.result = error;
         loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
         loggerError(rspObj,errCode+errorCodes.CODE4);
         return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE4));
       }
     }).catch(function (err) {
-      console.log(JSON.stringify(err));
+      console.log("Error getting nomination list", JSON.stringify(err));
+      rspObj.responseCode = 'ERR_LIST_NOMINATION';
+      rspObj.errCode = programMessages.NOMINATION.LIST.FAILED_CODE;
+      rspObj.errMsg = programMessages.NOMINATION.LIST.FAILED_MESSAGE;
+      rspObj.result = error;
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       loggerError(rspObj,errCode+errorCodes.CODE5);
       return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE5));
