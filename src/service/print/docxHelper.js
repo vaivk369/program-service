@@ -277,10 +277,6 @@ async function renderMCQ(question, questionCounter, marks) {
   let data = {
     QuestionIndex: questionCounter,
     Questions: questionTitle,
-    Option1: questionOpt[0],
-    Option2: questionOpt[1],
-    Option3: questionOpt[2],
-    Option4: questionOpt[3],
     Marks: marks,
     Language: detectLanguage(questionTitle[0]),
     type: "MCQ",
@@ -294,11 +290,13 @@ async function renderMCQ(question, questionCounter, marks) {
     width4: imageProperties[3] ? imageProperties[3].width : undefined,
   };
 
+  for (let index = 0; index < questionOptions.length; index++) {
+    data[`Option${index + 1}`] = questionOpt[index];
+  }
   return data;
 }
 
 function setOptions(questionOptions, questionOpt, imageProperties, printLanguage, i) {
-  console.log('printLanguage', printLanguage);
   if (questionOptions[i] !== undefined) {
     if (
       questionOptions[i][0] !== undefined &&
@@ -432,7 +430,6 @@ async function renderMTF(question, questionCounter, marks, Type) {
   return mtfData;
 }
 function getLanguageKey(lang, index) {
-  console.log('KKK', index);
   if (optionLabelling.hasOwnProperty(lang) && optionLabelling[lang].length > index) {
     return optionLabelling[lang][index];
   }
