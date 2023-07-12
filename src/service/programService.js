@@ -1145,8 +1145,8 @@ async function programList(req, response) {
     loggerService.exitLog({responseCode: rspObj.responseCode, errCode: errCode+errorCodes.CODE4}, logObject);
     loggerError(rspObj, errCode+errorCodes.CODE4);
     return response.status(400).send(errorResponse(rspObj, errCode+errorCodes.CODE4));
+ }
 }
-
 function addNomination(req, response) {
   var data = req.body
   var rspObj = req.rspObj
@@ -1252,6 +1252,7 @@ function updateNomination(req, response) {
     if(updateQuery.where.organisation_id){
       successRes.organisation_id = updateQuery.where.organisation_id
     }
+    rspObj.result = successRes;
     loggerService.exitLog({responseCode: 'OK'}, logObject);
     return response.status(200).send(successResponse(rspObj))
   }).catch(err => {
@@ -1259,7 +1260,7 @@ function updateNomination(req, response) {
     console.log("Error updating nomination to db", JSON.stringify(err));
     loggerError(rspObj,errCode+errorCodes.CODE3);
     rspObj.responseCode = 'ERR_UPDATE_NOMINATION';
-    return response.status(500).send(errorResponse(rspObj,errCode+errorCodes.CODE3));
+    return response.status(400).send(errorResponse(rspObj,errCode+errorCodes.CODE3));
   });
 }
 
@@ -1294,14 +1295,10 @@ function getNominationsList(req, response) {
       attributes: [...facets, [Sequelize.fn('count', Sequelize.col(facets[0])), 'count']],
       group: [...facets]
     }).then((result) => {
-      loggerService.exitLog({responseCode: 'OK'}, logObject);
-      return response.status(200).send(successResponse({
-        apiId: 'api.nomination.list',
-        ver: '1.0',
-        msgid: uuid(),
-        responseCode: 'OK',
-        result: result
-      }))
+      rspObj.responseCode = responseCode.SUCCESS;
+      rspObj.result = result;
+      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+      return response.status(200).send(successResponse(rspObj))
     }).catch((err) => {
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       loggerError(rspObj,errCode+errorCodes.CODE1);
@@ -1315,14 +1312,10 @@ function getNominationsList(req, response) {
       attributes: [...data.request.fields || []]
     }).then(async (result) => {
       let aggregatedRes = await aggregatedNominationCount(data, result);
+      rspObj.responseCode = responseCode.SUCCESS;
+      rspObj.result = aggregatedRes;
       loggerService.exitLog({responseCode: 'OK'}, logObject);
-      return response.status(200).send(successResponse({
-        apiId: 'api.nomination.list',
-        ver: '1.0',
-        msgid: uuid(),
-        responseCode: 'OK',
-        result: aggregatedRes
-      }))
+      return response.status(200).send(successResponse(rspObj))
     }).catch((err) => {
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
       loggerError(rspObj,errCode+errorCodes.CODE2);
@@ -1352,14 +1345,10 @@ function getNominationsList(req, response) {
           }
         })
         if (_.isEmpty(userList)) {
-          loggerService.exitLog({responseCode: 'OK'}, logObject);
-          return response.status(200).send(successResponse({
-            apiId: 'api.nomination.list',
-            ver: '1.0',
-            msgid: uuid(),
-            responseCode: 'OK',
-            result: result
-          }))
+          rspObj.responseCode = responseCode.SUCCESS;
+          rspObj.result = result;
+          loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+          return response.status(200).send(successResponse(rspObj))
         }
         const userOrgAPIPromise = [];
         userOrgAPIPromise.push(getUsersDetails(req, userList))
@@ -2934,13 +2923,9 @@ function syncUsersToRegistry(req, response) {
     limit: 1000
   }).then(function (res) {
       if (res.length == 0) {
-        return response.status(200).send(successResponse({
-          apiId: 'api.program.list',
-          ver: '1.0',
-          msgid: uuid(),
-          responseCode: 'OK',
-          result: {}
-        }));
+        rspObj.responseCode = responseCode.SUCCESS;
+        rspObj.result = {};
+        return response.status(200).send(successResponse(rspObj));
       }
       const apiRes = _.map(res, 'dataValues');
       syncRes.projCreators = {};
