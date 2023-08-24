@@ -1054,6 +1054,11 @@ async function programList(req, response) {
           ...dateFilterValue
         }
       };
+    } else if (key === 'name' && value) {
+      delete data.request.filters[key];
+      return {
+        [key]: {[Op.like]:  `%${value}%`}
+      }
     }
   }));
 
