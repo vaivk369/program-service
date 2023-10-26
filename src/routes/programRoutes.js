@@ -1,7 +1,9 @@
 const programService = require('../service/programService');
 const userProgramPreference = require('../service/userProgramPreference');
 const formConfig = require('../service/formConfig');
-const userService = require('../service/userService');
+const UserService = require('../service/userService');
+const userService = new UserService()
+
 const requestMiddleware = require('../middlewares/request.middleware')
 
 const BASE_URL = '/program/v1'
