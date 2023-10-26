@@ -4,9 +4,14 @@ const axios = require('axios');
 const _ = require("lodash");
 const RegistryService = require('./registryService')
 const registryService = new RegistryService()
+const loggerService = require('./loggerService');
 
-class UserService {
-  async getSunbirdUserProfiles(req, identifier) {
+const messageUtils = require('./messageUtil');
+const userMessages = messageUtils.USER;
+var async = require('async')
+
+
+async function getSunbirdUserProfiles(req, identifier) {
     const option = {
       url: learnerService + '/user/v3/search',
       method: 'post',
@@ -24,7 +29,7 @@ class UserService {
     return axios(option);
   }
 
-  searchOSUserWithUserId (userId, callback) {
+  function searchOsUserWithUserId(userId, callback) {
     let userDetailReq = {
       body: {
         id: "open-saber.registry.search",
@@ -43,27 +48,7 @@ class UserService {
     return registryService.searchRecord(userDetailReq, callback);
   }
 
-  searchOSUserWithUserOsId (userOsId, callback) {
-    let userDetailReq = {
-      body: {
-        id: "open-saber.registry.search",
-        request: {
-          entityType: ["User"],
-          filters: {
-            osid: {
-              eq: userOsId
-            }
-          }
-  
-        }
-      }
-    }
-  
-    return registryService.searchRecord(userDetailReq, callback);
-  }
-  
-
-  deleteOsUser (userOsId, callback) {
+  function deleteOsUser (userOsId, callback) {
       let regReq = {
         body: {
           id: "open-saber.registry.update",
@@ -80,7 +65,7 @@ class UserService {
       return registryService.updateRecord(regReq, callback);
   }
 
-  getuserOrgList(userId) {
+  function getuserOrgList(userId) {
     let userDetailReq = {
       body: {
         id: "open-saber.registry.search",
@@ -98,7 +83,7 @@ class UserService {
     return registryService.searchRecord(userDetailReq, callback);
   }
 
-  searchAdminOfOrg (orgOsId, callback) {
+  function searchAdminOfOrg (orgOsId, callback) {
     let req = {
       body: {
         id: "open-saber.registry.search",
@@ -117,16 +102,36 @@ class UserService {
     return registryService.searchRecord(req, callback);
   }
 
-  delete(req, response) {
+  function searchOsUserWithUserId (userOsId, callback) {
+    let userDetailReq = {
+      body: {
+        id: "open-saber.registry.search",
+        request: {
+          entityType: ["User"],
+          filters: {
+            osid: {
+              eq: userOsId
+            }
+          }
+  
+        }
+      }
+    }
+  
+    return registryService.searchRecord(userDetailReq, callback);
+  }
+
+  function deleteUser(req, response) {
     const logObject = {
       traceId : req.headers['x-request-id'] || '',
-      message : programMessages.READ.INFO
+      message : userMessages.DELETE.INFO
     }
     loggerService.entryLog(req.body, logObject);
     var rspObj = req.rspObj
 
     if (req.params.userId) {
-      this.searchOSUserWithUserId(req.params.userId, (err, res) => {
+      console.log(req.params.userId);
+      searchOsUserWithUserId(req.params.userId, (err, res) => {
         if (res && res.status == 200 && res.data.result.User.length > 0) {
           var userDetails = res.data.result.User[0];
           if (userDetails.osid) {
@@ -180,6 +185,6 @@ class UserService {
       }); 
     }
   }
-}
 
-module.exports = UserService;
+module.exports.getSunbirdUserProfiles = getSunbirdUserProfiles
+module.exports.delete = deleteUser

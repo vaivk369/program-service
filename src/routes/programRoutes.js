@@ -1,8 +1,7 @@
 const programService = require('../service/programService');
 const userProgramPreference = require('../service/userProgramPreference');
 const formConfig = require('../service/formConfig');
-const UserService = require('../service/userService');
-const userService = new UserService()
+const userService = require('../service/userService');
 
 const requestMiddleware = require('../middlewares/request.middleware')
 

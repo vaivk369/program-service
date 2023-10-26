@@ -1011,3 +1011,10 @@ exports.PROGRAM_FEED = {
     INFO: 'Search For Program Feed Updates'
   }
 }
+
+exports.USER = {
+  DELETE: {
+    INFO: 'Delete User'
+  }
+}
+
