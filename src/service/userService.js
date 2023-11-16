@@ -13,7 +13,8 @@ const loggerService = require('./loggerService');
 const messageUtils = require('./messageUtil');
 const responseCode = messageUtils.RESPONSE_CODE;
 const userMessages = messageUtils.USER;
-var async = require('async')
+var async = require('async');
+const { response } = require('express');
 let mappedOrgs = [];
 let logObject = {};
 
@@ -105,7 +106,7 @@ function searchOSUserWithOsId (userOsId, callback) {
   return searchRegistry(["User"], filter, callback);
 }
 
-function getUserRole(userDetails) {
+function getUserRole(req, response, userDetails) {
   if (userDetails.roles.includes('individual')) {
     return 'individual';
   } else {
@@ -133,14 +134,7 @@ function getUserRole(userDetails) {
           return 'sourcing_reviewer';
         }*/
       } else {
-        console.log('User deletion failed', JSON.stringify(userOrgError))
-        if(userOrgError.response && userOrgError.response.data) {
-          console.log(`User delete error ==> ${req.params.userId}  ==>`, JSON.stringify(userOrgError.response.data));
-        }
-        rspObj.errCode = userMessages.DELETE.FAILED_CODE
-        rspObj.errMsg = userMessages.DELETE.FAILED_MESSAGE
-        rspObj.responseCode = responseCode.SERVER_ERROR
-        return '';
+        handleUserDeleteError(req, response, userOrgError);
       }
     });
   }
@@ -152,12 +146,7 @@ function onIndividualUserDeletion (req, response, userDetails) {
     if (err) {
       handleUserDeleteError(req, response, error);
     } else {
-      rspObj.responseCode = 'OK'
-      rspObj.result = {
-        'publishStatus': `Publish Operation for Content Id ${data.request.content_id} Started Successfully!`
-      }
-      loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-      return response.status(200).send(successResponse(rspObj));
+      handleUserDeleteSuccess(req, response, 'User deleted Successfully ${req.params.userId}');
     }
   });
 }
@@ -173,7 +162,14 @@ function onOrgUserDeletion(req, response, userDetails) {
           searchOSUserWithOsId(adminUserOrgDetails.userId, (adminErr, adminRes) => {
             if (adminRes && adminRes.status == 200 && adminRes.data.result.User.length > 0) {
               var adminDetails = adminRes.data.result.User[0];
-              generateDeleteUserEvent (req, response, userDetails, {role: 'admin', users: [adminDetails.userId]});
+              const eventData =  generateDeleteUserEvent (req, response, userDetails, {role: 'admin', users: [adminDetails.userId]});
+              KafkaService.sendRecord(eventData, function (err, res) {
+                if (err) {
+                  handleUserDeleteError(req, response, error);
+                } else {
+                  handleUserDeleteSuccess(req, response, 'User deleted Successfully ${req.params.userId}');
+                }
+              });
             } else {
               handleUserDeleteError(req, response, adminErr)
             }
@@ -186,6 +182,13 @@ function onOrgUserDeletion(req, response, userDetails) {
       handleUserDeleteError(req, response, error);
     }
   });
+}
+function handleUserDeleteSuccess(req, response, result){
+  var rspObj = req.rspObj
+  rspObj.responseCode = 'OK'
+  rspObj.result = result
+  loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
+  return response.status(200).send(successResponse(rspObj));
 }
 
 function handleUserDeleteError (req, response, error) {
@@ -252,7 +255,7 @@ function deleteUser(req, response) {
         if (userDetails.osid) {
           deleteOsUser(userDetails.osid, (mapErr, mapRes) => {
             if (mapRes && mapRes.status == 200 && _.get(mapRes.data, 'params.status' == "SUCCESSFULL")) {
-              const userRole = getUserRole(userDetails);
+              const userRole = getUserRole(req, response, userDetails);
               switch(userRole) {
                 case 'individual' :
                   onIndividualUserDeletion (req, response, userDetails)
