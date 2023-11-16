@@ -295,6 +295,4 @@ function deleteUser(req, response) {
     return response.status(400).send(errorResponse(rspObj,errCode))
   }
 }
-
-module.exports.getSunbirdUserProfiles = getSunbirdUserProfiles
-module.exports.delete = deleteUser
+module.exports = { getSunbirdUserProfiles, deleteUser };
