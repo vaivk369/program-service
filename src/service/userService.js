@@ -3,7 +3,7 @@ const learnerService = envVariables['LEARNER_SERVICE_URL']
 const axios = require('axios');
 
 class UserService {
-  async getDikshaUserProfiles(req, identifier) {
+  async getSunbirdUserProfiles(req, identifier) {
     const option = {
       url: learnerService + '/user/v3/search',
       method: 'post',
