@@ -136,7 +136,7 @@ module.exports = function (app) {
       .post(requestMiddleware.gzipCompression(), requestMiddleware.createAndValidateRequestBody,
       formConfig.getForm)
     
-    app.route(BASE_URL + '/user/delete/:userId')
-      .delete(requestMiddleware.gzipCompression(), requestMiddleware.createAndValidateRequestBody,
+    app.route(BASE_URL + '/user/:userId')
+      .delete(requestMiddleware.createAndValidateRequestBody,
       userService.delete)
 }
