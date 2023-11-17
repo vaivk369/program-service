@@ -1841,7 +1841,7 @@ async function contributorSearch(req, response) {
     const dikshaUserProfilesApiResp = await userService.getDikshaUserProfiles(req, dikshaUserIdentifier);
     let orgUsersDetails = _.get(dikshaUserProfilesApiResp.data, 'result.response.content');
 
-    // Attach os user object details to Diksha user profile
+    // Attach os user object details to diksha user profile
     if (!_.isEmpty(orgUsersDetails)) {
       const roles = _.get(data.request, 'filters.user_org.roles');
       orgUsersDetails = _.map(
