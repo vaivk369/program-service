@@ -18,7 +18,7 @@ const { response } = require('express');
 let mappedOrgs = [];
 let logObject = {};
 
-async function getSunbirdUserProfiles(req, identifier) {
+async function getDikshaUserProfiles(req, identifier) {
     const option = {
       url: learnerService + '/user/v3/search',
       method: 'post',

@@ -521,8 +521,8 @@ function onAfterPublishProgram(programDetails, reqHeaders, afterPublishCallback)
             afterPublishCallback(onPublishResult);
           }
         }
-        const sunbirdUserProfilesApiResp = await userService.getSunbirdUserProfiles({'headers': reqHeaders}, programDetails.createdby);
-        let orgUsersDetails = _.get(sunbirdUserProfilesApiResp.data, 'result.response.content');
+        const dikshaUserProfilesApiResp = await userService.getDikshaUserProfiles({'headers': reqHeaders}, programDetails.createdby);
+        let orgUsersDetails = _.get(dikshaUserProfilesApiResp.data, 'result.response.content');
         // create a registry for the user adn then an org and create mapping for the org as a admin
           if (orgUsersDetails) {
             const userDetails = _.first(orgUsersDetails);
@@ -537,7 +537,7 @@ function onAfterPublishProgram(programDetails, reqHeaders, afterPublishCallback)
               createOrgMappingInRegistry(userDetails, userRegData, regMethodCallback);
             }
           } else {
-            onPublishResult['error'] = {msg: "error while getting users details from Sunbird"};
+            onPublishResult['error'] = {msg: "error while getting users details from Diksha"};
             afterPublishCallback(onPublishResult);
           }
       }
@@ -1771,10 +1771,10 @@ function getOrgDetails(req, orgList) {
 }
 
 async function getUsersDetailsById(req, response) {
-  const sunbirdUserId = req.params.user_id
+  const dikshaUserId = req.params.user_id
   async.waterfall([
     function (callback1) {
-      getUserDetailsFromRegistry(sunbirdUserId, callback1)
+      getUserDetailsFromRegistry(dikshaUserId, callback1)
     },
     function (user, callback2) {
       getUserOrgMappingDetailFromRegistry(user, callback2);
@@ -1835,13 +1835,13 @@ async function contributorSearch(req, response) {
     const userListApiResp = await registryService.getUserList(data, userOsIds);
     const userList = _.get(userListApiResp.data, 'result.User');
 
-    // Get Sunbird user profiles
-    const sunbirdUserIdentifier = _.uniq(_.map(userList, e => e.userId));
+    // Get Diksha user profiles
+    const dikshaUserIdentifier = _.uniq(_.map(userList, e => e.userId));
 
-    const sunbirdUserProfilesApiResp = await userService.getSunbirdUserProfiles(req, sunbirdUserIdentifier);
-    let orgUsersDetails = _.get(sunbirdUserProfilesApiResp.data, 'result.response.content');
+    const dikshaUserProfilesApiResp = await userService.getDikshaUserProfiles(req, dikshaUserIdentifier);
+    let orgUsersDetails = _.get(dikshaUserProfilesApiResp.data, 'result.response.content');
 
-    // Attach os user object details to Sunbird user profile
+    // Attach os user object details to Diksha user profile
     if (!_.isEmpty(orgUsersDetails)) {
       const roles = _.get(data.request, 'filters.user_org.roles');
       orgUsersDetails = _.map(
@@ -3136,7 +3136,7 @@ async function asyncOnAfterPublish (req, program_id) {
     if (!_.isEmpty(_.get(program, 'config.contributors'))) {
       const orgList = _.get(program, 'config.contributors.Org') || [];
       if (!_.isEmpty(orgList)) {
-        // Get org creator Sunbird ids
+        // Get org creator diksha ids
         const usersToNotify = [];
         for (const org of orgList) {
           const isNominated = await programServiceHelper.isAlreadyNominated(program.program_id, org.osid);
@@ -3154,7 +3154,7 @@ async function asyncOnAfterPublish (req, program_id) {
 
       const indList = _.get(program, 'config.contributors.User') || [];
       if (!_.isEmpty(indList)) {
-        // Get individual users Sunbird ids
+        // Get individual users diksha ids
         const usersToNotify = [];
         for (const ind of indList) {
           const userId = _.get(ind, 'User.userId')
