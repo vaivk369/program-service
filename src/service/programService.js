@@ -40,8 +40,7 @@ const cacheManager = new SbCacheManager({ttl: envVariables.CACHE_TTL});
 const cacheManager_programReport = new SbCacheManager({ttl: 86400});
 const registryService = new RegistryService()
 const hierarchyService = new HierarchyService()
-const UserService = require('./userService');
-const userService = new UserService();
+const userService = require('./userService');
 
 function getProgram(req, response) {
  const logObject = {
