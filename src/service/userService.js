@@ -36,19 +36,24 @@ async function getSunbirdUserProfiles(req, identifier) {
     return axios(option);
 }
 
-function searchRegistry(entity, filter, callback) {
-  let regReq = {
+function getOsRequestBody(action, osRequest) {
+  return regReq = {
     body: {
-      id: "open-saber.registry.search",
-      request: {
-        entityType: entity,
-        filters: {
-          filter
-        }
-      }
+      id: "open-saber.registry." + action,
+      request: osRequest
     }
   }
+}
 
+function searchRegistry(entity, filter, callback) {
+  let request = {
+    entityType: entity,
+    filters: {
+      filter
+    }
+  }
+  let regReq = getOsRequestBody('search', request)
+  
   return registryService.searchRecord(regReq, callback);
 }
 
@@ -62,20 +67,17 @@ function searchOsUserWithUserId(userId, callback) {
 }
 
 function deleteOsUser (userOsId, callback) {
-    let regReq = {
-      body: {
-        id: "open-saber.registry.update",
-        request: {
-          User: {
-            osid: userOsId,
-            firstName: "Deleted User",
-            lastName: (userDetails.lastName) ? "Deleted USer": '',
-            isDeleted: true
-          }
-        }
-      }
+  let request = {
+    User: {
+      osid: userOsId,
+      firstName: "Deleted User",
+      lastName: (userDetails.lastName) ? "Deleted USer": '',
+      isDeleted: true
     }
-    return registryService.updateRecord(regReq, callback);
+  }
+  let regReq = getOsRequestBody('update', request)
+
+  return registryService.updateRecord(regReq, callback);
 }
 
 function getuserOrgList(userId) {
