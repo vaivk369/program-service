@@ -1,7 +1,7 @@
 const envVariables = {
     baseURL: process.env.dock_base_url || 'https://dock.sunbirded.org',
     SUNBIRD_URL: process.env.sunbird_base_url || 'https://dev.sunbirded.org',
-    SUNBIRD_PORTAL_API_AUTH_TOKEN: process.env.sunbird_api_auth_token || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkOTY3NzRjYzJkNWU0ZWUxYmQwNzQ4Y2RiOWQ2Mzg0OSJ9.n4hXxKxl_698yeZPSWhXeGvMOb4esfgPadIZe8jZ0Z4',
+    SUNBIRD_PORTAL_API_AUTH_TOKEN: process.env.sunbird_api_auth_token,
     DOCK_CHANNEL: process.env.dock_channel || 'sunbird',
     port: process.env.sunbird_program_port || 6000,
     CACHE_TTL: process.env.dock_cache_ttl || 900,
