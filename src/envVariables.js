@@ -1,7 +1,7 @@
 const envVariables = {
     baseURL: process.env.dock_base_url || 'https://dock.sunbirded.org',
     SUNBIRD_URL: process.env.sunbird_base_url || 'https://dev.sunbirded.org',
-    SUNBIRD_PORTAL_API_AUTH_TOKEN: process.env.sunbird_api_auth_token,
+    SUNBIRD_PORTAL_API_AUTH_TOKEN: process.env.sunbird_api_auth_token || '',
     DOCK_CHANNEL: process.env.dock_channel || 'sunbird',
     port: process.env.sunbird_program_port || 6000,
     CACHE_TTL: process.env.dock_cache_ttl || 900,
@@ -21,7 +21,7 @@ const envVariables = {
     CORE_INGRESS_GATEWAY_IP: process.env.CORE_INGRESS_GATEWAY_IP,
     config: {
         user: process.env.sunbird_program_db_user || "postgres",
-        host: process.env.sunbird_program_db_host || "localhost",
+        host: process.env.sunbird_program_db_host || "l ocalhost",
         database: process.env.sunbird_program_db_name || 'sunbird_programs',
         password: process.env.sunbird_program_db_password || 'password',
         port: process.env.sunbird_program_db_port || 5432,
