@@ -21,7 +21,7 @@ const envVariables = {
     CORE_INGRESS_GATEWAY_IP: process.env.CORE_INGRESS_GATEWAY_IP,
     config: {
         user: process.env.sunbird_program_db_user || "postgres",
-        host: process.env.sunbird_program_db_host || "l ocalhost",
+        host: process.env.sunbird_program_db_host || "localhost",
         database: process.env.sunbird_program_db_name || 'sunbird_programs',
         password: process.env.sunbird_program_db_password || 'password',
         port: process.env.sunbird_program_db_port || 5432,
