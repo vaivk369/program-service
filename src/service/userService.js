@@ -17,7 +17,7 @@ var async = require('async');
 const { response } = require('express');
 let mappedOrgs = [];
 let logObject = {};
-
+let reqHeaders = {};
 async function getDikshaUserProfiles(req, identifier) {
     const option = {
       url: learnerService + '/user/v3/search',
@@ -48,12 +48,9 @@ function getOsRequestBody(action, osRequest) {
 function searchRegistry(entity, filter, callback) {
   let request = {
     entityType: entity,
-    filters: {
-      filter
-    }
+    filters: filter
   }
   let regReq = getOsRequestBody('search', request)
-  
   return registryService.searchRecord(regReq, callback);
 }
 
@@ -66,10 +63,10 @@ function searchOsUserWithUserId(userId, callback) {
   return searchRegistry(["User"], filter, callback);
 }
 
-function deleteOsUser (userOsId, callback) {
+function deleteOsUser (userDetails, callback) {
   let request = {
     User: {
-      osid: userOsId,
+      osid: userDetails.osid,
       firstName: "Deleted User",
       lastName: (userDetails.lastName) ? "Deleted USer": '',
       isDeleted: true
@@ -80,7 +77,7 @@ function deleteOsUser (userOsId, callback) {
   return registryService.updateRecord(regReq, callback);
 }
 
-function getuserOrgList(userId) {
+function getuserOrgList(userId, callback) {
   let filter = {
         userId: {
           eq: userId
@@ -109,13 +106,13 @@ function searchOSUserWithOsId (userOsId, callback) {
 }
 
 function getUserRole(req, response, userDetails) {
-  if (userDetails.roles.includes('individual')) {
+  /*if (userDetails.roles.includes('individual')) {
     return 'individual';
-  } else {
+  } else {*/
     getuserOrgList(userDetails.osid, (userOrgError, userOrgRes) => {
       if (userOrgRes && userOrgRes.status == 200 && userOrgRes.data.result.User_Org.length > 0) {
         mappedOrgs = userOrgRes.data.result.User_Org;
-        let userRoles = _.map(userOrgRes.data.result.User_Org, 'role');
+        let userRoles = _.map(userOrgRes.data.result.User_Org, 'roles');
         const osroles = ['user', 'admin', 'sourcing_admin', 'sourcing_reviewer']
 
         _.forEach(osroles, (roleName) => {
@@ -178,7 +175,7 @@ function onOrgUserDeletion(req, response, userDetails) {
           });
         }
       } else {
-        handleUserDeleteError(req, response, "Admin for the org not found");
+        handleUserDeleteError(req, response, {"response": "Admin for the org not found"});
       }
     } else {
       handleUserDeleteError(req, response, error);
@@ -243,7 +240,11 @@ function generateDeleteUserEvent(req, response, userDetails, replacementUsers) {
   return dataObj;
 }
 
+
 function deleteUser(req, response) {
+ 
+  reqHeaders = req.headers;
+  registryService.setHeaders(reqHeaders);
   logObject['message'] = userMessages.DELETE.INFO
   logObject['traceId'] = req.headers['x-request-id'] || '',
   loggerService.entryLog(req.body, logObject);
@@ -255,8 +256,13 @@ function deleteUser(req, response) {
         if (res.data.result.User.length > 0) {
         var userDetails = res.data.result.User[0];
         if (userDetails.osid) {
-          deleteOsUser(userDetails.osid, (mapErr, mapRes) => {
-            if (mapRes && mapRes.status == 200 && _.get(mapRes.data, 'params.status' == "SUCCESSFULL")) {
+          deleteOsUser(userDetails, (mapErr, mapRes) => {
+            if (mapRes && mapRes.status == 200 && _.get(mapRes.data, 'params.status') == "SUCCESSFUL") {
+              onAfterUserDeleted(userDetails, req, response);
+              return response.status(200).send(successResponse(req.rspObj));
+    
+
+
               const userRole = getUserRole(req, response, userDetails);
               switch(userRole) {
                 case 'individual' :
@@ -279,10 +285,10 @@ function deleteUser(req, response) {
             }
           });
         } else {
-          handleUserDeleteError(req, response,  'OpenSaber entry for given user is not found');
+          handleUserDeleteError(req, response,  {"response": 'OpenSaber entry for given user is not found'});
         }
         } else {
-          handleUserDeleteError(req, response, 'OpenSaber entry for given user is not found');
+          handleUserDeleteError(req, response, {"response": 'OpenSaber entry for given user is not found'});
         }
       } else {
         handleUserDeleteError(req, response, err)
@@ -297,4 +303,4 @@ function deleteUser(req, response) {
     return response.status(400).send(errorResponse(rspObj,errCode))
   }
 }
-module.exports = { getSunbirdUserProfiles, deleteUser };
+module.exports = { getDikshaUserProfiles, deleteUser };

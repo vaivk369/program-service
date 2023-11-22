@@ -5,8 +5,11 @@ const _ = require("lodash");
 
 class RegistryService {
     constructor() {
+      this.reqHeaders = '';
     }
-
+    setHeaders(reqHeaders) {
+      this.reqHeaders = reqHeaders;
+    }
     async getOrgDetails(orgFilters) {
       const option = {
         url: registryUrl + '/search',
@@ -94,7 +97,13 @@ class RegistryService {
     updateRecord(value, callback) {
       const  headers = this.getDefaultHeaders()
 
-        axios.post(registryUrl+'/update', value.body, headers)
+        //axios.post(registryUrl+'/update', value.body, headers)
+        axios({
+          method: 'post',
+          url: registryUrl+'/update',
+          headers: headers,
+          data: value.body
+        })
         .then((res) =>{
           callback(null, res)
         },
@@ -118,9 +127,13 @@ class RegistryService {
 
     searchRecord(value, callback) {
         const headers = this.getDefaultHeaders()
-
-        axios.post(registryUrl+'/search', value.body, headers)
-        .then((res) =>{
+        
+        axios({
+          method: 'post',
+          url: registryUrl+'/search',
+          headers: headers,
+          data: value.body
+        }).then((res) =>{
           callback(null, res)
         },
         (error)=>{
@@ -143,9 +156,10 @@ class RegistryService {
     getDefaultHeaders() {
         let headers = {
             'content-type': 'application/json',
-            'accept': 'application/json'
+            'accept': 'application/json',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2ZjE2YmI0Y2UyYjA0ODc1YTI0NjZiNDQ3MDcwYzJmOSJ9.AKtOAdgnQsycjTk1FlOe8DNsvElxOzh99o92bl0t3Ls'
         }
-        return headers;
+        return this.reqHeaders;
     }
 }
 
