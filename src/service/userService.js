@@ -54,28 +54,75 @@ function searchRegistry(entity, filter, callback) {
   return registryService.searchRecord(regReq, callback);
 }
 
-function searchOsUserWithUserId(userId, callback) {
+function getOSUserDetails(userId, callback) {
   let filter= {
-        userId: {
-           eq: userId
-        }
+      userId: {
+          eq: userId
       }
-  return searchRegistry(["User"], filter, callback);
-}
-
-function deleteOsUser (userDetails, callback) {
-  let request = {
-    User: {
-      osid: userDetails.osid,
-      firstName: "Deleted User",
-      lastName: (userDetails.lastName) ? "Deleted USer": '',
-      isDeleted: true
     }
-  }
-  let regReq = getOsRequestBody('update', request)
-
-  return registryService.updateRecord(regReq, callback);
+  searchRegistry(["User"], filter, (err, res) => {
+    if (res && res.status == 200) {
+      if (res.data.result.User.length > 0) {
+        var userDetails = res.data.result.User[0];
+        callback(null, userDetails)
+      } else {
+          callback(null, {});
+        }
+    } else {
+      handleUserDeleteError(req, response, error);
+    }
+  });
 }
+
+function getOSUserOrgMapping(osUser, callback) {
+  if (osUser.userId) {
+    let filter= {
+      userId: {
+        eq: osUser.osid
+      }
+    }
+    searchRegistry(["User_Org"], filter, (err, res) => {
+      if (res && res.status == 200) {
+        if (res.data.result && res.data.result.User_Org.length > 0) {
+          userOrgMapList = res.data.result.User_Org
+          callback(null, osUser, userOrgMapList)
+        } else {
+            callback(null, osUser, {});
+          }
+      } else {
+        handleUserDeleteError(req, response, error);
+      }
+    });
+  } else {
+    callback(null, osUser, {});
+  }
+}
+
+function getOSOrg(osUser, osUserOrg, callback) {
+  if (osUserOrg.length) {
+    const orgList = osUserOrg.map((value) => value.orgId)
+    let filter= {
+      osid: {
+        or: orgList
+      }
+    }
+    searchRegistry(["Org"], filter, (err, res) => {
+      if (res && res.status == 200) {
+        if (res.data.result.Org.length > 0) {
+          callback(null, osUser, osUserOrg, res.data.result.Org)
+        } else {
+            callback(null, osUser,osUserOrg, {});
+          }
+      } else {
+        handleUserDeleteError(req, response, error);
+      }
+    });
+  } else {
+    callback(null, osUser, osUserOrg, {})
+  }
+}
+
+
 
 function getuserOrgList(userId, callback) {
   let filter = {
@@ -105,83 +152,6 @@ function searchOSUserWithOsId (userOsId, callback) {
   return searchRegistry(["User"], filter, callback);
 }
 
-function getUserRole(req, response, userDetails) {
-  /*if (userDetails.roles.includes('individual')) {
-    return 'individual';
-  } else {*/
-    getuserOrgList(userDetails.osid, (userOrgError, userOrgRes) => {
-      if (userOrgRes && userOrgRes.status == 200 && userOrgRes.data.result.User_Org.length > 0) {
-        mappedOrgs = userOrgRes.data.result.User_Org;
-        let userRoles = _.map(userOrgRes.data.result.User_Org, 'roles');
-        const osroles = ['user', 'admin', 'sourcing_admin', 'sourcing_reviewer']
-
-        _.forEach(osroles, (roleName) => {
-          if (userRoles.includes(roleName)) {
-            return roleName;
-          }
-        })
-        // if contributing org user 
-        /*if (userRoles.includes('user')) {
-          return 'user';
-        } else if (userRoles.includes('admin')) {
-            return 'admin';
-        }
-        else if (userRoles.includes('sourcing_admin')) {
-          return 'sourcing_admin';
-        }
-        else if (userRoles.includes('sourcing_reviewer')) {
-          return 'sourcing_reviewer';
-        }*/
-      } else {
-        handleUserDeleteError(req, response, userOrgError);
-      }
-    });
-  }
-}
-
-function onIndividualUserDeletion (req, response, userDetails) {
-  const eventData = generateDeleteUserEvent (req, response, userDetails, {});
-  KafkaService.sendRecord(eventData, function (err, res) {
-    if (err) {
-      handleUserDeleteError(req, response, error);
-    } else {
-      handleUserDeleteSuccess(req, response, 'User deleted Successfully ${req.params.userId}');
-    }
-  });
-}
-function onOrgUserDeletion(req, response, userDetails) {
-  const orgId = _.get(_.find(mappedOrgs, { role: 'user', userId: userDetails.osid }), 'orgId');
-
-  // find admin of the org to transfer ownership of contents
-  searchAdminOfOrg(orgId, (error, res) => {
-    if (res && res.status == 200) {
-      if (res.data.result.User_Org.length > 0) {
-        var adminUserOrgDetails = res.data.result.User_Org[0];
-        if (adminUserOrgDetails.userId) {
-          searchOSUserWithOsId(adminUserOrgDetails.userId, (adminErr, adminRes) => {
-            if (adminRes && adminRes.status == 200 && adminRes.data.result.User.length > 0) {
-              var adminDetails = adminRes.data.result.User[0];
-              const eventData =  generateDeleteUserEvent (req, response, userDetails, {role: 'admin', users: [adminDetails.userId]});
-              KafkaService.sendRecord(eventData, function (err, res) {
-                if (err) {
-                  handleUserDeleteError(req, response, error);
-                } else {
-                  handleUserDeleteSuccess(req, response, 'User deleted Successfully ${req.params.userId}');
-                }
-              });
-            } else {
-              handleUserDeleteError(req, response, adminErr)
-            }
-          });
-        }
-      } else {
-        handleUserDeleteError(req, response, {"response": "Admin for the org not found"});
-      }
-    } else {
-      handleUserDeleteError(req, response, error);
-    }
-  });
-}
 function handleUserDeleteSuccess(req, response, result){
   var rspObj = req.rspObj
   rspObj.responseCode = 'OK'
@@ -242,58 +212,33 @@ function generateDeleteUserEvent(req, response, userDetails, replacementUsers) {
 
 
 function deleteUser(req, response) {
- 
-  reqHeaders = req.headers;
-  registryService.setHeaders(reqHeaders);
+  //reqHeaders = req.headers;
+  //registryService.setHeaders(reqHeaders);
   logObject['message'] = userMessages.DELETE.INFO
   logObject['traceId'] = req.headers['x-request-id'] || '',
   loggerService.entryLog(req.body, logObject);
   var rspObj = req.rspObj
   if (req.params.userId) {
-    console.log(req.params.userId);
-    searchOsUserWithUserId(req.params.userId, (err, res) => {
-      if (res && res.status == 200) {
-        if (res.data.result.User.length > 0) {
-        var userDetails = res.data.result.User[0];
-        if (userDetails.osid) {
-          deleteOsUser(userDetails, (mapErr, mapRes) => {
-            if (mapRes && mapRes.status == 200 && _.get(mapRes.data, 'params.status') == "SUCCESSFUL") {
-              onAfterUserDeleted(userDetails, req, response);
-              return response.status(200).send(successResponse(req.rspObj));
-    
-
-
-              const userRole = getUserRole(req, response, userDetails);
-              switch(userRole) {
-                case 'individual' :
-                  onIndividualUserDeletion (req, response, userDetails)
-                break;
-                case 'user': 
-                  onOrgUserDeletion(req, response, userDetails)
-                break;
-                case 'admin':
-                break;
-                case 'sourcing_admin':
-                break;
-                case 'sourcing_reviewer':
-                break;
-                default: 
-                break;
-              }
-            } else {
-              handleUserDeleteError(req, response, mapErr)
-            }
-          });
-        } else {
-          handleUserDeleteError(req, response,  {"response": 'OpenSaber entry for given user is not found'});
-        }
-        } else {
-          handleUserDeleteError(req, response, {"response": 'OpenSaber entry for given user is not found'});
-        }
-      } else {
-        handleUserDeleteError(req, response, err)
+    async.waterfall([
+      function (callback) {
+        getOSUserDetails(req.params.userId, callback)
+      },
+      function (user, callback) {
+        getOSUserOrgMapping(user, callback);
+      },
+      function (user, osUserOrg, callback) {
+        getOSOrg(user, osUserOrg, callback)
+      },
+      function (user, osUserOrg, osOrgs, callback) {
+        getUserOsRecord(user, osUserOrg, osOrgs, callback)
       }
-    }); 
+    ], function (err, res) {
+      if (err) {
+        handleUserDeleteError(req, response, err);
+      } else {
+        deleteUserAccordingtoOrgRole(req, response, res)
+      }
+    });
   } else {
     rspObj.errCode = userMessages.DELETE.MISSING_CODE
     rspObj.errMsg = userMessages.DELETE.MISSING_MESSAGE
@@ -303,4 +248,113 @@ function deleteUser(req, response) {
     return response.status(400).send(errorResponse(rspObj,errCode))
   }
 }
-module.exports = { getDikshaUserProfiles, deleteUser };
+
+function getUserOsRecord(user, osUserOrg, osOrgs, callback) {
+  try {
+    if (osOrgs.length) {
+      user['osOrgRoles'] = [];
+      osOrgs.map((org) => {
+        let roles = null
+        let userOrgOsid = null
+        osUserOrg.forEach(function (element, index, array) {
+          if (org.osid === element.orgId) {
+            roles = element.roles;
+            userOrgOsid = element.osid;
+          }
+        });
+        org['userOrgOsid'] = userOrgOsid
+        org['roles'] = roles;
+        user['osOrgRoles'].concat(roles);
+      });
+      user['orgs'] = osOrgs
+    }
+    callback(null, user)
+  } catch (e) {
+    handleUserDeleteError(req, response, e)
+  }
+}
+
+function deleteUserAccordingtoOrgRole(req,response, osUser) {
+  if (!osUser.osOrgRoles.length || osUser.osOrgRoles.includes('user')) {
+    deleteOsUser(osUser, (err, res) => {
+      if (res && res.status == 200 && _.get(res.data, 'params.status' == "SUCCESSFUL")) {
+        if (!osUser.osOrgRoles.length) {
+          onIndividualUserDeletion(req,response, osUser);
+        }
+        if (osUser.osOrgRoles.includes('user')) {
+          onOrgUserDeletion(req,response, osUser)
+        }
+      }
+      else {
+        handleUserDeleteError(req, response, err)
+      }
+    })
+  }
+
+  if (osUser.osOrgRoles.includes('admin') || osUser.osOrgRoles.includes('sourcing_admin') || osUser.osOrgRoles.includes('sourcing_reviewer')) {
+    handleUserDeleteError(req, response, {"response": "Can only delete Individual or contributing org user"});
+  }
+}
+
+function deleteOsUser (userDetails, callback) {
+  let request = {
+    User: {
+      osid: userDetails.osid,
+      firstName: "Deleted User",
+      lastName: (userDetails.lastName) ? "Deleted USer": '',
+      isDeleted: true
+    }
+  }
+  let regReq = getOsRequestBody('update', request)
+
+  return registryService.updateRecord(regReq, callback);
+}
+
+function onIndividualUserDeletion (req, response, userDetails) {
+  const eventData = generateDeleteUserEvent (req, response, userDetails, {});
+  KafkaService.sendRecord(eventData, function (err, res) {
+    if (err) {
+      handleUserDeleteError(req, response, error);
+    } else {
+      handleUserDeleteSuccess(req, response, {"response": 'User deleted Successfully ${req.params.userId}'});
+    }
+  });
+}
+
+function onOrgUserDeletion(req, response, userDetails) {      
+  userDetails.orgs.forEach.every((element)=> {
+    if (element.roles.includes("user")) {
+      searchAdminOfOrg(orgId, (error, res) => {
+        if (res && res.status == 200) {
+          if (res.data.result.User_Org.length > 0) {
+            var adminUserOrgDetails = res.data.result.User_Org[0];
+            if (adminUserOrgDetails.userId) {
+              searchOSUserWithOsId(adminUserOrgDetails.userId, (adminErr, adminRes) => {
+                if (adminRes && adminRes.status == 200 && adminRes.data.result.User.length > 0) {
+                  var adminDetails = adminRes.data.result.User[0];
+                  const eventData =  generateDeleteUserEvent (req, response, userDetails, {role: 'admin', users: [adminDetails.userId]});
+                  KafkaService.sendRecord(eventData, function (err, res) {
+                    if (err) {
+                      handleUserDeleteError(req, response, error);
+                    } else {
+                      handleUserDeleteSuccess(req, response, 'User deleted Successfully ${req.params.userId}');
+                    }
+                  });
+                } else {
+                  handleUserDeleteError(req, response, adminErr)
+                }
+              });
+            }
+          } else {
+            handleUserDeleteError(req, response, {"response": "Admin for the org not found"});
+          }
+        } else {
+          handleUserDeleteError(req, response, error);
+        }
+      });
+      return false;
+    }
+  });
+}
+
+module.exports = { getDikshaUserProfiles, deleteUser }
