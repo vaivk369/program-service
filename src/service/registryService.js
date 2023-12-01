@@ -6,7 +6,7 @@ const _ = require("lodash");
 class RegistryService {
     constructor() {
     }
-    
+
     async getOrgDetails(orgFilters) {
       const option = {
         url: registryUrl + '/search',
@@ -69,7 +69,7 @@ class RegistryService {
       const filteredList = _.filter(_.get(orgApiRes, 'data.result.User_Org'), obj => {
         const isHavingRoles = _.intersection(roles, obj.roles);
         if (isHavingRoles.length > 0) {
-          return objaddPreferencetotable
+          return obj
         }
       });
 
@@ -118,7 +118,7 @@ class RegistryService {
 
     searchRecord(value, callback) {
         const headers = this.getDefaultHeaders()
-        
+
         axios.post(registryUrl+'/search', value.body, headers)
         .then((res) =>{
           callback(null, res)
@@ -144,8 +144,8 @@ class RegistryService {
         let headers = {
             'content-type': 'application/json',
             'accept': 'application/json'
-          }
-          return headers;
+        }
+        return headers;
     }
 }
 
