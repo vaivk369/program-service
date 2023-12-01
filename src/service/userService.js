@@ -15,9 +15,7 @@ const responseCode = messageUtils.RESPONSE_CODE;
 const userMessages = messageUtils.USER;
 var async = require('async');
 const { response } = require('express');
-let mappedOrgs = [];
 let logObject = {};
-let reqHeaders = {};
 async function getDikshaUserProfiles(req, identifier) {
     const option = {
       url: learnerService + '/user/v3/search',
@@ -212,8 +210,6 @@ function generateDeleteUserEvent(req, response, userDetails, replacementUsers) {
 
 
 function deleteUser(req, response) {
-  //reqHeaders = req.headers;
-  //registryService.setHeaders(reqHeaders);
   logObject['message'] = userMessages.DELETE.INFO
   logObject['traceId'] = req.headers['x-request-id'] || '',
   loggerService.entryLog(req.body, logObject);

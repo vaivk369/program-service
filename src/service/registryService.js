@@ -4,12 +4,6 @@ const axios = require('axios');
 const _ = require("lodash");
 
 class RegistryService {
-    constructor() {
-      this.reqHeaders = '';
-    }
-    setHeaders(reqHeaders) {
-      this.reqHeaders = reqHeaders;
-    }
     async getOrgDetails(orgFilters) {
       const option = {
         url: registryUrl + '/search',
@@ -72,7 +66,7 @@ class RegistryService {
       const filteredList = _.filter(_.get(orgApiRes, 'data.result.User_Org'), obj => {
         const isHavingRoles = _.intersection(roles, obj.roles);
         if (isHavingRoles.length > 0) {
-          return obj
+          return objaddPreferencetotable
         }
       });
 
@@ -97,13 +91,7 @@ class RegistryService {
     updateRecord(value, callback) {
       const  headers = this.getDefaultHeaders()
 
-        //axios.post(registryUrl+'/update', value.body, headers)
-        axios({
-          method: 'post',
-          url: registryUrl+'/update',
-          headers: headers,
-          data: value.body
-        })
+        axios.post(registryUrl+'/update', value.body, headers)
         .then((res) =>{
           callback(null, res)
         },
@@ -128,12 +116,8 @@ class RegistryService {
     searchRecord(value, callback) {
         const headers = this.getDefaultHeaders()
         
-        axios({
-          method: 'post',
-          url: registryUrl+'/search',
-          headers: headers,
-          data: value.body
-        }).then((res) =>{
+        axios.post(registryUrl+"/audit", value.body, headers)
+        .then((res) =>{
           callback(null, res)
         },
         (error)=>{
@@ -157,9 +141,8 @@ class RegistryService {
         let headers = {
             'content-type': 'application/json',
             'accept': 'application/json',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2ZjE2YmI0Y2UyYjA0ODc1YTI0NjZiNDQ3MDcwYzJmOSJ9.AKtOAdgnQsycjTk1FlOe8DNsvElxOzh99o92bl0t3Ls'
-        }
-        return this.reqHeaders;
+          }
+          return headers;
     }
 }
 

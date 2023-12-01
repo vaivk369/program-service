@@ -9,7 +9,7 @@ const envVariables = {
     LEARNING_SERVICE_URL: process.env.learning_service_url || 'https://dock.sunbirded.org/action/',
     LEARNER_SERVICE_URL: process.env.learner_service_url,
     CONTENT_SERVICE_URL: process.env.content_service_url || 'https://dock.sunbirded.org/action/',
-    OPENSABER_SERVICE_URL: process.env.opensaber_service_url || 'https://dock.sunbirded.org/api/reg',
+    OPENSABER_SERVICE_URL: process.env.opensaber_service_url || 'https://dock.sunbirded.org/content/reg',
     SUNBIRD_KAFKA_HOST: process.env.sunbird_kafka_host,
     DOCK_KAFKA_HOST: process.env.dock_kafka_host,
     DOCK_REDIS_HOST: process.env.dock_redis_host,
