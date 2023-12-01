@@ -120,17 +120,6 @@ function getOSOrg(osUser, osUserOrg, callback) {
   }
 }
 
-
-
-function getuserOrgList(userId, callback) {
-  let filter = {
-        userId: {
-          eq: userId
-        }
-      }
-  return searchRegistry(["User_Org"], filter, callback);
- }
-
 function searchAdminOfOrg (orgOsId, callback) {
   let filter = {
           orgId: {
