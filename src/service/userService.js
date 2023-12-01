@@ -64,10 +64,10 @@ function getOSUserDetails(userId, callback) {
         var userDetails = res.data.result.User[0];
         callback(null, userDetails)
       } else {
-          callback(null, {});
+          callback({"response": "User not found in OS"}, {});
         }
     } else {
-      handleUserDeleteError(req, response, error);
+      callback(err);
     }
   });
 }
@@ -88,7 +88,7 @@ function getOSUserOrgMapping(osUser, callback) {
             callback(null, osUser, {});
           }
       } else {
-        handleUserDeleteError(req, response, error);
+        callback(error)
       }
     });
   } else {
@@ -112,7 +112,7 @@ function getOSOrg(osUser, osUserOrg, callback) {
             callback(null, osUser,osUserOrg, {});
           }
       } else {
-        handleUserDeleteError(req, response, error);
+        callback(error);
       }
     });
   } else {
@@ -161,7 +161,7 @@ function handleUserDeleteSuccess(req, response, result){
 function handleUserDeleteError (req, response, error) {
   var rspObj = req.rspObj
   console.log('User deletion failed', JSON.stringify(error))
-  if(error.response && error.response.data) {
+  if(error && error.response && error.response.data) {
     console.log(`User delete error ==> ${req.params.userId}  ==>`, JSON.stringify(error.response.data));
   }
   const errCode = userMessages.DELETE.EXCEPTION_CODE;
@@ -197,7 +197,7 @@ function generateDeleteUserEvent(req, response, userDetails, replacementUsers) {
       'id': userDetails.userId
     },
     'edata': {
-      'action': 'delete-user',
+      'action': 'cokreat-delete-user',
       'iteration': 1,
       'organisationId': '',
       'userId': userDetails.userId,
@@ -246,9 +246,10 @@ function deleteUser(req, response) {
 }
 
 function getUserOsRecord(user, osUserOrg, osOrgs, callback) {
+  let err = null;
   try {
+    user['osOrgRoles'] = [];
     if (osOrgs.length) {
-      user['osOrgRoles'] = [];
       osOrgs.map((org) => {
         let roles = null
         let userOrgOsid = null
@@ -260,21 +261,23 @@ function getUserOsRecord(user, osUserOrg, osOrgs, callback) {
         });
         org['userOrgOsid'] = userOrgOsid
         org['roles'] = roles;
-        user['osOrgRoles'].concat(roles);
+        user['osOrgRoles'] = user['osOrgRoles'].concat(roles);
       });
-      user['orgs'] = osOrgs
+      user['orgs'] = osOrgs;
+    } else {
+      user['osOrgRoles'] = ["individual"];
     }
-    callback(null, user)
   } catch (e) {
-    handleUserDeleteError(req, response, e)
+    err  = e;
   }
+  callback(err, user)
 }
 
 function deleteUserAccordingtoOrgRole(req,response, osUser) {
-  if (!osUser.osOrgRoles.length || osUser.osOrgRoles.includes('user')) {
+  if (osUser.osOrgRoles.includes('individual') || osUser.osOrgRoles.includes('user')) {
     deleteOsUser(osUser, (err, res) => {
-      if (res && res.status == 200 && _.get(res.data, 'params.status' == "SUCCESSFUL")) {
-        if (!osUser.osOrgRoles.length) {
+      if (res && res.status == 200 && _.get(res.data, 'params.status') == "SUCCESSFUL") {
+        if (osUser.osOrgRoles.includes('individual')) {
           onIndividualUserDeletion(req,response, osUser);
         }
         if (osUser.osOrgRoles.includes('user')) {
@@ -308,19 +311,24 @@ function deleteOsUser (userDetails, callback) {
 
 function onIndividualUserDeletion (req, response, userDetails) {
   const eventData = generateDeleteUserEvent (req, response, userDetails, {});
-  KafkaService.sendRecord(eventData, function (err, res) {
+  try {
+  KafkaService.sendRecordWithTopic(eventData, envVariables.COKREAT_USER_DELETE_KAFKA_TOPIC, function (err, res) {
     if (err) {
-      handleUserDeleteError(req, response, error);
+      throw(err);
     } else {
       handleUserDeleteSuccess(req, response, {"response": 'User deleted Successfully ${req.params.userId}'});
     }
   });
+ }catch(err) {
+  handleUserDeleteError(req, response, error);
+
+ }
 }
 
 function onOrgUserDeletion(req, response, userDetails) {      
-  userDetails.orgs.forEach.every((element)=> {
+  userDetails.orgs.every((element)=> {
     if (element.roles.includes("user")) {
-      searchAdminOfOrg(orgId, (error, res) => {
+      searchAdminOfOrg(element.osid, (error, res) => {
         if (res && res.status == 200) {
           if (res.data.result.User_Org.length > 0) {
             var adminUserOrgDetails = res.data.result.User_Org[0];
@@ -329,7 +337,7 @@ function onOrgUserDeletion(req, response, userDetails) {
                 if (adminRes && adminRes.status == 200 && adminRes.data.result.User.length > 0) {
                   var adminDetails = adminRes.data.result.User[0];
                   const eventData =  generateDeleteUserEvent (req, response, userDetails, {role: 'admin', users: [adminDetails.userId]});
-                  KafkaService.sendRecord(eventData, function (err, res) {
+                  KafkaService.sendRecordWithTopic(eventData, envVariables.COKREAT_USER_DELETE_KAFKA_TOPIC, function (err, res) {
                     if (err) {
                       handleUserDeleteError(req, response, error);
                     } else {
