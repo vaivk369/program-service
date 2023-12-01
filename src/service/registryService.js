@@ -4,6 +4,9 @@ const axios = require('axios');
 const _ = require("lodash");
 
 class RegistryService {
+    constructor() {
+    }
+    
     async getOrgDetails(orgFilters) {
       const option = {
         url: registryUrl + '/search',
@@ -116,7 +119,7 @@ class RegistryService {
     searchRecord(value, callback) {
         const headers = this.getDefaultHeaders()
         
-        axios.post(registryUrl+"/audit", value.body, headers)
+        axios.post(registryUrl+'/search', value.body, headers)
         .then((res) =>{
           callback(null, res)
         },
@@ -140,7 +143,7 @@ class RegistryService {
     getDefaultHeaders() {
         let headers = {
             'content-type': 'application/json',
-            'accept': 'application/json',
+            'accept': 'application/json'
           }
           return headers;
     }
