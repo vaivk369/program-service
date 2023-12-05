@@ -1127,6 +1127,7 @@ async function programList(req, response) {
               ['updatedon', 'DESC']
             ]
           });
+  
           let apiRes = _.map(res, 'dataValues');
           if (data.request.sort){
             apiRes = programServiceHelper.sortPrograms(apiRes, data.request.sort);
@@ -2025,8 +2026,6 @@ function createUserRecords(user, userOrgMapDetails, orgInfoList, callback) {
     logger.error("Error while parsing for user lists")
     callback("Some Internal processing error while parsing user details", null)
   }
-
-
 }
 
 function programSearch(req, response) {
