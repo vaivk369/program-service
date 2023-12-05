@@ -1131,8 +1131,8 @@ async function programList(req, response) {
             order: [
               ['updatedon', 'DESC']
             ]
-          })
-
+          });
+  
           let apiRes = _.map(res, 'dataValues');
           if (data.request.sort){
             apiRes = programServiceHelper.sortPrograms(apiRes, data.request.sort);
