@@ -1111,6 +1111,10 @@ async function programList(req, response) {
           loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
           return response.status(200).send(successResponse(rspObj));
         } else {
+          /*let configFields = ['subject', 'gradeLevel', 'board', 'medium', 'defaultContributeOrgReview', 'framework', 'frameworkObj'];
+          let configFieldsInclude = _.map(configFields, (field) => {
+            return [Sequelize.json(`config.${field}`), `${field}`]
+          });*/
 
           const res = await model.program.findAll({
             where: {
@@ -1118,15 +1122,16 @@ async function programList(req, response) {
               ...data.request.filters
             },
             attributes: data.request.fields || {
-              include : [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium'], [Sequelize.json('config.frameworkObj'), 'frameworkObj']],
-              exclude: ['config', 'description']
+              //include : configFieldsInclude,
+              exclude: ['description']
             },
             offset: res_offset,
             limit: res_limit,
             order: [
               ['updatedon', 'DESC']
             ]
-          });
+          })
+
           let apiRes = _.map(res, 'dataValues');
           if (data.request.sort){
             apiRes = programServiceHelper.sortPrograms(apiRes, data.request.sort);
@@ -2025,8 +2030,6 @@ function createUserRecords(user, userOrgMapDetails, orgInfoList, callback) {
     logger.error("Error while parsing for user lists")
     callback("Some Internal processing error while parsing user details", null)
   }
-
-
 }
 
 function programSearch(req, response) {
