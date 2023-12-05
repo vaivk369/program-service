@@ -1111,6 +1111,11 @@ async function programList(req, response) {
           loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
           return response.status(200).send(successResponse(rspObj));
         } else {
+          let fieldsInConfig = (data.request.frameworkCategoryFields || []).concat(['defaultContributeOrgReview', 'framework', 'frameworkObj'])
+          /*let configFields = ['subject', 'gradeLevel', 'board', 'medium', 'defaultContributeOrgReview', 'framework', 'frameworkObj'];*/
+          let configFieldsInclude = _.map(fieldsInConfig, (field) => {
+            return [Sequelize.json(`config.${field}`), `${field}`]
+          });
 
           const res = await model.program.findAll({
             where: {
@@ -1118,7 +1123,7 @@ async function programList(req, response) {
               ...data.request.filters
             },
             attributes: data.request.fields || {
-              include : [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium'], [Sequelize.json('config.frameworkObj'), 'frameworkObj']],
+              include : configFieldsInclude,
               exclude: ['config', 'description']
             },
             offset: res_offset,
