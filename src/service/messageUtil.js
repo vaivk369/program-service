@@ -1011,3 +1011,15 @@ exports.PROGRAM_FEED = {
     INFO: 'Search For Program Feed Updates'
   }
 }
+
+exports.USER = {
+  DELETE: {
+    FAILED_CODE: "ERR_DELETING_USER_FAILED",
+    MISSING_CODE: 'ERR_DELETING_USER_MISSING',
+    MISSING_MESSAGE: "User id is not passed in the request",
+    FAILED_MESSAGE: 'Unable to delete given user',
+    EXCEPTION_CODE: 'USER_DEL',
+    INFO: 'Delete User'
+  }
+}
+

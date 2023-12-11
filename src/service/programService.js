@@ -40,8 +40,7 @@ const cacheManager = new SbCacheManager({ttl: envVariables.CACHE_TTL});
 const cacheManager_programReport = new SbCacheManager({ttl: 86400});
 const registryService = new RegistryService()
 const hierarchyService = new HierarchyService()
-const UserService = require('./userService');
-const userService = new UserService();
+const userService = require('./userService');
 
 function getProgram(req, response) {
  const logObject = {
@@ -1112,6 +1111,11 @@ async function programList(req, response) {
           loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
           return response.status(200).send(successResponse(rspObj));
         } else {
+          let fieldsInConfig = (data.request.frameworkCategoryFields || []).concat(['defaultContributeOrgReview', 'framework', 'frameworkObj'])
+          /*let configFields = ['subject', 'gradeLevel', 'board', 'medium', 'defaultContributeOrgReview', 'framework', 'frameworkObj'];*/
+          let configFieldsInclude = _.map(fieldsInConfig, (field) => {
+            return [Sequelize.json(`config.${field}`), `${field}`]
+          });
 
           const res = await model.program.findAll({
             where: {
@@ -1119,7 +1123,7 @@ async function programList(req, response) {
               ...data.request.filters
             },
             attributes: data.request.fields || {
-              include : [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium'], [Sequelize.json('config.frameworkObj'), 'frameworkObj']],
+              include : configFieldsInclude,
               exclude: ['config', 'description']
             },
             offset: res_offset,
@@ -1128,6 +1132,7 @@ async function programList(req, response) {
               ['updatedon', 'DESC']
             ]
           });
+  
           let apiRes = _.map(res, 'dataValues');
           if (data.request.sort){
             apiRes = programServiceHelper.sortPrograms(apiRes, data.request.sort);
@@ -2026,8 +2031,6 @@ function createUserRecords(user, userOrgMapDetails, orgInfoList, callback) {
     logger.error("Error while parsing for user lists")
     callback("Some Internal processing error while parsing user details", null)
   }
-
-
 }
 
 function programSearch(req, response) {

@@ -1067,14 +1067,17 @@ class ProgramServiceHelper {
       });
 
       const programIds = _.uniq(_.map(nominatedPrograms, 'dataValues.program_id'));
+      let fieldsInConfig = (data.request.frameworkCategoryFields || []).concat(['defaultContributeOrgReview', 'framework', 'frameworkObj'])
+      let configFieldsInclude = _.map(fieldsInConfig, (field) => {
+        return [Sequelize.json(`config.${field}`), `${field}`]
+      });
       // Get programs excuding nominated one
       return await model.program.findAll({
         offset: data.request.offset || 0,
         limit: queryRes_Min,
         required: true,
         attributes: {
-          include: [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium'], [Sequelize.json('config.frameworkObj'), 'frameworkObj']],
-          exclude: ['config', 'description'],
+          include: configFieldsInclude,
         },
         where: {
           ...filters,
@@ -1126,6 +1129,11 @@ class ProgramServiceHelper {
 
       // Remove nomination filter object
       delete data.request.filters.nomination;
+      let fieldsInConfig = (data.request.frameworkCategoryFields || []).concat(['defaultContributeOrgReview', 'framework', 'frameworkObj'])
+      let configFieldsInclude = _.map(fieldsInConfig, (field) => {
+        return [Sequelize.json(`config.${field}`), `${field}`]
+      });
+
       return await model.nomination.findAll({
         where: {
           ...whereCond
@@ -1136,7 +1144,7 @@ class ProgramServiceHelper {
           model: model.program,
           required: true,
           attributes: {
-            include: [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium'], [Sequelize.json('config.frameworkObj'), 'frameworkObj']],
+            include: configFieldsInclude,
             exclude: ['config', 'description'],
           },
           where: {
@@ -1179,6 +1187,10 @@ class ProgramServiceHelper {
       let whereCond = {
         $contains: Sequelize.literal(`cast(nomination.rolemapping->>'${role}' as text) like ('%${user_id}%')`),
       };
+      let fieldsInConfig = (data.request.frameworkCategoryFields || []).concat(['defaultContributeOrgReview', 'framework', 'frameworkObj'])
+      let configFieldsInclude = _.map(fieldsInConfig, (field) => {
+        return [Sequelize.json(`config.${field}`), `${field}`]
+      });
       promises.push(
         model.nomination.findAndCountAll({
           where: {
@@ -1192,7 +1204,7 @@ class ProgramServiceHelper {
             model: model.program,
             required: true,
             attributes: {
-              include: [[Sequelize.json('config.subject'), 'subject'], [Sequelize.json('config.defaultContributeOrgReview'), 'defaultContributeOrgReview'], [Sequelize.json('config.framework'), 'framework'], [Sequelize.json('config.board'), 'board'],[Sequelize.json('config.gradeLevel'), 'gradeLevel'], [Sequelize.json('config.medium'), 'medium'],  [Sequelize.json('config.frameworkObj'), 'frameworkObj']],
+              include: configFieldsInclude,
               exclude: ['config', 'description'],
             },
             where: {
