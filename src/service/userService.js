@@ -16,7 +16,7 @@ const userMessages = messageUtils.USER;
 var async = require('async');
 const { response } = require('express');
 let logObject = {};
-async function getDikshaUserProfiles(req, identifier) {
+async function getSunbirdUserProfiles(req, identifier) {
     const option = {
       url: learnerService + '/user/v3/search',
       method: 'post',
@@ -350,4 +350,4 @@ function onOrgUserDeletion(req, response, userDetails) {
   });
 }
 
-module.exports = { getDikshaUserProfiles, deleteUser }
+module.exports = { getSunbirdUserProfiles, deleteUser }
