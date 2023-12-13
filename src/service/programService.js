@@ -3,7 +3,7 @@ const uuid = require("uuid/v1");
 const logger = require('sb_logger_util_v2');
 const SbCacheManager = require('sb_cache_manager');
 const messageUtils = require('./messageUtil');
-const { successResponse, errorResponse, loggerError } = require('../helpers/responseUtil');
+const { successResponse, errorResponse, loggerError, handleSuccessResponse, handleErrorResponse } = require('../helpers/responseUtil');
 const Sequelize = require('sequelize');
 const moment = require('moment');
 const loggerService = require('./loggerService');
@@ -15,6 +15,7 @@ const contentTypeMessages = messageUtils.CONTENT_TYPE;
 const configurationMessages = messageUtils.CONFIGURATION;
 const errorCodes = messageUtils.ERRORCODES;
 const model = require('../models');
+console.log(model);
 const { from  } = require("rxjs");
 
 const {
@@ -3070,19 +3071,25 @@ function syncUsersToRegistry(req, response) {
       rspObj.responseCode = "Failed to get the programs";
       rspObj.result = {};
       loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-      return response.status(400).send(errorResponse(rspObj,rspObj.errCode));
+      return response.status(500).send(errorResponse(rspObj,rspObj.errCode));
   });
 }
 
 
 function health(req, response) {
-  return response.status(200).send(successResponse({
-    apiId: 'api.program.health',
-    ver: '1.0',
-    msgid: uuid(),
-    responseCode: 'OK',
-    result: {}
-  }));
+  // check if prostgres up and running
+  model.sequelize.authenticate()
+  .then(() => {
+    console.log('Connection has been established successfully.');
+    return handleSuccessResponse(req, response, {})
+  })
+  .catch(err => {
+    const postgresHealthError = messageUtils.HEALTH_CHECK.POSTGRES_DB;
+    req.rspObj.errCode = postgresHealthError.FAILED_CODE
+    req.rspObj.errMsg = postgresHealthError.FAILED_MESSAGE
+    req.rspObj.result = err
+    return handleErrorResponse(req, response, {})
+  });
 }
 
 
