@@ -6,7 +6,6 @@ const axios = require('axios');
 const _ = require("lodash");
 const { successResponse, errorResponse, loggerError } = require('../helpers/responseUtil');
 const KafkaService = require('../helpers/kafkaUtil')
-const { of  } = require("rxjs");
 const RegistryService = require('./registryService')
 const registryService = new RegistryService()
 const loggerService = require('./loggerService');
@@ -16,6 +15,8 @@ const userMessages = messageUtils.USER;
 var async = require('async');
 const { response } = require('express');
 let logObject = {};
+let errorStatusCode = 500;
+let userProfile = {};
 async function getSunbirdUserProfiles(req, identifier) {
     const option = {
       url: learnerService + '/user/v3/search',
@@ -64,7 +65,8 @@ function getOSUserDetails(userId, callback) {
         var userDetails = res.data.result.User[0];
         callback(null, userDetails)
       } else {
-          callback({"response": "User not found in OS"}, {});
+        errorStatusCode = 404;
+        callback({"response": "User not found in OS"}, {});
         }
     } else {
       callback(err);
@@ -160,7 +162,7 @@ function handleUserDeleteError (req, response, error) {
   rspObj.result  = error;
   loggerError(rspObj, errCode);
   loggerService.exitLog({responseCode: rspObj.responseCode}, logObject);
-  return response.status(500).send(errorResponse(rspObj, errCode));
+  return response.status(errorStatusCode).send(errorResponse(rspObj, errCode));
 }
 
 function generateDeleteUserEvent(req, response, userDetails, replacementUsers) {
@@ -189,7 +191,8 @@ function generateDeleteUserEvent(req, response, userDetails, replacementUsers) {
       'action': 'cokreat-delete-user',
       'iteration': 1,
       'organisationId': '',
-      'userId': userDetails.userId,
+      'userId': req.params.userId,
+      'userName': userProfile.userName,
       'suggested_users' : replacementUsers
     }
   }
@@ -198,32 +201,45 @@ function generateDeleteUserEvent(req, response, userDetails, replacementUsers) {
 }
 
 
-function deleteUser(req, response) {
+async function deleteUser(req, response) {
   logObject['message'] = userMessages.DELETE.INFO
   logObject['traceId'] = req.headers['x-request-id'] || '',
   loggerService.entryLog(req.body, logObject);
   var rspObj = req.rspObj
+  const reqHeaders = req.headers;
   if (req.params.userId) {
-    async.waterfall([
-      function (callback) {
-        getOSUserDetails(req.params.userId, callback)
-      },
-      function (user, callback) {
-        getOSUserOrgMapping(user, callback);
-      },
-      function (user, osUserOrg, callback) {
-        getOSOrg(user, osUserOrg, callback)
-      },
-      function (user, osUserOrg, osOrgs, callback) {
-        getUserOsRecord(user, osUserOrg, osOrgs, callback)
-      }
-    ], function (err, res) {
-      if (err) {
-        handleUserDeleteError(req, response, err);
+    try {
+      const userRes = await getSunbirdUserProfiles({'headers': reqHeaders}, req.params.userId);
+      let orgUsersDetails = _.get(userRes.data, 'result.response.content');
+      if (orgUsersDetails && !_.isEmpty(_.first(orgUsersDetails))) {
+        userProfile = _.first(orgUsersDetails);
+        async.waterfall([
+          function (callback) {
+            getOSUserDetails(req.params.userId, callback)
+          },
+          function (user, callback) {
+            getOSUserOrgMapping(user, callback);
+          },
+          function (user, osUserOrg, callback) {
+            getOSOrg(user, osUserOrg, callback)
+          },
+          function (user, osUserOrg, osOrgs, callback) {
+            getUserOsRecord(user, osUserOrg, osOrgs, callback)
+          }
+        ], function (err, res) {
+          if (err) {
+            handleUserDeleteError(req, response, err);
+          } else {
+            deleteUserAccordingtoOrgRole(req, response, res)
+          }
+        });
       } else {
-        deleteUserAccordingtoOrgRole(req, response, res)
+        errorStatusCode = 404;
+        handleUserDeleteError(req, response, {"response": "User not found in Sunbird"});
       }
-    });
+    }  catch(error) {
+      handleUserDeleteError(req, response, error);
+    }
   } else {
     rspObj.errCode = userMessages.DELETE.MISSING_CODE
     rspObj.errMsg = userMessages.DELETE.MISSING_MESSAGE
