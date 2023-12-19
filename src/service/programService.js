@@ -1373,13 +1373,11 @@ function getNominationsList(req, response) {
           const allUserData = _.nth(resData, 1);
           const allOrgData = userOrgAPIPromise.length > 1 ? _.last(resData) : {};
 
-          
-
           _.map(result, (nomElement) => {
             if (nomElement.dataValues.user_id) {
               const userSunbirdData = (allUserSunbirdData && !_.isEmpty(_.get(allUserSunbirdData, 'data.result.response.content'))) ?_.find(allUserSunbirdData.data.result.response.content, {'identifier' : nomElement.dataValues.user_id}) : {};
               const userOsData = (allUserData && !_.isEmpty(_.get(allUserData, 'data.result.User'))) ?_.find(allUserData.data.result.User, {'userId' : nomElement.user_id}): {};
-              nomElement.dataValues.userData = _.assign(userSunbirdData, userOsData)
+              nomElement.dataValues.userData = _.assign(userOsData, userSunbirdData)
             }
             if (nomElement.dataValues.organisation_id) {
               nomElement.dataValues.orgData = (allOrgData && !_.isEmpty(_.get(allOrgData, 'data.result.Org'))) ? _.find(allOrgData.data.result.Org, {'osid' : nomElement.organisation_id}) : {};
