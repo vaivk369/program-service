@@ -17,7 +17,7 @@ const { response } = require('express');
 let logObject = {};
 let errorStatusCode = 500;
 let userProfile = {};
-async function getSunbirdUserProfiles(req, identifier) {
+async function getSunbirdUserProfiles(req, identifier, fields=[])  {
     const option = {
       url: learnerService + '/user/v3/search',
       method: 'post',
@@ -32,6 +32,9 @@ async function getSunbirdUserProfiles(req, identifier) {
         }
       }
     };
+    if (!_.isEmpty(fields)) {
+      option.data.request.fields = fields;
+    }
     return axios(option);
 }
 

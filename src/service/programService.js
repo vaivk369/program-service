@@ -1361,6 +1361,7 @@ function getNominationsList(req, response) {
           return response.status(200).send(successResponse(rspObj))
         }
         const userOrgAPIPromise = [];
+        userOrgAPIPromise.push(userService.getSunbirdUserProfiles(req, userList, ['firstName', 'lastName', 'identifier']));
         userOrgAPIPromise.push(getUsersDetails(req, userList))
         if(!_.isEmpty(orgList)) {
           userOrgAPIPromise.push(getOrgDetails(req, orgList));
@@ -1368,26 +1369,21 @@ function getNominationsList(req, response) {
 
         forkJoin(...userOrgAPIPromise)
         .subscribe((resData) => {
-          const allUserData = _.first(resData);
+          const allUserSunbirdData = _.first(resData);
+          const allUserData = _.nth(resData, 1);
           const allOrgData = userOrgAPIPromise.length > 1 ? _.last(resData) : {};
-          if(allUserData && !_.isEmpty(_.get(allUserData, 'data.result.User'))) {
-            const listOfUserId = _.map(result, 'user_id');
-            _.forEach(allUserData.data.result.User, (userData) => {
-              const index = (userData && userData.userId) ? _.indexOf(listOfUserId, userData.userId) : -1;
-              if (index !== -1) {
-                result[index].dataValues.userData = userData;
-              }
-            })
-          }
-          if(allOrgData && !_.isEmpty(_.get(allOrgData, 'data.result.Org'))) {
-            const listOfOrgId = _.map(result, 'organisation_id');
-            _.forEach(allOrgData.data.result.Org, (orgData) => {
-              const index = (orgData && orgData.osid) ? _.indexOf(listOfOrgId, orgData.osid) : -1;
-              if (index !== -1) {
-                result[index].dataValues.orgData = orgData;
-              }
-            })
-          }
+
+          _.map(result, (nomElement) => {
+            if (nomElement.dataValues.user_id) {
+              const userSunbirdData = (allUserSunbirdData && !_.isEmpty(_.get(allUserSunbirdData, 'data.result.response.content'))) ?_.find(allUserSunbirdData.data.result.response.content, {'identifier' : nomElement.dataValues.user_id}) : {};
+              const userOsData = (allUserData && !_.isEmpty(_.get(allUserData, 'data.result.User'))) ?_.find(allUserData.data.result.User, {'userId' : nomElement.user_id}): {};
+              nomElement.dataValues.userData = _.assign(userOsData, userSunbirdData)
+            }
+            if (nomElement.dataValues.organisation_id) {
+              nomElement.dataValues.orgData = (allOrgData && !_.isEmpty(_.get(allOrgData, 'data.result.Org'))) ? _.find(allOrgData.data.result.Org, {'osid' : nomElement.organisation_id}) : {};
+            }
+          });
+
           rspObj.result = result;
           rspObj.responseCode = responseCode.SUCCESS;
           loggerService.exitLog({responseCode: 'OK'}, logObject);
