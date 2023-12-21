@@ -175,25 +175,23 @@ function generateDeleteUserEvent(req, response, userDetails, replacementUsers) {
     'ets': ets,
     'mid': `LP.${ets}.${uuid()}`,
     'actor': {
-      'id': 'delete-user',
+      'id': 'coKreat Flink Job',
       'type': 'System'
     },
     'context': {
       'pdata': {  
         'ver': '1.0',
         'id': 'org.sunbird.platform'
-      },
-      'channel': userDetails.channel,
-      'env': envVariables.PUBLISH_ENV
+      }
     },
     'object': {
-      'type': 'User',
-      'id': userDetails.userId
+      'type': 'user',
+      'id': req.params.userId
     },
     'edata': {
-      'action': 'cokreat-delete-user',
+      'action': 'delete-user',
       'iteration': 1,
-      'organisationId': '',
+      'organisationId': userProfile.rootOrgId,
       'userId': req.params.userId,
       'userName': userProfile.userName,
       'suggested_users' : replacementUsers
