@@ -305,8 +305,6 @@ function deleteOsUser (userDetails, callback) {
   let request = {
     User: {
       osid: userDetails.osid,
-      firstName: "Deleted User",
-      lastName: (userDetails.lastName) ? "Deleted USer": '',
       isDeleted: true
     }
   }
